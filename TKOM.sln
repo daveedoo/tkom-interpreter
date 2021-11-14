@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31829.152
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TKOM", "TKOM.csproj", "{5435311B-F88A-402C-95A7-92C5F8BA1A1D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TKOM", "TKOM\TKOM.csproj", "{5435311B-F88A-402C-95A7-92C5F8BA1A1D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TKOM.Test", "TKOM.Test\TKOM.Test.csproj", "{5BDD67A4-9091-4156-842F-02A20E50907C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{5435311B-F88A-402C-95A7-92C5F8BA1A1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5435311B-F88A-402C-95A7-92C5F8BA1A1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5435311B-F88A-402C-95A7-92C5F8BA1A1D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5BDD67A4-9091-4156-842F-02A20E50907C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5BDD67A4-9091-4156-842F-02A20E50907C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5BDD67A4-9091-4156-842F-02A20E50907C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5BDD67A4-9091-4156-842F-02A20E50907C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
