@@ -29,7 +29,8 @@ namespace TKOM.Test
         [Theory]
         [InlineData("a", "a")]
         [InlineData("abcd", "abcd")]
-        [InlineData("abcd1", "abcd1")]
+        [InlineData("vx", "vx")]
+        [InlineData("voi ", "voi")]
         public void Identifier(string program, string expectedIdentifier)
         {
             Scanner scanner = buildScanner(program);
@@ -39,6 +40,50 @@ namespace TKOM.Test
             Assert.True(moved);
             Assert.Equal(Token.Identifier, scanner.Current);
             Assert.Equal(expectedIdentifier, scanner.strValue);
+        }
+
+        [Theory]
+        [InlineData("1", 1)]
+        //[InlineData("007", 7)]
+        public void IntConst(string program, int expectedValue)
+        {
+            Scanner scanner = buildScanner(program);
+
+            bool moved = scanner.MoveNext();
+
+            Assert.True(moved);
+            Assert.Equal(Token.IntConst, scanner.Current);
+            Assert.Equal(expectedValue, scanner.intValue);
+        }
+
+        [Theory]
+        [InlineData("void", Token.Void)]
+        public void Keyword(string program, Token token)
+        {
+            Scanner scanner = buildScanner(program);
+
+            bool moved = scanner.MoveNext();
+
+            Assert.True(moved);
+            Assert.Equal(token, scanner.Current);
+        }
+
+        [Theory]
+        [InlineData("void abc", new[] { Token.Void, Token.Identifier }, new[] { null, "abc" })]
+        [InlineData("vx abc", new[] {Token.Identifier, Token.Identifier}, new[] { "vx", "abc" })]
+        [InlineData("void abc void", new[] { Token.Void, Token.Identifier, Token.Void }, new[] { null, "abc", null })]
+        [InlineData("voi d", new[] {Token.Identifier, Token.Identifier}, new[] { "voi", "d" })]
+        public void Program(string program, Token[] tokens, string[] values)
+        {
+            Scanner scanner = buildScanner(program);
+
+            for (int i = 0; i < tokens.Length; i++)
+            {
+                Assert.True(scanner.MoveNext());
+                Assert.Equal(tokens[i], scanner.Current);
+                if (values[i] is not null)
+                    Assert.Equal(values[i], scanner.strValue);
+            }
         }
     }
 }
