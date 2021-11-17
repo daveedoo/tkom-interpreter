@@ -44,6 +44,7 @@ namespace TKOM.Test
 
         [Theory]
         [InlineData("1", 1)]
+        [InlineData("10", 10)]
         //[InlineData("007", 7)]
         public void IntConst(string program, int expectedValue)
         {
@@ -69,10 +70,8 @@ namespace TKOM.Test
         }
 
         [Theory]
-        [InlineData("void abc", new[] { Token.Void, Token.Identifier }, new[] { null, "abc" })]
         [InlineData("vx abc", new[] {Token.Identifier, Token.Identifier}, new[] { "vx", "abc" })]
         [InlineData("void abc void", new[] { Token.Void, Token.Identifier, Token.Void }, new[] { null, "abc", null })]
-        [InlineData("voi d", new[] {Token.Identifier, Token.Identifier}, new[] { "voi", "d" })]
         public void Program(string program, Token[] tokens, string[] values)
         {
             Scanner scanner = buildScanner(program);

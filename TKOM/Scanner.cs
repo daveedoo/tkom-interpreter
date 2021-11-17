@@ -14,130 +14,99 @@ namespace TKOM
         Void                // "void"
     }
 
-    public class Scanner : IEnumerator<Token>
+    public class Scanner
     {
-
-        object IEnumerator.Current => Current;
-        public Token Current { get; private set; } = Token.Error;
+        private readonly TextReader reader;
+        public Token Current;
+        
+        private int nextChar;
         public string strValue;
         public int intValue;
-        
-        private readonly TextReader reader;
-        private StringBuilder alreadyRead = new();
 
         public Scanner(TextReader reader)
         {
             this.reader = reader;
+            nextChar = reader.Read();
+            Current = Token.Error;
         }
-
 
         public bool MoveNext()
         {
-            if (!SkipWhitespaces())
-                return false;
-            char ch = alreadyRead[0];
+            skipWhitespaces();
+            char ch = (char)nextChar;
 
+            StringBuilder buffer = new();
+            buffer.Append(ch);
             if (char.IsLetter(ch))
             {
-                switch (ch)     // keywords
+                readWhileLetterOrDigit(buffer);
+                strValue = buffer.ToString();
+                Current = strValue switch
                 {
-                    case 'v':
-                        if (TryReadKeyword_OrIdentifier("void", 1)) return true;
-                        break;
-                    default:
-                        break;
-                }
-                TryReadIdentifier();
+                    //"if" =>
+                    //case "int":
+                    //case "try":
+                    "void" => Token.Void,
+                    //case "when":
+                    //case "read":
+                    //case "else":
+                    //case "while":
+                    //case "throw":
+                    //case "catch":
+                    //case "print":
+                    //case "return":
+                    //case "finally":
+                    //case "Exception":
+                    _ => Token.Identifier
+                };
             }
             else if (char.IsDigit(ch))
             {
-                ReadIntConst();
+                readWhileDigit(buffer);
+                intValue = int.Parse(buffer.ToString());
+                Current = Token.IntConst;
+            }
+            else if (nextChar < 0)
+                return false;
+            else
+            {
+                
             }
             return true;
         }
 
-        private bool SkipWhitespaces()
+        private void skipWhitespaces()
         {
-            char ch;
-            do
-            {
-                int c = reader.Read();
-                if (c < 0)
-                    return false;
-                ch = (char)c;
-            } while (char.IsWhiteSpace(ch));
-            alreadyRead.Append(ch);
-            
-            return true;
+            while (char.IsWhiteSpace((char)nextChar))
+                nextChar = reader.Read();
         }
 
-        private bool TryReadKeyword_OrIdentifier(string keyword, int alreadyReadChars)
+        private void readWhileLetterOrDigit(StringBuilder buffer)
         {
-            for (int i = alreadyReadChars; i < keyword.Length; i++)
+            nextChar = reader.Read();
+            char ch = (char)nextChar;
+            while (char.IsLetterOrDigit(ch))
             {
-                int c = reader.Read();
-                if (c < 0)
-                    return false;
-
-                char ch = (char)c;
-                if (char.IsWhiteSpace(ch))  // if unable to find the keyword, return Identifier
-                {
-                    Current = Token.Identifier;
-                    strValue = alreadyRead.ToString();
-                    alreadyRead.Clear();
-                    return true;
-                }
-                alreadyRead.Append(ch);
-                if (c != keyword[i])
-                    return false;
+                buffer.Append(ch);
+                nextChar = reader.Read();
+                ch = (char)nextChar;
             }
-            Current = Token.Void;
-            alreadyRead.Clear();
-            return true;
         }
 
-        private bool TryReadIdentifier()
+        private void readWhileDigit(StringBuilder buffer)
         {
-            char ch = (char)reader.Read();
-            while (char.IsLetterOrDigit(ch))   // TODO: co dla c = -1?
-            {
-                alreadyRead.Append(ch);
-                ch = (char)reader.Read();
-            }
-            Current = Token.Identifier;
-            strValue = alreadyRead.ToString();
-            alreadyRead.Clear();
-            if (!char.IsWhiteSpace(ch))
-                alreadyRead.Append(ch);
-            return true;
-        }
-
-        private void ReadIntConst()      // TODO: give some limit
-            // TODO: leading zeros error
-            // TODO: leading minus
-        {
-            char ch = (char)reader.Read();
+            nextChar = reader.Read();
+            char ch = (char)nextChar;
             while (char.IsDigit(ch))
             {
-                alreadyRead.Append(ch);
-                ch = (char)reader.Read();
+                buffer.Append(ch);
+                nextChar = reader.Read();
+                ch = (char)nextChar;
             }
-            Current = Token.IntConst;
-            intValue = Convert.ToInt32(alreadyRead.ToString());
-            alreadyRead.Clear();
-            if (!char.IsWhiteSpace(ch))
-                alreadyRead.Append(ch);
         }
 
-
-
-        public void Reset()
-        {
-            throw new NotSupportedException();
-        }
-        public void Dispose()
-        {
-            throw new NotSupportedException();
-        }
+        // TODO: leading zeros error
+        // TODO: leading minus
+        // TODO: give some limit
     }
 }
