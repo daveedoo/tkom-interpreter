@@ -16,15 +16,19 @@ block               : "{" { instruction } "}"
 const               : INT_CONST
                     ;
 
-instruction         : block
-                    | declaration ";"
-                    | read ";"
-                    | print ";"
-                    | return ";"
-                    | assignment ";"
+instruction         : simple_instruction ";"
+                    | block_instruction
+                    ;
+simple_instruction  : declaration
+                    | read
+                    | print
+                    | return
+                    | assignment
+                    | throw
+                    ;
+block_instruction   : block
                     | if
                     | while
-                    | throw ";"
                     | try_catch_finally
                     ;
 
