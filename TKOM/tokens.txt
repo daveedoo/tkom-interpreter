@@ -1,0 +1,18 @@
+IDENTIFIER      [a-zA-Z][a-zA-Z0-9]*
+INT_CONST       (0|([1-9][0-9]*))
+STRING          ".*"
+
+"void", "int", 
+"if", "else", "while",
+"read", "print",
+"try", "catch", "finally", "throw", "when", "Exception",
+"return",
+"(", ")",
+"{", "}",
+"-", "+", "*", "/",
+"||", "&&",
+"|", "^", "&", "~",
+"<", ">", "=", "!",
+";",
+",",
+"."

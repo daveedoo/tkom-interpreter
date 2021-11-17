@@ -29,8 +29,7 @@ namespace TKOM.Test
         [Theory]
         [InlineData("a", "a")]
         [InlineData("abcd", "abcd")]
-        [InlineData("vx", "vx")]
-        [InlineData("voi ", "voi")]
+        [InlineData("voId", "voId")]
         public void Identifier(string program, string expectedIdentifier)
         {
             Scanner scanner = buildScanner(program);
