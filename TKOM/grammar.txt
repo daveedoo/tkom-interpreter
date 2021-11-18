@@ -59,7 +59,7 @@ while               : "while" "(" expression ")" statement
                     ;
 
 // ================= EXCEPTIONS =================
-throw               : "throw" "Exception" "(" INT_CONST ")"
+throw               : "throw" "Exception" "(" expression ")"
                     ;
 
 try_catch_finally   : "try" block 
@@ -81,20 +81,8 @@ logicalOr           : logicalOr "||" logicalAnd
                     | logicalAnd
                     ;
 
-logicalAnd          : logicalAnd "&&" bitOr
-                    | bitOr
-                    ;
-
-bitOr               : bitOr "|" bitXor
-                    | bitXor
-                    ;
-
-bitXor              : bitXor "^" bitAnd
-                    | bitAnd
-                    ;
-
-BitAnd              : BitAnd "&" in_equality
-                    : in_equality
+logicalAnd          : logicalAnd "&&" in_equality
+                    | in_equality
                     ;
 
 in_equality         : in_equality "==" relation
@@ -120,7 +108,6 @@ multiplicative      : multiplicative "*" unar
                     ;
 
 unar                : "-" unar
-                    | "~" unar
                     | "!" unar
                     | const
                     | lvalue
