@@ -10,23 +10,22 @@ type                : "int"
 paramList           : type IDENTIFIER { "," type IDENTIFIER }
                     ;
 
-block               : "{" { instruction } "}"
+block               : "{" { statement } "}"
                     ;
 
 const               : INT_CONST
                     ;
 
-instruction         : simple_instruction ";"
-                    | block_instruction
+statement           : simple_statement ";"
+                    | block_statement
                     ;
-simple_instruction  : declaration
-                    | read
-                    | print
+simple_statement    : declaration
+                    | function_call
                     | return
                     | assignment
                     | throw
                     ;
-block_instruction   : block
+block_statement     : block
                     | if
                     | while
                     | try_catch_finally
@@ -37,24 +36,27 @@ declaration         : type declOptAssign { "," declOptAssign }
 declOptAssign       : IDENTIFIER [ "=" const ]
                     ;
 
-read                : "read" IDENTIFIER
-                    | "read" "(" IDENTIFIER ")"
+function_call       : IDENTIFIER "(" { IDENTIFIER { "," IDENTIFIER } } ")"
+                    | read
+                    | print
                     ;
 
-print               : "print" ( string | statement )
-                    | "print" "(" ( string | statement ) ")"
+read                : "read" "(" IDENTIFIER ")"
+                    ;
+
+print               : "print" "(" ( string | expression ) ")"
                     ;
 
 string              : STRING { "+" ( STRING | const ) }
                     ;
 
-return              : "return" statement
+return              : "return" [ expression ]
                     ;
 
-if                  : "if" "(" statement ")" instruction [ "else" instruction ]
+if                  : "if" "(" expression ")" statement [ "else" statement ]
                     ;
 
-while               : "while" "(" statement ")" instruction
+while               : "while" "(" expression ")" statement
                     ;
 
 // ================= EXCEPTIONS =================
@@ -65,15 +67,15 @@ try_catch_finally   : "try" block
                         catch { catch }
                         [ "finally" block ]
                     ;
-catch               : "catch" "Exception" IDENTIFIER [ "when" "(" statement ")" ] block
+catch               : "catch" "Exception" IDENTIFIER [ "when" "(" expression ")" ] block
                     ;
 
 // ================= OPERATORS =================
-statement           : assignment
+expression           : assignment
                     | logicalOr
                     ;
 
-assignment          : lvalue "=" statement
+assignment          : lvalue "=" expression
                     ;
 
 logicalOr           : logicalOr "||" logicalAnd
@@ -123,7 +125,7 @@ unar                : "-" unar
                     | "!" unar
                     | const
                     | lvalue
-                    | "(" statement ")"
+                    | "(" expression ")"
                     ;
 
 lvalue              : { IDENTIFIER "." } IDENTIFIER
