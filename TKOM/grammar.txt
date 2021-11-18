@@ -21,6 +21,7 @@ statement           : simple_statement ";"
                     ;
 simple_statement    : declaration
                     | function_call
+                    | builtin_func_call
                     | return
                     | assignment
                     | throw
@@ -36,15 +37,13 @@ declaration         : type declOptAssign { "," declOptAssign }
 declOptAssign       : IDENTIFIER [ "=" const ]
                     ;
 
-function_call       : IDENTIFIER "(" { IDENTIFIER { "," IDENTIFIER } } ")"
+function_call       : IDENTIFIER "(" { expression { "," expression } } ")"
                     | read
                     | print
                     ;
 
-read                : "read" "(" IDENTIFIER ")"
-                    ;
-
-print               : "print" "(" ( string | expression ) ")"
+builtin_func_call   : "read" "(" IDENTIFIER ")"
+                    | "print" "(" ( string | expression ) ")"
                     ;
 
 string              : STRING { "+" ( STRING | const ) }
@@ -71,7 +70,7 @@ catch               : "catch" "Exception" IDENTIFIER [ "when" "(" expression ")"
                     ;
 
 // ================= OPERATORS =================
-expression           : assignment
+expression          : assignment
                     | logicalOr
                     ;
 
@@ -125,6 +124,7 @@ unar                : "-" unar
                     | "!" unar
                     | const
                     | lvalue
+                    | function_call
                     | "(" expression ")"
                     ;
 
