@@ -8,7 +8,12 @@ namespace TKOM
         Error,
         Identifier,         // [a-zA-Z][a-zA-Z0-9]*
         IntConst,           // [-+]?(0|([1-9][0-9]*))
-        Void                // "void"
+        // Keywords
+        Void, Int,
+        Return,
+        If, Else, While,
+        Read, Print,
+        Try, Catch, Finally, Throw, When, Exception
     }
 
     public class Scanner
@@ -40,20 +45,20 @@ namespace TKOM
                 strValue = buffer.ToString();
                 Current = strValue switch
                 {
-                    //"if" =>
-                    //case "int":
-                    //case "try":
                     "void" => Token.Void,
-                    //case "when":
-                    //case "read":
-                    //case "else":
-                    //case "while":
-                    //case "throw":
-                    //case "catch":
-                    //case "print":
-                    //case "return":
-                    //case "finally":
-                    //case "Exception":
+                    "int"           => Token.Int,
+                    "return"        => Token.Return,
+                    "if"            => Token.If,
+                    "else"          => Token.Else,
+                    "while"         => Token.While,
+                    "read"          => Token.Read,
+                    "print"         => Token.Print,
+                    "try"           => Token.Try,
+                    "catch"         => Token.Catch,
+                    "finally"       => Token.Finally,
+                    "throw"         => Token.Throw,
+                    "when"          => Token.When,
+                    "Exception"     => Token.Exception,
                     _ => Token.Identifier
                 };
             }

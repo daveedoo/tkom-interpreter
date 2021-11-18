@@ -57,7 +57,12 @@ namespace TKOM.Test
         }
 
         [Theory]
-        [InlineData("void", Token.Void)]
+        [InlineData("void", Token.Void)]    [InlineData("int", Token.Int)] 
+        [InlineData("return", Token.Return)]
+        [InlineData("if", Token.If)]        [InlineData("else", Token.Else)]    [InlineData("while", Token.While)]
+        [InlineData("read", Token.Read)]    [InlineData("print", Token.Print)]
+        [InlineData("try", Token.Try)]      [InlineData("catch", Token.Catch)]  [InlineData("finally", Token.Finally)]
+        [InlineData("throw", Token.Throw)]  [InlineData("when", Token.When)]    [InlineData("Exception", Token.Exception)]
         public void Keyword(string program, Token token)
         {
             Scanner scanner = buildScanner(program);
