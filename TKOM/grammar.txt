@@ -7,7 +7,7 @@ function            : ( "void" | type ) IDENTIFIER "(" [paramList] ")" block
 type                : "int"
                     ;
 
-paramList           : { type IDENTIFIER, } type IDENTIFIER
+paramList           : type IDENTIFIER { "," type IDENTIFIER }
                     ;
 
 block               : "{" { instruction } "}"
@@ -32,7 +32,7 @@ block_instruction   : block
                     | try_catch_finally
                     ;
 
-declaration         : type { declOptAssign "," } declOptAssign
+declaration         : type declOptAssign { "," declOptAssign }
                     ;
 declOptAssign       : IDENTIFIER [ "=" const ]
                     ;
