@@ -13,7 +13,14 @@ namespace TKOM
         Return,
         If, Else, While,
         Read, Print,
-        Try, Catch, Finally, Throw, When, Exception
+        Try, Catch, Finally, Throw, When, Exception,
+        // Operators
+        RoundBracketOpen, RoundBracketClose,
+        CurlyBracketOpen, CurlyBracketClose,
+        Minus, Plus, Star, Slash,
+        Or, And,
+        LessThan, GreaterThan, Equals, Not,
+        Semicolon, Comma, Dot
     }
 
     public class Scanner
@@ -72,7 +79,27 @@ namespace TKOM
                 return false;
             else
             {
-                
+                Current = nextChar switch
+                {
+                    '(' => Token.RoundBracketOpen,
+                    ')' => Token.RoundBracketClose,
+                    '{' => Token.CurlyBracketOpen,
+                    '}' => Token.CurlyBracketClose,
+                    '-' => Token.Minus,
+                    '+' => Token.Plus,
+                    '*' => Token.Star,
+                    '/' => Token.Slash,
+                    '|' => tryReadOrToken(),
+                    '&' => tryReadAndToken(),
+                    '<' => Token.LessThan,
+                    '>' => Token.GreaterThan,
+                    '=' => Token.Equals,
+                    '!' => Token.Not,
+                    ';' => Token.Semicolon,
+                    ',' => Token.Comma,
+                    '.' => Token.Dot,
+                    _ => Token.Error
+                };
             }
             return true;
         }
@@ -104,6 +131,32 @@ namespace TKOM
                 buffer.Append(ch);
                 nextChar = reader.Read();
                 ch = (char)nextChar;
+            }
+        }
+
+        private Token tryReadOrToken()
+        {
+            nextChar = reader.Read();
+            switch (nextChar)
+            {
+                case '|':
+                    nextChar = reader.Read();
+                    return Token.Or;
+                default:
+                    return Token.Error;
+            }
+        }
+
+        private Token tryReadAndToken()
+        {
+            nextChar = reader.Read();
+            switch (nextChar)
+            {
+                case '&':
+                    nextChar = reader.Read();
+                    return Token.And;
+                default:
+                    return Token.Error;
             }
         }
 
