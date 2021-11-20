@@ -5,10 +5,10 @@ namespace TKOM.Scanner.Test
 {
     public class ScannerTests
     {
-        private Scanner buildScanner(string program)
+        private IScanner buildScanner(string program)
         {
             StringReader reader = new(program);
-            return new(reader);
+            return new Scanner(reader);
         }
 
 
@@ -17,7 +17,7 @@ namespace TKOM.Scanner.Test
         [InlineData(" \n\t \r\n ")] // whitespace characters
         public void EmptyProgram(string program)
         {
-            Scanner scanner = buildScanner(program);
+            IScanner scanner = buildScanner(program);
 
             bool moved = scanner.MoveNext();
 
@@ -31,7 +31,7 @@ namespace TKOM.Scanner.Test
         [InlineData("voId", "voId")]    // keyword with upper letter
         public void Identifier(string program, string expectedIdentifier)
         {
-            Scanner scanner = buildScanner(program);
+            IScanner scanner = buildScanner(program);
 
             bool moved = scanner.MoveNext();
 
@@ -48,7 +48,7 @@ namespace TKOM.Scanner.Test
         [InlineData("007", 7)]          // leading zeros
         public void IntConst(string program, int expectedValue)
         {
-            Scanner scanner = buildScanner(program);
+            IScanner scanner = buildScanner(program);
 
             bool moved = scanner.MoveNext();
 
@@ -76,7 +76,7 @@ namespace TKOM.Scanner.Test
         [InlineData(";", Token.Semicolon)]  [InlineData(",", Token.Comma)]          [InlineData(".", Token.Dot)]
         public void SimpleToken(string program, Token token)
         {
-            Scanner scanner = buildScanner(program);
+            IScanner scanner = buildScanner(program);
 
             bool moved = scanner.MoveNext();
 
@@ -93,7 +93,7 @@ namespace TKOM.Scanner.Test
         [InlineData("//\" abc\"", "\" abc\"")]              // comment with a string
         public void Comment(string program, string expectedValue)
         {
-            Scanner scanner = buildScanner(program);
+            IScanner scanner = buildScanner(program);
 
             bool moved = scanner.MoveNext();
 
@@ -116,7 +116,7 @@ namespace TKOM.Scanner.Test
         [InlineData("\"abcd", "abcd")]                              // ended with an EOF
         public void String(string program, string expectedValue)
         {
-            Scanner scanner = buildScanner(program);
+            IScanner scanner = buildScanner(program);
 
             bool moved = scanner.MoveNext();
 
@@ -132,7 +132,7 @@ namespace TKOM.Scanner.Test
         [InlineData("\\")]  // backslash is not a divide operator
         public void ErrorToken(string program)
         {
-            Scanner scanner = buildScanner(program);
+            IScanner scanner = buildScanner(program);
 
             bool moved = scanner.MoveNext();
 
@@ -154,9 +154,12 @@ namespace TKOM.Scanner.Test
         [InlineData("-44", new[] { Token.Minus, Token.IntConst }, new object[] { null, 44 })]           // number with minus
         [InlineData("2+2", new[] { Token.IntConst, Token.Plus, Token.IntConst }, new object[] { 2, null, 2 })]  // simple equation
         [InlineData("\"AA\n BB", new[] { Token.String, Token.Identifier }, new[] { "AA", "BB" })]       // string broken by newline
+        [InlineData("int //comment1\n//comment2\n//comment3\n17",                                       // multiple comments
+                    new[] { Token.Int, Token.Comment, Token.Comment, Token.Comment, Token.IntConst },
+                    new object[] { null, "comment1", "comment2", "comment3", 17 })]
         public void Program(string program, Token[] tokens, object[] values = null)
         {
-            Scanner scanner = buildScanner(program);
+            IScanner scanner = buildScanner(program);
 
             for (int i = 0; i < tokens.Length; i++)
             {
