@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using Xunit;
 
@@ -97,10 +96,14 @@ namespace TKOM.Test
         [InlineData("vx abc", new[] { Token.Identifier, Token.Identifier }, new[] { "vx", "abc" })]
         [InlineData("void abc void", new[] { Token.Void, Token.Identifier, Token.Void }, new[] { null, "abc", null })]
         [InlineData("&A", new[] { Token.Error, Token.Identifier }, new[] { null, "A" })]
-        [InlineData("&&Exception", new[] { Token.And, Token.Exception }, new string[] { null, null })]
-        [InlineData("|void", new[] { Token.Error, Token.Void }, new string[] { null, null })]
-        [InlineData("||int", new[] { Token.Or, Token.Int }, new string[] { null, null })]
-        public void Program(string program, Token[] tokens, string[] values)
+        [InlineData("&&Exception", new[] { Token.And, Token.Exception })]
+        [InlineData("|void", new[] { Token.Error, Token.Void })]
+        [InlineData("||int", new[] { Token.Or, Token.Int })]
+        [InlineData("/8", new[] { Token.Slash, Token.IntConst }, new object[] { null, 8 })]
+        [InlineData("+41", new[] { Token.Plus, Token.IntConst }, new object[] { null, 41 })]
+        [InlineData("-44", new[] { Token.Minus, Token.IntConst }, new object[] { null, 44 })]
+        [InlineData("2+2", new[] { Token.IntConst, Token.Plus, Token.IntConst }, new object[] { 2, null, 2 })]
+        public void Program(string program, Token[] tokens, object[] values = null)
         {
             Scanner scanner = buildScanner(program);
 
@@ -108,8 +111,11 @@ namespace TKOM.Test
             {
                 Assert.True(scanner.MoveNext());
                 Assert.Equal(tokens[i], scanner.Current);
-                if (values[i] is not null)
-                    Assert.Equal(values[i], scanner.strValue);
+                if (values is not null)
+                    if (values[i] is string)
+                        Assert.Equal(values[i], scanner.strValue);
+                    else if (values[i] is int)
+                        Assert.Equal(values[i], scanner.intValue);
             }
         }
     }

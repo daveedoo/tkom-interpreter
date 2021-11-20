@@ -7,7 +7,7 @@ namespace TKOM
     {
         Error,
         Identifier,         // [a-zA-Z][a-zA-Z0-9]*
-        IntConst,           // [-+]?(0|([1-9][0-9]*))
+        IntConst,           // 0|([1-9][0-9]*)
         // Keywords
         Void, Int,
         Return,
@@ -35,8 +35,8 @@ namespace TKOM
         public Scanner(TextReader reader)
         {
             this.reader = reader;
-            nextChar = reader.Read();
             Current = Token.Error;
+            nextChar = reader.Read();
         }
 
         public bool MoveNext()
@@ -79,27 +79,32 @@ namespace TKOM
                 return false;
             else
             {
-                Current = nextChar switch
+                switch (ch)
                 {
-                    '(' => Token.RoundBracketOpen,
-                    ')' => Token.RoundBracketClose,
-                    '{' => Token.CurlyBracketOpen,
-                    '}' => Token.CurlyBracketClose,
-                    '-' => Token.Minus,
-                    '+' => Token.Plus,
-                    '*' => Token.Star,
-                    '/' => Token.Slash,
-                    '|' => tryReadOrToken(),
-                    '&' => tryReadAndToken(),
-                    '<' => Token.LessThan,
-                    '>' => Token.GreaterThan,
-                    '=' => Token.Equals,
-                    '!' => Token.Not,
-                    ';' => Token.Semicolon,
-                    ',' => Token.Comma,
-                    '.' => Token.Dot,
-                    _ => Token.Error
-                };
+                    case '|': Current = tryReadOrToken(); break;
+                    case '&': Current = tryReadAndToken(); break;
+                    default:  Current = ch switch
+                        {
+                            '(' => Token.RoundBracketOpen,
+                            ')' => Token.RoundBracketClose,
+                            '{' => Token.CurlyBracketOpen,
+                            '}' => Token.CurlyBracketClose,
+                            '-' => Token.Minus,
+                            '+' => Token.Plus,
+                            '*' => Token.Star,
+                            '/' => Token.Slash,
+                            '<' => Token.LessThan,
+                            '>' => Token.GreaterThan,
+                            '=' => Token.Equals,
+                            '!' => Token.Not,
+                            ';' => Token.Semicolon,
+                            ',' => Token.Comma,
+                            '.' => Token.Dot,
+                            _ => Token.Error
+                        };
+                        nextChar = reader.Read();
+                        break;
+                }
             }
             return true;
         }
@@ -161,7 +166,6 @@ namespace TKOM
         }
 
         // TODO: leading zeros error
-        // TODO: leading minus
         // TODO: give some limit
     }
 }

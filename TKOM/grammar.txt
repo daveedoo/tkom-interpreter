@@ -106,6 +106,7 @@ multiplicative      : multiplicative "*" unar
                     ;
 
 unar                : "-" unar
+                    | "+" unar
                     | "!" unar
                     | const
                     | lvalue
