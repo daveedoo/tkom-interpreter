@@ -84,6 +84,7 @@ namespace TKOM.Test
         [InlineData("//", "")]                              // empty
         [InlineData("// rs 278 %^&*+=", " rs 278 %^&*+=")]  // nonempty
         [InlineData("//abcd\nxyz", "abcd")]                 // ended with \n
+        [InlineData("//\" abc\"", "\" abc\"")]              // comment with a string
         public void Comment(string program, string expectedValue)
         {
             Scanner scanner = buildScanner(program);
@@ -92,6 +93,27 @@ namespace TKOM.Test
 
             Assert.True(moved);
             Assert.Equal(Token.Comment, scanner.Current);
+            Assert.Equal(expectedValue, scanner.strValue);
+        }
+
+        [Theory]
+        [InlineData("\"\"", "")]                                    // empty
+        [InlineData("\" asb 78 @#$%^&* l\"", " asb 78 @#$%^&* l")]  // nonempty
+        [InlineData("\"// abc\"", "// abc")]                        // string with a comment
+        [InlineData("\"12 \\\" 34", "12 \" 34")]                    // special character - quote
+        [InlineData("\"12 \\n 34", "12 \n 34")]                     // special character - newline
+        [InlineData("\"12 \\t 34", "12 \t 34")]                     // special character - tabulator
+        [InlineData("\"12 \\\\ 34", "12 \\ 34")]                    // special character - slash
+        [InlineData("\"12 \\x 34", "12 \\x 34")]                    // illegal special character
+        [InlineData("\"abcd", "abcd")]                              // ended with an EOF
+        public void String(string program, string expectedValue)
+        {
+            Scanner scanner = buildScanner(program);
+
+            bool moved = scanner.MoveNext();
+
+            Assert.True(moved);
+            Assert.Equal(Token.String, scanner.Current);
             Assert.Equal(expectedValue, scanner.strValue);
         }
 
@@ -119,7 +141,8 @@ namespace TKOM.Test
         [InlineData("+41", new[] { Token.Plus, Token.IntConst }, new object[] { null, 41 })]            // number with plus
         [InlineData("-44", new[] { Token.Minus, Token.IntConst }, new object[] { null, 44 })]           // number with minus
         [InlineData("2+2", new[] { Token.IntConst, Token.Plus, Token.IntConst }, new object[] { 2, null, 2 })]  // simple equation
-        //[InlineData("//abcd\nxyz", new[] { Token.Comment, Token.Identifier }, new[] { "abcd", "xyz" })]
+        //[InlineData("//AA \n BB", new[] { Token.Comment, Token.Identifier }, new[] { "AA ", "BB" })]
+        [InlineData("\"AA\n BB", new[] { Token.String, Token.Identifier }, new[] { "AA", "BB" })]       // string broken by newline
         public void Program(string program, Token[] tokens, object[] values = null)
         {
             Scanner scanner = buildScanner(program);

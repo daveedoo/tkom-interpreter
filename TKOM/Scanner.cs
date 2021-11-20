@@ -8,6 +8,7 @@ namespace TKOM
         Error,
         Identifier,         // [a-zA-Z][a-zA-Z0-9]*
         IntConst,           // 0|([1-9][0-9]*)
+        String,             // ".*"
         Comment,            // //.*\n
         // Keywords
         Void, Int,
@@ -85,6 +86,7 @@ namespace TKOM
                     case '|': Current = tryReadOrToken(); break;
                     case '&': Current = tryReadAndToken(); break;
                     case '/': Current = tryReadCommentToken(); break;
+                    case '"': Current = readStringToken(); break;
                     default:  Current = ch switch
                         {
                             '(' => Token.RoundBracketOpen,
@@ -169,21 +171,53 @@ namespace TKOM
         private Token tryReadCommentToken()
         {
             nextChar = reader.Read();
-            switch (nextChar)
+            if (nextChar == '/')
             {
-                case '/':
-                    StringBuilder buffer = new();
+                StringBuilder buffer = new();
+                nextChar = reader.Read();
+                while (nextChar >= 0 && nextChar != '\n')
+                {
+                    buffer.Append((char)nextChar);
                     nextChar = reader.Read();
-                    while (nextChar >= 0 && nextChar != '\n')
-                    {
-                        buffer.Append((char)nextChar);
-                        nextChar = reader.Read();
-                    }
-                    strValue = buffer.ToString();
-                    return Token.Comment;
-                default:
-                    return Token.Slash;
+                }
+                strValue = buffer.ToString();
+                return Token.Comment;
             }
+            return Token.Slash;
+        }
+
+        private Token readStringToken()
+        {
+            StringBuilder buffer = new();
+            nextChar = reader.Read();
+            while (nextChar >= 0 && nextChar != '"')
+            {
+                if (nextChar == '\\')
+                {
+                    nextChar = reader.Read();
+                    switch (nextChar)
+                    {
+                        case 'n': buffer.Append('\n'); break;
+                        case 't': buffer.Append('\t'); break;
+                        case '\"': buffer.Append('\"'); break;
+                        case '\\': buffer.Append('\\'); break;
+                        default:    // TODO: error
+                            buffer.Append('\\');
+                            buffer.Append((char)nextChar);
+                            break;
+                    }
+                }
+                else if (nextChar == '\n')  // TODO: error
+                {
+                    nextChar = reader.Read();
+                    break;
+                }
+                else
+                    buffer.Append((char)nextChar);
+                nextChar = reader.Read();
+            }
+            strValue = buffer.ToString();
+            return Token.String;
         }
 
         // TODO: give some limit
