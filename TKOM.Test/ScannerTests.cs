@@ -13,8 +13,8 @@ namespace TKOM.Test
 
 
         [Theory]
-        [InlineData("")]
-        [InlineData(" \n\t \r\n ")]
+        [InlineData("")]            // nothing
+        [InlineData(" \n\t \r\n ")] // whitespace characters
         public void EmptyProgram(string program)
         {
             Scanner scanner = buildScanner(program);
@@ -26,9 +26,9 @@ namespace TKOM.Test
         }
 
         [Theory]
-        [InlineData("a", "a")]
-        [InlineData("abcd", "abcd")]
-        [InlineData("voId", "voId")]
+        [InlineData("a", "a")]          // single letter
+        [InlineData("abcd", "abcd")]    // longer identifier
+        [InlineData("voId", "voId")]    // keyword with upper letter
         public void Identifier(string program, string expectedIdentifier)
         {
             Scanner scanner = buildScanner(program);
@@ -41,9 +41,9 @@ namespace TKOM.Test
         }
 
         [Theory]
-        [InlineData("1", 1)]
-        [InlineData("10", 10)]
-        //[InlineData("007", 7)]
+        [InlineData("1", 1)]            // single digit
+        [InlineData("10432", 10432)]    // more digits
+        [InlineData("007", 7)]          // leading zeros
         public void IntConst(string program, int expectedValue)
         {
             Scanner scanner = buildScanner(program);
@@ -93,16 +93,16 @@ namespace TKOM.Test
         }
 
         [Theory]
-        [InlineData("vx abc", new[] { Token.Identifier, Token.Identifier }, new[] { "vx", "abc" })]
-        [InlineData("void abc void", new[] { Token.Void, Token.Identifier, Token.Void }, new[] { null, "abc", null })]
-        [InlineData("&A", new[] { Token.Error, Token.Identifier }, new[] { null, "A" })]
-        [InlineData("&&Exception", new[] { Token.And, Token.Exception })]
-        [InlineData("|void", new[] { Token.Error, Token.Void })]
-        [InlineData("||int", new[] { Token.Or, Token.Int })]
-        [InlineData("/8", new[] { Token.Slash, Token.IntConst }, new object[] { null, 8 })]
-        [InlineData("+41", new[] { Token.Plus, Token.IntConst }, new object[] { null, 41 })]
-        [InlineData("-44", new[] { Token.Minus, Token.IntConst }, new object[] { null, 44 })]
-        [InlineData("2+2", new[] { Token.IntConst, Token.Plus, Token.IntConst }, new object[] { 2, null, 2 })]
+        [InlineData("vx abc", new[] { Token.Identifier, Token.Identifier }, new[] { "vx", "abc" })]     // identifier starting as keyword
+        [InlineData("void abc void", new[] { Token.Void, Token.Identifier, Token.Void }, new[] { null, "abc", null })]  // multiple tokens
+        [InlineData("&A", new[] { Token.Error, Token.Identifier }, new[] { null, "A" })]                // only first char of AND operator
+        [InlineData("&&Exception", new[] { Token.And, Token.Exception })]                               // after AND operator
+        [InlineData("|void", new[] { Token.Error, Token.Void })]                                        // only first char of OR operator
+        [InlineData("||int", new[] { Token.Or, Token.Int })]                                            // after OR operator
+        [InlineData("/8", new[] { Token.Slash, Token.IntConst }, new object[] { null, 8 })]             // after short operator
+        [InlineData("+41", new[] { Token.Plus, Token.IntConst }, new object[] { null, 41 })]            // number with plus
+        [InlineData("-44", new[] { Token.Minus, Token.IntConst }, new object[] { null, 44 })]           // number with minus
+        [InlineData("2+2", new[] { Token.IntConst, Token.Plus, Token.IntConst }, new object[] { 2, null, 2 })]  // simple equation
         public void Program(string program, Token[] tokens, object[] values = null)
         {
             Scanner scanner = buildScanner(program);
