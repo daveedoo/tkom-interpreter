@@ -81,7 +81,23 @@ namespace TKOM.Test
         }
 
         [Theory]
+        [InlineData("//", "")]                              // empty
+        [InlineData("// rs 278 %^&*+=", " rs 278 %^&*+=")]  // nonempty
+        [InlineData("//abcd\nxyz", "abcd")]                 // ended with \n
+        public void Comment(string program, string expectedValue)
+        {
+            Scanner scanner = buildScanner(program);
+
+            bool moved = scanner.MoveNext();
+
+            Assert.True(moved);
+            Assert.Equal(Token.Comment, scanner.Current);
+            Assert.Equal(expectedValue, scanner.strValue);
+        }
+
+        [Theory]
         [InlineData("|")] [InlineData("&")]
+        [InlineData("\\")]  // backslash is not a divide operator
         public void ErrorToken(string program)
         {
             Scanner scanner = buildScanner(program);
@@ -103,6 +119,7 @@ namespace TKOM.Test
         [InlineData("+41", new[] { Token.Plus, Token.IntConst }, new object[] { null, 41 })]            // number with plus
         [InlineData("-44", new[] { Token.Minus, Token.IntConst }, new object[] { null, 44 })]           // number with minus
         [InlineData("2+2", new[] { Token.IntConst, Token.Plus, Token.IntConst }, new object[] { 2, null, 2 })]  // simple equation
+        //[InlineData("//abcd\nxyz", new[] { Token.Comment, Token.Identifier }, new[] { "abcd", "xyz" })]
         public void Program(string program, Token[] tokens, object[] values = null)
         {
             Scanner scanner = buildScanner(program);

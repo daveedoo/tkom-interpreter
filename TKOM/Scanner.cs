@@ -8,6 +8,7 @@ namespace TKOM
         Error,
         Identifier,         // [a-zA-Z][a-zA-Z0-9]*
         IntConst,           // 0|([1-9][0-9]*)
+        Comment,            // //.*\n
         // Keywords
         Void, Int,
         Return,
@@ -83,6 +84,7 @@ namespace TKOM
                 {
                     case '|': Current = tryReadOrToken(); break;
                     case '&': Current = tryReadAndToken(); break;
+                    case '/': Current = tryReadCommentToken(); break;
                     default:  Current = ch switch
                         {
                             '(' => Token.RoundBracketOpen,
@@ -92,7 +94,6 @@ namespace TKOM
                             '-' => Token.Minus,
                             '+' => Token.Plus,
                             '*' => Token.Star,
-                            '/' => Token.Slash,
                             '<' => Token.LessThan,
                             '>' => Token.GreaterThan,
                             '=' => Token.Equals,
@@ -165,7 +166,26 @@ namespace TKOM
             }
         }
 
-        // TODO: leading zeros error
+        private Token tryReadCommentToken()
+        {
+            nextChar = reader.Read();
+            switch (nextChar)
+            {
+                case '/':
+                    StringBuilder buffer = new();
+                    nextChar = reader.Read();
+                    while (nextChar >= 0 && nextChar != '\n')
+                    {
+                        buffer.Append((char)nextChar);
+                        nextChar = reader.Read();
+                    }
+                    strValue = buffer.ToString();
+                    return Token.Comment;
+                default:
+                    return Token.Slash;
+            }
+        }
+
         // TODO: give some limit
     }
 }
