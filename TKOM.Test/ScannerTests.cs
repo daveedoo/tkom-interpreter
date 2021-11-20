@@ -38,6 +38,8 @@ namespace TKOM.Test
             Assert.True(moved);
             Assert.Equal(Token.Identifier, scanner.Current);
             Assert.Equal(expectedIdentifier, scanner.strValue);
+
+            Assert.False(scanner.MoveNext());
         }
 
         [Theory]
@@ -53,6 +55,8 @@ namespace TKOM.Test
             Assert.True(moved);
             Assert.Equal(Token.IntConst, scanner.Current);
             Assert.Equal(expectedValue, scanner.intValue);
+
+            Assert.False(scanner.MoveNext());
         }
 
         [Theory]
@@ -78,12 +82,14 @@ namespace TKOM.Test
 
             Assert.True(moved);
             Assert.Equal(token, scanner.Current);
+
+            Assert.False(scanner.MoveNext());
         }
 
         [Theory]
         [InlineData("//", "")]                              // empty
-        [InlineData("// rs 278 %^&*+=", " rs 278 %^&*+=")]  // nonempty
-        [InlineData("//abcd\nxyz", "abcd")]                 // ended with \n
+        [InlineData("// rs 278 %^&*+=", " rs 278 %^&*+=")]  // nonempty ended with EOF
+        [InlineData("//abcd\n", "abcd")]                    // ended with \n
         [InlineData("//\" abc\"", "\" abc\"")]              // comment with a string
         public void Comment(string program, string expectedValue)
         {
@@ -94,6 +100,8 @@ namespace TKOM.Test
             Assert.True(moved);
             Assert.Equal(Token.Comment, scanner.Current);
             Assert.Equal(expectedValue, scanner.strValue);
+
+            Assert.False(scanner.MoveNext());
         }
 
         [Theory]
@@ -115,6 +123,8 @@ namespace TKOM.Test
             Assert.True(moved);
             Assert.Equal(Token.String, scanner.Current);
             Assert.Equal(expectedValue, scanner.strValue);
+
+            Assert.False(scanner.MoveNext());
         }
 
         [Theory]
@@ -128,6 +138,8 @@ namespace TKOM.Test
 
             Assert.True(moved);
             Assert.Equal(Token.Error, scanner.Current);
+            
+            Assert.False(scanner.MoveNext());
         }
 
         [Theory]
@@ -141,7 +153,6 @@ namespace TKOM.Test
         [InlineData("+41", new[] { Token.Plus, Token.IntConst }, new object[] { null, 41 })]            // number with plus
         [InlineData("-44", new[] { Token.Minus, Token.IntConst }, new object[] { null, 44 })]           // number with minus
         [InlineData("2+2", new[] { Token.IntConst, Token.Plus, Token.IntConst }, new object[] { 2, null, 2 })]  // simple equation
-        //[InlineData("//AA \n BB", new[] { Token.Comment, Token.Identifier }, new[] { "AA ", "BB" })]
         [InlineData("\"AA\n BB", new[] { Token.String, Token.Identifier }, new[] { "AA", "BB" })]       // string broken by newline
         public void Program(string program, Token[] tokens, object[] values = null)
         {
@@ -157,6 +168,7 @@ namespace TKOM.Test
                     else if (values[i] is int)
                         Assert.Equal(values[i], scanner.intValue);
             }
+            Assert.False(scanner.MoveNext());
         }
     }
 }

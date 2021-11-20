@@ -192,6 +192,8 @@ namespace TKOM
             nextChar = reader.Read();
             while (nextChar >= 0 && nextChar != '"')
             {
+                if (nextChar == '\n')    // TODO: error
+                    break;
                 if (nextChar == '\\')
                 {
                     nextChar = reader.Read();
@@ -207,16 +209,12 @@ namespace TKOM
                             break;
                     }
                 }
-                else if (nextChar == '\n')  // TODO: error
-                {
-                    nextChar = reader.Read();
-                    break;
-                }
                 else
                     buffer.Append((char)nextChar);
                 nextChar = reader.Read();
             }
             strValue = buffer.ToString();
+            nextChar = reader.Read();
             return Token.String;
         }
 
