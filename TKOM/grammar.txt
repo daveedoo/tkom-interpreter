@@ -1,13 +1,13 @@
 program             : { function }
                     ;
 
-function            : ( "void" | type ) IDENTIFIER "(" [paramList] ")" block
+function            : ( "void" | type ) IDENTIFIER "(" [param_list] ")" block
                     ;
 
 type                : "int"
                     ;
 
-paramList           : type IDENTIFIER { "," type IDENTIFIER }
+param_list          : type IDENTIFIER { "," type IDENTIFIER }
                     ;
 
 block               : "{" { statement } "}"
@@ -32,14 +32,12 @@ block_statement     : block
                     | try_catch_finally
                     ;
 
-declaration         : type declOptAssign { "," declOptAssign }
+declaration         : type declOptAssign { "," decl_opt_assign }
                     ;
-declOptAssign       : IDENTIFIER [ "=" const ]
+decl_opt_assign     : IDENTIFIER [ "=" const ]
                     ;
 
 function_call       : IDENTIFIER "(" { expression { "," expression } } ")"
-                    | read
-                    | print
                     ;
 
 builtin_func_call   : "read" "(" IDENTIFIER ")"
@@ -62,11 +60,11 @@ while               : "while" "(" expression ")" statement
 throw               : "throw" "Exception" "(" expression ")"
                     ;
 
-try_catch_finally   : "try" block 
+try_catch_finally   : "try" statement 
                         catch { catch }
-                        [ "finally" block ]
+                        [ "finally" statement ]
                     ;
-catch               : "catch" "Exception" IDENTIFIER [ "when" "(" expression ")" ] block
+catch               : "catch" "Exception" IDENTIFIER [ "when" "(" expression ")" ] statement
                     ;
 
 // ================= OPERATORS =================
@@ -77,11 +75,11 @@ expression          : assignment
 assignment          : lvalue "=" expression
                     ;
 
-logicalOr           : logicalOr "||" logicalAnd
-                    | logicalAnd
+logical_or          : logical_or "||" logical_and
+                    | logical_and
                     ;
 
-logicalAnd          : logicalAnd "&&" in_equality
+logical_and         : logical_and "&&" in_equality
                     | in_equality
                     ;
 
@@ -115,7 +113,7 @@ unar                : "-" unar
                     | "(" expression ")"
                     ;
 
-lvalue              : { IDENTIFIER "." } IDENTIFIER
+lvalue              : IDENTIFIER { "." IDENTIFIER }
                     ;
 
 
@@ -123,6 +121,8 @@ int fun(int x)
 {
     try {
         int A = x / 0;
+    } catch Exception ex when (x > 7) {
+        int B = 57;
     } catch Exception ex when (5 == 5) {
         print "\tups!\\\n" + 10;
     } finally {
@@ -139,9 +139,9 @@ void main()
 
     read(i);
     if (i < j + !~a && 1 == 1)
-        print fun(3);
+        print(fun(3));
     else
-        print ":)";
+        print(":)");
 
     return;
 }
