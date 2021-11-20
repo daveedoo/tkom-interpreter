@@ -1,7 +1,7 @@
 using System.IO;
 using Xunit;
 
-namespace TKOM.Test
+namespace TKOM.Scanner.Test
 {
     public class ScannerTests
     {
@@ -37,7 +37,7 @@ namespace TKOM.Test
 
             Assert.True(moved);
             Assert.Equal(Token.Identifier, scanner.Current);
-            Assert.Equal(expectedIdentifier, scanner.strValue);
+            Assert.Equal(expectedIdentifier, scanner.StringValue);
 
             Assert.False(scanner.MoveNext());
         }
@@ -54,7 +54,7 @@ namespace TKOM.Test
 
             Assert.True(moved);
             Assert.Equal(Token.IntConst, scanner.Current);
-            Assert.Equal(expectedValue, scanner.intValue);
+            Assert.Equal(expectedValue, scanner.IntValue);
 
             Assert.False(scanner.MoveNext());
         }
@@ -99,7 +99,7 @@ namespace TKOM.Test
 
             Assert.True(moved);
             Assert.Equal(Token.Comment, scanner.Current);
-            Assert.Equal(expectedValue, scanner.strValue);
+            Assert.Equal(expectedValue, scanner.StringValue);
 
             Assert.False(scanner.MoveNext());
         }
@@ -122,7 +122,7 @@ namespace TKOM.Test
 
             Assert.True(moved);
             Assert.Equal(Token.String, scanner.Current);
-            Assert.Equal(expectedValue, scanner.strValue);
+            Assert.Equal(expectedValue, scanner.StringValue);
 
             Assert.False(scanner.MoveNext());
         }
@@ -164,9 +164,9 @@ namespace TKOM.Test
                 Assert.Equal(tokens[i], scanner.Current);
                 if (values is not null)
                     if (values[i] is string)
-                        Assert.Equal(values[i], scanner.strValue);
+                        Assert.Equal(values[i], scanner.StringValue);
                     else if (values[i] is int)
-                        Assert.Equal(values[i], scanner.intValue);
+                        Assert.Equal(values[i], scanner.IntValue);
             }
             Assert.False(scanner.MoveNext());
         }

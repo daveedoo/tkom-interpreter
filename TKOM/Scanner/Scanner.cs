@@ -1,38 +1,16 @@
 ﻿using System.IO;
 using System.Text;
 
-namespace TKOM
+namespace TKOM.Scanner
 {
-    public enum Token
-    {
-        Error,
-        Identifier,         // [a-zA-Z][a-zA-Z0-9]*
-        IntConst,           // 0|([1-9][0-9]*)
-        String,             // ".*"
-        Comment,            // //.*\n
-        // Keywords
-        Void, Int,
-        Return,
-        If, Else, While,
-        Read, Print,
-        Try, Catch, Finally, Throw, When, Exception,
-        // Operators
-        RoundBracketOpen, RoundBracketClose,
-        CurlyBracketOpen, CurlyBracketClose,
-        Minus, Plus, Star, Slash,
-        Or, And,
-        LessThan, GreaterThan, Equals, Not,
-        Semicolon, Comma, Dot
-    }
-
-    public class Scanner
+    public class Scanner : IScanner
     {
         private readonly TextReader reader;
-        public Token Current;
+        public Token Current { get; private set; }
         
         private int nextChar;
-        public string strValue;
-        public int intValue;
+        public string StringValue { get; private set; }
+        public int IntValue { get; private set; }
 
         public Scanner(TextReader reader)
         {
@@ -51,8 +29,8 @@ namespace TKOM
             if (char.IsLetter(ch))
             {
                 readWhileLetterOrDigit(buffer);
-                strValue = buffer.ToString();
-                Current = strValue switch
+                StringValue = buffer.ToString();
+                Current = StringValue switch
                 {
                     "void" => Token.Void,
                     "int"           => Token.Int,
@@ -74,7 +52,7 @@ namespace TKOM
             else if (char.IsDigit(ch))
             {
                 readWhileDigit(buffer);
-                intValue = int.Parse(buffer.ToString());
+                IntValue = int.Parse(buffer.ToString());
                 Current = Token.IntConst;
             }
             else if (nextChar < 0)
@@ -180,7 +158,7 @@ namespace TKOM
                     buffer.Append((char)nextChar);
                     nextChar = reader.Read();
                 }
-                strValue = buffer.ToString();
+                StringValue = buffer.ToString();
                 return Token.Comment;
             }
             return Token.Slash;
@@ -213,7 +191,7 @@ namespace TKOM
                     buffer.Append((char)nextChar);
                 nextChar = reader.Read();
             }
-            strValue = buffer.ToString();
+            StringValue = buffer.ToString();
             nextChar = reader.Read();
             return Token.String;
         }
