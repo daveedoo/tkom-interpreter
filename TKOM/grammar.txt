@@ -37,7 +37,7 @@ declaration         : type declOptAssign { "," decl_opt_assign }
 decl_opt_assign     : IDENTIFIER [ "=" const ]
                     ;
 
-function_call       : IDENTIFIER "(" { expression { "," expression } } ")"
+function_call       : IDENTIFIER "(" [ expression { "," expression } ] ")"
                     ;
 
 builtin_func_call   : "read" "(" IDENTIFIER ")"
@@ -111,38 +111,9 @@ unar                : "-" unar
                     | const
                     | lvalue
                     | function_call
+                    | >>string<< ///
                     | "(" expression ")"
                     ;
 
 lvalue              : IDENTIFIER { "." IDENTIFIER }
                     ;
-
-
-int fun(int x)
-{
-    try {
-        int A = x / 0;
-    } catch Exception ex when (x > 7) {
-        int B = 57;
-    } catch Exception ex when (5 == 5) {
-        print "\tups!\\\n" + 10;
-    } finally {
-        return x + 1;
-    }
-}
-
-void main()
-{
-    int a, b = 17;
-    a = 10;
-    int i, j = -89, k;
-    j = j + b*2/a - 3;
-
-    read(i);
-    if (i < j + !~a && 1 == 1)
-        print(fun(3));
-    else
-        print(":)");
-
-    return;
-}

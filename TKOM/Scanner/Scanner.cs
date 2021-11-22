@@ -72,14 +72,14 @@ namespace TKOM.Scanner
                     Current = Token.Error;
                     return true;
                 }
-                if (int.TryParse(buffer.ToString(), out int value))
+                if (int.TryParse(buffer.ToString(), out int value)) // TODO: poprawić
                 {
                     Current = Token.IntConst;
                     IntValue = value;
                 }
                 else
                 {
-                    LexLocation location = new LexLocation(errStart.startLine, errStart.startColumn, LineNumber, ColumnNumber);
+                    LexLocation location = new LexLocation(errStart.startLine, errStart.startColumn, LineNumber, ColumnNumber); // TODO: dać na górę
                     errorHandler.HandleError(location, "Integral constant is too large");
                     Current = Token.Error;
                 }
@@ -111,9 +111,9 @@ namespace TKOM.Scanner
                             '-' => Token.Minus,
                             '+' => Token.Plus,
                             '*' => Token.Star,
-                            '<' => Token.LessThan,
+                            '<' => Token.LessThan,  // dwuznaki
                             '>' => Token.GreaterThan,
-                            '=' => Token.Equals,
+                            '=' => Token.Equals,    // ==
                             '!' => Token.Not,
                             ';' => Token.Semicolon,
                             ',' => Token.Comma,
@@ -156,7 +156,7 @@ namespace TKOM.Scanner
             {
                 do
                     readNextChar();
-                while (char.IsLetterOrDigit((char)nextChar)) ;
+                while (char.IsLetterOrDigit((char)nextChar));
                 LexLocation location = new LexLocation(errStart.startLine, errStart.startColumn, LineNumber, ColumnNumber);
                 errorHandler.HandleError(location, "Identifier is too long");
                 return false;
@@ -248,7 +248,7 @@ namespace TKOM.Scanner
             while (nextChar >= 0 && nextChar != '"' && buffer.Length < MAX_TOKEN_LENGTH - 1)
             {
                 if (nextChar == '\n')    // TODO: error
-                {
+                {                       // TODO: inne newline'y
                     LineNumber++;
                     ColumnNumber = 0;
                     break;
