@@ -7,6 +7,9 @@
         public string StringValue => scanner.StringValue;
         public int IntValue => scanner.IntValue;
 
+        public uint LineNumber => scanner.LineNumber;
+        public uint ColumnNumber => scanner.ColumnNumber;
+
         public CommentsFilterScanner(IScanner scanner)
         {
             this.scanner = scanner;

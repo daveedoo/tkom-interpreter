@@ -7,20 +7,29 @@ namespace TKOM.Scanner
     {
         private readonly TextReader reader;
         public Token Current { get; private set; }
-        
+
+        private bool eof = false;
         private int nextChar;
         public string StringValue { get; private set; }
         public int IntValue { get; private set; }
+
+        public uint LineNumber { get; private set; }
+        public uint ColumnNumber { get; private set; }
 
         public Scanner(TextReader reader)
         {
             this.reader = reader;
             Current = Token.Error;
-            nextChar = reader.Read();
+            LineNumber = 1;
+            ColumnNumber = 0;
+            readNextChar();
         }
 
         public bool MoveNext()
         {
+            if (eof)
+                return false;
+
             skipWhitespaces();
             char ch = (char)nextChar;
 
@@ -56,7 +65,11 @@ namespace TKOM.Scanner
                 Current = Token.IntConst;
             }
             else if (nextChar < 0)
+            {
+                ColumnNumber++;
+                eof = true;
                 return false;
+            }
             else
             {
                 switch (ch)
@@ -65,7 +78,8 @@ namespace TKOM.Scanner
                     case '&': Current = tryReadAndToken(); break;
                     case '/': Current = tryReadCommentToken(); break;
                     case '"': Current = readStringToken(); break;
-                    default:  Current = ch switch
+                    default:
+                        Current = ch switch
                         {
                             '(' => Token.RoundBracketOpen,
                             ')' => Token.RoundBracketClose,
@@ -83,7 +97,7 @@ namespace TKOM.Scanner
                             '.' => Token.Dot,
                             _ => Token.Error
                         };
-                        nextChar = reader.Read();
+                        readNextChar();
                         break;
                 }
             }
@@ -93,40 +107,48 @@ namespace TKOM.Scanner
         private void skipWhitespaces()
         {
             while (char.IsWhiteSpace((char)nextChar))
-                nextChar = reader.Read();
+            {
+                if (nextChar == '\n')
+                {
+                    LineNumber++;
+                    ColumnNumber = 0;
+                }
+                readNextChar();
+            }
+                //ColumnNumber++;
         }
 
         private void readWhileLetterOrDigit(StringBuilder buffer)
         {
-            nextChar = reader.Read();
+            readNextChar();
             char ch = (char)nextChar;
             while (char.IsLetterOrDigit(ch))
             {
                 buffer.Append(ch);
-                nextChar = reader.Read();
+                readNextChar();
                 ch = (char)nextChar;
             }
         }
 
         private void readWhileDigit(StringBuilder buffer)
         {
-            nextChar = reader.Read();
+            readNextChar();
             char ch = (char)nextChar;
             while (char.IsDigit(ch))
             {
                 buffer.Append(ch);
-                nextChar = reader.Read();
+                readNextChar();
                 ch = (char)nextChar;
             }
         }
 
         private Token tryReadOrToken()
         {
-            nextChar = reader.Read();
+            readNextChar();
             switch (nextChar)
             {
                 case '|':
-                    nextChar = reader.Read();
+                    readNextChar();
                     return Token.Or;
                 default:
                     return Token.Error;
@@ -135,11 +157,11 @@ namespace TKOM.Scanner
 
         private Token tryReadAndToken()
         {
-            nextChar = reader.Read();
+            readNextChar();
             switch (nextChar)
             {
                 case '&':
-                    nextChar = reader.Read();
+                    readNextChar();
                     return Token.And;
                 default:
                     return Token.Error;
@@ -148,15 +170,15 @@ namespace TKOM.Scanner
 
         private Token tryReadCommentToken()
         {
-            nextChar = reader.Read();
+            readNextChar();
             if (nextChar == '/')
             {
                 StringBuilder buffer = new();
-                nextChar = reader.Read();
+                readNextChar();
                 while (nextChar >= 0 && nextChar != '\n')
                 {
                     buffer.Append((char)nextChar);
-                    nextChar = reader.Read();
+                    readNextChar();
                 }
                 StringValue = buffer.ToString();
                 return Token.Comment;
@@ -167,14 +189,18 @@ namespace TKOM.Scanner
         private Token readStringToken()
         {
             StringBuilder buffer = new();
-            nextChar = reader.Read();
+            readNextChar();
             while (nextChar >= 0 && nextChar != '"')
             {
                 if (nextChar == '\n')    // TODO: error
+                {
+                    LineNumber++;
+                    ColumnNumber = 0;
                     break;
+                }
                 if (nextChar == '\\')
                 {
-                    nextChar = reader.Read();
+                    readNextChar();
                     switch (nextChar)
                     {
                         case 'n': buffer.Append('\n'); break;
@@ -189,11 +215,18 @@ namespace TKOM.Scanner
                 }
                 else
                     buffer.Append((char)nextChar);
-                nextChar = reader.Read();
+                readNextChar();
             }
             StringValue = buffer.ToString();
-            nextChar = reader.Read();
+            readNextChar();
             return Token.String;
+        }
+
+        private void readNextChar()
+        {
+            nextChar = reader.Read();
+            if (nextChar > 0)
+                ColumnNumber++;
         }
 
         // TODO: give some limit
