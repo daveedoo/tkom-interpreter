@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using TKOM.ErrorHandler;
 using Xunit;
 
 namespace TKOM.Scanner.Test
@@ -11,7 +12,8 @@ namespace TKOM.Scanner.Test
         public void SkipsComment(string program)
         {
             StringReader reader = new StringReader(program);
-            Scanner baseScanner = new Scanner(reader);
+            IErrorHandler errorHandler = new ErrorCollecter();
+            Scanner baseScanner = new Scanner(reader, errorHandler);
             IScanner scanner = new CommentsFilterScanner(baseScanner);
 
             Assert.True(scanner.MoveNext());

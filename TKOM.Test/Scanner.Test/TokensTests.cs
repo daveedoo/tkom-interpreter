@@ -1,4 +1,5 @@
 using System.IO;
+using TKOM.ErrorHandler;
 using Xunit;
 
 namespace TKOM.Scanner.Test
@@ -8,7 +9,8 @@ namespace TKOM.Scanner.Test
         private IScanner buildScanner(string program)
         {
             StringReader reader = new(program);
-            return new Scanner(reader);
+            IErrorHandler errorHandler = new ErrorHandler.ErrorHandler();
+            return new Scanner(reader, errorHandler);
         }
 
 
