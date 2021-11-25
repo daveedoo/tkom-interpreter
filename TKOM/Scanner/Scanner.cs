@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using System.Text;
 using TKOM.ErrorHandler;
 
 namespace TKOM.Scanner
@@ -8,7 +7,7 @@ namespace TKOM.Scanner
     {
         public static readonly int MAX_TOKEN_LENGTH = 500;
 
-        private IErrorHandler errorHandler;
+        public IErrorHandler ErrorHandler { get; }
         private readonly TextReader reader;
         public Token Current { get; private set; }
 
@@ -22,7 +21,7 @@ namespace TKOM.Scanner
 
         public Scanner(TextReader reader, IErrorHandler errorHandler)
         {
-            this.errorHandler = errorHandler;
+            this.ErrorHandler = errorHandler;
             this.reader = reader;
             Current = Token.Error;
             LineNumber = 1;
@@ -35,7 +34,7 @@ namespace TKOM.Scanner
             skipWhitespaces();
             char ch = (char)nextChar;
 
-            StringBuilder buffer = new();
+            LimitedStringBuilder buffer = new(MAX_TOKEN_LENGTH);
             buffer.Append(ch);
             if (char.IsLetter(ch))
                 return tryReadKeywordOrIdentifier(ch);
@@ -43,7 +42,7 @@ namespace TKOM.Scanner
                 return tryReadIntConst(ch);
             else if (nextChar < 0)
                 return false;
-            return tryReadSymbolToken(ch);
+            return tryReadSymbolStartingToken(ch);
         }
 
         private void skipWhitespaces()
@@ -54,12 +53,16 @@ namespace TKOM.Scanner
 
         private bool tryReadKeywordOrIdentifier(char ch)
         {
-            StringBuilder buffer = new();
-            buffer.Append(ch);
-            if (!readWhileLetterOrDigit(buffer))
+            LimitedStringBuilder buffer = new(MAX_TOKEN_LENGTH);
+            while (char.IsLetterOrDigit(ch))
             {
-                Current = Token.Error;
-                return true;
+                if (!buffer.Append(ch))
+                {
+                    ErrorHandler.HandleError(new LexLocation(0, 0, 0, 0), "Buffer overflow. Too long identifier."); // TODO: change location constructor
+                    return false;   // TODO: tidy-up
+                }
+                readNextChar();
+                ch = (char)nextChar;
             }
             StringValue = buffer.ToString();
             Current = StringValue switch
@@ -82,39 +85,17 @@ namespace TKOM.Scanner
             };
             return true;
         }
-        private bool readWhileLetterOrDigit(StringBuilder buffer)
+
+        private bool tryReadIntConst(char ch)
         {
-            (uint startLine, uint startColumn) errStart = (LineNumber, ColumnNumber);
-            readNextChar();
-            char ch = (char)nextChar;
-            while (char.IsLetterOrDigit(ch) && buffer.Length < MAX_TOKEN_LENGTH)
+            LimitedStringBuilder buffer = new(MAX_TOKEN_LENGTH);
+            while (char.IsDigit(ch))
             {
                 buffer.Append(ch);
                 readNextChar();
                 ch = (char)nextChar;
             }
-            if (char.IsLetterOrDigit((char)nextChar))
-            {
-                do
-                    readNextChar();
-                while (char.IsLetterOrDigit((char)nextChar));
-                LexLocation location = new LexLocation(errStart.startLine, errStart.startColumn, LineNumber, ColumnNumber);
-                errorHandler.HandleError(location, "Identifier is too long");
-                return false;
-            }
-            return true;
-        }
 
-        private bool tryReadIntConst(char ch)
-        {
-            StringBuilder buffer = new();
-            buffer.Append(ch);
-            (uint startLine, uint startColumn) errStart = (LineNumber, ColumnNumber);
-            if (!readWhileDigit(buffer))
-            {
-                Current = Token.Error;
-                return true;
-            }
             if (int.TryParse(buffer.ToString(), out int value)) // TODO: poprawić
             {
                 Current = Token.IntConst;
@@ -122,36 +103,15 @@ namespace TKOM.Scanner
             }
             else
             {
-                LexLocation location = new LexLocation(errStart.startLine, errStart.startColumn, LineNumber, ColumnNumber); // TODO: dać na górę
-                errorHandler.HandleError(location, "Integral constant is too large");
+                LexLocation location = new LexLocation(0, 0, 0, 0); // TODO: dać na górę, poprawić liczby lexLoc
+                ErrorHandler.HandleError(location, "Buffer overflow. Too long integral constant.");
                 Current = Token.Error;
-            }
-            return true;
-        }
-        private bool readWhileDigit(StringBuilder buffer)
-        {
-            (uint startLine, uint startColumn) errStart = (LineNumber, ColumnNumber);
-            readNextChar();
-            char ch = (char)nextChar;
-            while (char.IsDigit(ch) && buffer.Length < MAX_TOKEN_LENGTH)
-            {
-                buffer.Append(ch);
-                readNextChar();
-                ch = (char)nextChar;
-            }
-            if (char.IsDigit((char)nextChar))
-            {
-                do
-                    readNextChar();
-                while (char.IsDigit((char)nextChar)) ;
-                LexLocation location = new LexLocation(errStart.startLine, errStart.startColumn, LineNumber, ColumnNumber);
-                errorHandler.HandleError(location, "Number is too long");
                 return false;
             }
             return true;
         }
 
-        private bool tryReadSymbolToken(char ch)
+        private bool tryReadSymbolStartingToken(char ch)
         {
             switch (ch)
             {
@@ -215,22 +175,27 @@ namespace TKOM.Scanner
             readNextChar();
             if (nextChar == '/')
             {
-                (uint startLine, uint startColumn) errStart = (LineNumber, ColumnNumber);
-                StringBuilder buffer = new();
+                //(uint startLine, uint startColumn) errStart = (LineNumber, ColumnNumber);
+                LimitedStringBuilder buffer = new(MAX_TOKEN_LENGTH);
                 readNextChar();
-                while (nextChar >= 0 && nextChar != '\n' && buffer.Length < MAX_TOKEN_LENGTH)
+                while (nextChar >= 0 && nextChar != '\n')
                 {
-                    buffer.Append((char)nextChar);
+                    if (!buffer.Append((char)nextChar))
+                    {
+                        throwWarning();
+                        while (nextChar >= 0 && nextChar != '\n')
+                            readNextChar();
+                    }
                     readNextChar();
                 }
-                if (buffer.Length >= MAX_TOKEN_LENGTH)
-                {
-                    do
-                        readNextChar();
-                    while (nextChar >= 0 && nextChar != '\n');
-                    LexLocation location = new LexLocation(errStart.startLine, errStart.startColumn, LineNumber, ColumnNumber);
-                    errorHandler.HandleWarning(location, "This comment is very long!");
-                }
+                //if (buffer.Length >= MAX_TOKEN_LENGTH)
+                //{
+                //    do
+                //        readNextChar();
+                //    while (nextChar >= 0 && nextChar != '\n');
+                //    LexLocation location = new LexLocation(errStart.startLine, errStart.startColumn, LineNumber, ColumnNumber);
+                //    errorHandler.HandleWarning(location, "This comment is very long!");
+                //}
                 StringValue = buffer.ToString();
                 return Token.Comment;
             }
@@ -239,49 +204,49 @@ namespace TKOM.Scanner
 
         private Token readStringToken()
         {
-            (uint startLine, uint startColumn) errStart = (LineNumber, ColumnNumber);
-            StringBuilder buffer = new();
+            LimitedStringBuilder buffer = new(MAX_TOKEN_LENGTH);
             readNextChar();
-            while (nextChar >= 0 && nextChar != '"' && buffer.Length < MAX_TOKEN_LENGTH - 1)
+            while (nextChar >= 0 && nextChar != '"' && nextChar != '\n')        // po co w ogóle robić ograniczenia, jeśli trudno ograniczyć stringa?
             {
-                if (nextChar == '\n')    // TODO: error
-                {
-                    // TODO: inne newline'y
-                    StringValue = buffer.ToString();
-                    return Token.String;
-                }
+                bool appended;
                 if (nextChar == '\\')
                 {
                     readNextChar();
                     switch (nextChar)
                     {
-                        case 'n': buffer.Append('\n'); break;
-                        case 't': buffer.Append('\t'); break;
-                        case '\"': buffer.Append('\"'); break;
-                        case '\\': buffer.Append('\\'); break;
+                        case 'n': appended = buffer.Append('\n'); break;
+                        case 't': appended = buffer.Append('\t'); break;
+                        case '\"': appended = buffer.Append('\"'); break;
+                        case '\\': appended = buffer.Append('\\'); break;
                         default:    // TODO: error
-                            buffer.Append('\\');
-                            buffer.Append((char)nextChar);
+                            if (buffer.Append('\\'))
+                                appended = buffer.Append((char)nextChar);
+                            else appended = false;
                             break;
                     }
                 }
                 else
-                    buffer.Append((char)nextChar);
+                    appended = buffer.Append((char)nextChar);
+                if (!appended)
+                {
+                    throwError();
+                    return Token.Error;
+                }
                 readNextChar();
             }
-            if (buffer.Length >= MAX_TOKEN_LENGTH - 1)
+
+            if (nextChar == '\n')    // TODO: error
             {
-                do
-                    readNextChar();
-                while (nextChar >= 0 && nextChar != '"');
-                LexLocation location = new LexLocation(errStart.startLine, errStart.startColumn, LineNumber, ColumnNumber);
-                errorHandler.HandleError(location, "String is too long");
-                readNextChar();
-                return Token.Error;
+                // TODO: inne newline'y
+                StringValue = buffer.ToString();
+                return Token.String;
             }
-            StringValue = buffer.ToString();
-            readNextChar();     // read second quote (")
-            return Token.String;
+            else
+            {
+                StringValue = buffer.ToString();
+                readNextChar();     // read second quote (")
+                return Token.String;
+            }
         }
 
         private void readNextChar()
@@ -302,6 +267,19 @@ namespace TKOM.Scanner
             }
             else
                 ColumnNumber++;
+        }
+
+        private void throwError()
+        {
+            LexLocation location = new LexLocation(0, 0, 0, 0);
+            ErrorHandler.HandleError(location, "");
+            Current = Token.Error;
+        }
+        private void throwWarning()
+        {
+            LexLocation location = new LexLocation(0, 0, 0, 0);
+            ErrorHandler.HandleWarning(location, "");
+            Current = Token.Error;
         }
     }
 }

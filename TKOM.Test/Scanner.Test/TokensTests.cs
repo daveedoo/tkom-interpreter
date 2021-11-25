@@ -6,11 +6,12 @@ namespace TKOM.Scanner.Test
 {
     public partial class ScannerTests
     {
+        private ErrorCollecter errorCollecter;
         private IScanner buildScanner(string program)
         {
             StringReader reader = new(program);
-            IErrorHandler errorHandler = new ErrorHandler.ErrorHandler();
-            return new Scanner(reader, errorHandler);
+            errorCollecter = new ErrorCollecter();
+            return new Scanner(reader, errorCollecter);
         }
 
 

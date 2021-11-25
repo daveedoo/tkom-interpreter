@@ -1,4 +1,6 @@
-﻿namespace TKOM.Scanner
+﻿using TKOM.ErrorHandler;
+
+namespace TKOM.Scanner
 {
     public class CommentsFilterScanner : IScanner
     {
@@ -9,6 +11,7 @@
 
         public uint LineNumber => scanner.LineNumber;
         public uint ColumnNumber => scanner.ColumnNumber;
+        public IErrorHandler ErrorHandler => scanner.ErrorHandler;
 
         public CommentsFilterScanner(IScanner scanner)
         {
