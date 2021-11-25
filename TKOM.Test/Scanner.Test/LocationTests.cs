@@ -13,7 +13,7 @@ namespace TKOM.Scanner.Test
         }
 
         [Fact]
-        public void Column_InitializedAsZero()
+        public void Column_InitializedAsOne()
         {
             IScanner scanner = buildScanner("anything");
 
@@ -38,7 +38,7 @@ namespace TKOM.Scanner.Test
             scanner.MoveNext();
             scanner.MoveNext();
 
-            Assert.Equal<uint>((uint)2, scanner.LineNumber);
+            Assert.Equal<uint>(2, scanner.LineNumber);
         }
 
         [Fact]
@@ -68,7 +68,7 @@ namespace TKOM.Scanner.Test
 
             scanner.MoveNext();
 
-            Assert.Equal<uint>(3, scanner.ColumnNumber);
+            Assert.Equal<uint>(4, scanner.ColumnNumber);
         }
 
         [Fact]
@@ -92,5 +92,15 @@ namespace TKOM.Scanner.Test
             Assert.Equal<uint>(4, scanner.ColumnNumber);
         }
 
+        [Fact]
+        public void Test_DoesntAdvanceColumnNumber()
+        {
+            IScanner scanner = buildScanner("xyz\n");
+
+            scanner.MoveNext();
+            //scanner.MoveNext();
+
+            Assert.Equal<uint>(1, scanner.ColumnNumber);
+        }
     }
 }
