@@ -34,17 +34,17 @@ namespace TKOM.Scanner
         public bool MoveNext()
         {
             skipWhitespaces();
-            char ch = (char)nextChar;
             tokenStartPosition = new Position(Position.Line, Position.Column);
 
             buffer.Clear();
+            char ch = (char)nextChar;
             if (char.IsLetter(ch))
-                return tryReadKeywordOrIdentifier(ch);
+                return tryReadKeywordOrIdentifier();
             else if (char.IsDigit(ch))
-                return tryReadIntConst(ch);
+                return tryReadIntConst();
             else if (nextChar < 0)
                 return false;
-            return tryReadSymbolStartingToken(ch);
+            return tryReadSymbolStartingToken();
         }
 
         private void skipWhitespaces()
@@ -53,8 +53,9 @@ namespace TKOM.Scanner
                 readNextChar();
         }
 
-        private bool tryReadKeywordOrIdentifier(char ch)
+        private bool tryReadKeywordOrIdentifier()
         {
+            char ch = (char)nextChar;
             while (char.IsLetterOrDigit(ch))
             {
                 if (!buffer.Append(ch))
@@ -87,8 +88,9 @@ namespace TKOM.Scanner
             return true;
         }
 
-        private bool tryReadIntConst(char ch)
+        private bool tryReadIntConst()
         {
+            char ch = (char)nextChar;
             while (char.IsDigit(ch))
             {
                 buffer.Append(ch);
@@ -109,8 +111,9 @@ namespace TKOM.Scanner
             return true;
         }
 
-        private bool tryReadSymbolStartingToken(char ch)
+        private bool tryReadSymbolStartingToken()
         {
+            char ch = (char)nextChar;
             switch (ch)
             {
                 case '|': Current = tryReadOrToken(); break;
