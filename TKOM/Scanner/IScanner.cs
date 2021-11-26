@@ -8,8 +8,7 @@ namespace TKOM.Scanner
         public string StringValue { get; }
         public int IntValue { get; }
 
-        public uint LineNumber { get; }
-        public uint ColumnNumber { get; }
+        public Position Position { get; }
         public IErrorHandler ErrorHandler { get; }
 
         /// <summary>

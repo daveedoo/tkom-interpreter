@@ -11,31 +11,33 @@ namespace TKOM.Scanner
         private readonly TextReader reader;
         public Token Current { get; private set; }
 
-        private bool eof = false;
-        private int nextChar;
         public string StringValue { get; private set; }
         public int IntValue { get; private set; }
 
-        public uint LineNumber { get; private set; }
-        public uint ColumnNumber { get; private set; }
+        public Position Position { get; private set; }
 
         public Scanner(TextReader reader, IErrorHandler errorHandler)
         {
             this.ErrorHandler = errorHandler;
             this.reader = reader;
             Current = Token.Error;
-            LineNumber = 1;
-            ColumnNumber = 0;
+            Position = new Position(1, 0);
+            buffer = new LimitedStringBuilder(MAX_TOKEN_LENGTH);
             readNextChar();
         }
+
+        private Position tokenStartPosition;
+        private LimitedStringBuilder buffer;
+        private bool eof = false;
+        private int nextChar;
 
         public bool MoveNext()
         {
             skipWhitespaces();
             char ch = (char)nextChar;
+            tokenStartPosition = new Position(Position.Line, Position.Column);
 
-            LimitedStringBuilder buffer = new(MAX_TOKEN_LENGTH);
-            buffer.Append(ch);
+            buffer.Clear();
             if (char.IsLetter(ch))
                 return tryReadKeywordOrIdentifier(ch);
             else if (char.IsDigit(ch))
@@ -53,12 +55,11 @@ namespace TKOM.Scanner
 
         private bool tryReadKeywordOrIdentifier(char ch)
         {
-            LimitedStringBuilder buffer = new(MAX_TOKEN_LENGTH);
             while (char.IsLetterOrDigit(ch))
             {
                 if (!buffer.Append(ch))
                 {
-                    ErrorHandler.HandleError(new LexLocation(0, 0, 0, 0), "Buffer overflow. Too long identifier."); // TODO: change location constructor
+                    throwError("Buffer overflow. Too long identifier.");
                     return false;   // TODO: tidy-up
                 }
                 readNextChar();
@@ -88,7 +89,6 @@ namespace TKOM.Scanner
 
         private bool tryReadIntConst(char ch)
         {
-            LimitedStringBuilder buffer = new(MAX_TOKEN_LENGTH);
             while (char.IsDigit(ch))
             {
                 buffer.Append(ch);
@@ -103,9 +103,7 @@ namespace TKOM.Scanner
             }
             else
             {
-                LexLocation location = new LexLocation(0, 0, 0, 0); // TODO: dać na górę, poprawić liczby lexLoc
-                ErrorHandler.HandleError(location, "Buffer overflow. Too long integral constant.");
-                Current = Token.Error;
+                throwError("Buffer overflow. Too long integral constant.");
                 return false;
             }
             return true;
@@ -175,8 +173,6 @@ namespace TKOM.Scanner
             readNextChar();
             if (nextChar == '/')
             {
-                //(uint startLine, uint startColumn) errStart = (LineNumber, ColumnNumber);
-                LimitedStringBuilder buffer = new(MAX_TOKEN_LENGTH);
                 readNextChar();
                 while (nextChar >= 0 && nextChar != '\n')
                 {
@@ -188,14 +184,6 @@ namespace TKOM.Scanner
                     }
                     readNextChar();
                 }
-                //if (buffer.Length >= MAX_TOKEN_LENGTH)
-                //{
-                //    do
-                //        readNextChar();
-                //    while (nextChar >= 0 && nextChar != '\n');
-                //    LexLocation location = new LexLocation(errStart.startLine, errStart.startColumn, LineNumber, ColumnNumber);
-                //    errorHandler.HandleWarning(location, "This comment is very long!");
-                //}
                 StringValue = buffer.ToString();
                 return Token.Comment;
             }
@@ -229,7 +217,7 @@ namespace TKOM.Scanner
                     appended = buffer.Append((char)nextChar);
                 if (!appended)
                 {
-                    throwError();
+                    throwError("Buffer overflow. Too long string.");
                     return Token.Error;
                 }
                 readNextChar();
@@ -257,8 +245,7 @@ namespace TKOM.Scanner
             nextChar = reader.Read();
             if (nextChar == '\n')
             {
-                LineNumber++;
-                ColumnNumber = 1;
+                Position.IncrementLine();
             }
             else if (nextChar < 0)
             {
@@ -266,20 +253,20 @@ namespace TKOM.Scanner
                 eof = true;
             }
             else
-                ColumnNumber++;
+                Position.IncrementColumn();
         }
 
-        private void throwError()
+        private void throwError(string message)
         {
-            LexLocation location = new LexLocation(0, 0, 0, 0);
-            ErrorHandler.HandleError(location, "");
+            LexLocation location = new LexLocation(tokenStartPosition, Position);
+            ErrorHandler.HandleError(location, message);
             Current = Token.Error;
         }
         private void throwWarning()
         {
-            LexLocation location = new LexLocation(0, 0, 0, 0);
+            LexLocation location = new LexLocation(0, 0, 0, 0); // TODO popraw liczby
             ErrorHandler.HandleWarning(location, "");
-            Current = Token.Error;
+            Current = Token.Error;  // TODO: czy na pewno?
         }
     }
 }

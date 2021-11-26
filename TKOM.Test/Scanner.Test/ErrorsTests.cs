@@ -141,7 +141,7 @@ namespace TKOM.Scanner.Test
         }
 
         [Fact]
-        public void VeryLongString_ThrowsErrorToken()
+        public void WhenVeryLongString_ThrowsErrorToken()
         {
             string many_a_string = "\"" + new string('a', Scanner.MAX_TOKEN_LENGTH + 1) + "\"";
             IScanner scanner = buildScanner(many_a_string);
@@ -150,6 +150,20 @@ namespace TKOM.Scanner.Test
 
             Assert.Equal(1, errorCollecter.errorCount);
             Assert.Equal(Token.Error, scanner.Current);
+        }
+
+        [Fact]
+        public void WhenErrorThrown_ProperLocationIsSend()
+        {
+            string errorProgram = "12345678901122334455";
+            IScanner scanner = buildScanner(errorProgram);
+
+            scanner.MoveNext();
+            (LexLocation location, string message)? error = errorCollecter.GetLastError();
+
+            var expectedLocation = new LexLocation(1, 0, 1, (uint)errorProgram.Length);
+            Assert.NotNull(error);
+            Assert.Equal(expectedLocation, error.Value.location);
         }
     }
 }

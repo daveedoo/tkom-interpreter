@@ -9,8 +9,7 @@ namespace TKOM.Scanner
         public string StringValue => scanner.StringValue;
         public int IntValue => scanner.IntValue;
 
-        public uint LineNumber => scanner.LineNumber;
-        public uint ColumnNumber => scanner.ColumnNumber;
+        public Position Position => scanner.Position;
         public IErrorHandler ErrorHandler => scanner.ErrorHandler;
 
         public CommentsFilterScanner(IScanner scanner)

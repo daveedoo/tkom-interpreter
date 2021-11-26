@@ -9,13 +9,13 @@ StreamReader reader = new StreamReader(path);
 ErrorHandler handler = new ErrorHandler();
 Scanner scanner = new Scanner(reader, handler);
 
-uint line = scanner.LineNumber;
+uint line = scanner.Position.Line;
 Console.Write($"{line,3}|");
 while (scanner.MoveNext())
 {
-    if (scanner.LineNumber != line)
+    if (scanner.Position.Line != line)
     {
-        line = scanner.LineNumber;
+        line = scanner.Position.Line;
         Console.WriteLine();
         Console.Write($"{line, 3}|");
     }

@@ -39,6 +39,11 @@ namespace TKOM.Scanner
             return true;
         }
 
+        public void Clear()
+        {
+            builder.Clear();
+        }
+
         public override string ToString()
         {
             return builder.ToString();
