@@ -4,7 +4,7 @@ using TKOM.Scanner;
 string programFilename = "program.txt";
 string projectDir = Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName;
 string path = Path.Combine(projectDir, programFilename);
-StreamReader reader = new StreamReader(path);
+StreamReader reader = new StreamReader(path);   // TODO: dispose
 
 ErrorHandler handler = new ErrorHandler();
 Scanner scanner = new Scanner(reader, handler);

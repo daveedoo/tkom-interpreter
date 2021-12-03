@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using TKOM.ErrorHandler;
 
 namespace TKOM.Scanner
@@ -11,7 +12,7 @@ namespace TKOM.Scanner
         public Token Current { get; private set; }
 
         public string StringValue { get; private set; }
-        public int IntValue { get; private set; }
+        public int? IntValue { get; private set; }
 
         private readonly PositionTrackingTextReader reader;
         public Position Position => reader.Position;
@@ -35,12 +36,15 @@ namespace TKOM.Scanner
 
             buffer.Clear();
             if (char.IsLetter(reader.NextChar))
-                return tryReadKeywordOrIdentifier();
+                tryReadKeywordOrIdentifier();
             else if (char.IsDigit(reader.NextChar))
-                return tryReadIntConst();
+                tryReadIntConst();
             else if (reader.eof)
                 return false;
-            return tryReadSymbolStartingToken();
+            else
+                tryReadSymbolStartingToken();
+            buffer.Clear();
+            return true;
         }
 
         private void skipWhitespaces()
@@ -48,121 +52,140 @@ namespace TKOM.Scanner
             while (char.IsWhiteSpace(reader.NextChar))
                 reader.Move();
         }
+        private void skipLettersAndDigits()
+        {
+            while (char.IsLetterOrDigit(reader.NextChar))
+                reader.Move();
+        }
+        private void skipDigits()
+        {
+            while (char.IsDigit(reader.NextChar))
+                reader.Move();
+        }
+        private void skipCurrentLine()
+        {
+            while (reader.NextChar != '\n' && reader.Move())
+                ;
+            reader.Move();
+        }
+        private void skipToQuoteOrNewline()
+        {
+            while (reader.NextChar != '\n' && reader.NextChar != '\"' && reader.Move())
+                ;
+            reader.Move();
+        }
 
-        private bool tryReadKeywordOrIdentifier()
+        private void tryReadKeywordOrIdentifier()
         {
             while (char.IsLetterOrDigit(reader.NextChar))
             {
                 if (!buffer.Append(reader.NextChar))
                 {
-                    throwError("Buffer overflow. Too long identifier.");
-                    return false;   // TODO: tidy-up
+                    skipLettersAndDigits();
+                    throwErrorAndClearValues("Buffer overflow. Too long identifier.");
+                    Current = Token.Error;
+                    return;
                 }
                 reader.Move();
             }
             StringValue = buffer.ToString();
-            Current = StringValue switch
+            Current = StringValue switch    // TODO: dictionary
             {
-                "void" => Token.Void,
-                "int" => Token.Int,
-                "return" => Token.Return,
-                "if" => Token.If,
-                "else" => Token.Else,
-                "while" => Token.While,
-                "read" => Token.Read,
-                "print" => Token.Print,
-                "try" => Token.Try,
-                "catch" => Token.Catch,
-                "finally" => Token.Finally,
-                "throw" => Token.Throw,
-                "when" => Token.When,
+                "void"      => Token.Void,
+                "int"       => Token.Int,
+                "return"    => Token.Return,
+                "if"        => Token.If,
+                "else"      => Token.Else,
+                "while"     => Token.While,
+                "read"      => Token.Read,
+                "print"     => Token.Print,
+                "try"       => Token.Try,
+                "catch"     => Token.Catch,
+                "finally"   => Token.Finally,
+                "throw"     => Token.Throw,
+                "when"      => Token.When,
                 "Exception" => Token.Exception,
                 _ => Token.Identifier
             };
-            return true;
         }
 
-        private bool tryReadIntConst()
+        private void tryReadIntConst()
         {
+            if (reader.NextChar == '0')
+            {
+                reader.Move();
+                if (char.IsDigit(reader.NextChar))
+                {
+                    skipDigits();
+                    throwErrorAndClearValues("Illegal leading zero.");
+                    Current = Token.Error;
+                    return;
+                }
+                Current = Token.IntConst;
+                IntValue = 0;
+                return;
+            }
+
+            int value = 0;
             while (char.IsDigit(reader.NextChar))
             {
-                buffer.Append(reader.NextChar);
+                try {
+                    checked {
+                        value *= 10;
+                        value += reader.NextChar - '0';
+                    }
+                } catch (OverflowException) {
+                    skipDigits();
+                    throwErrorAndClearValues("Buffer overflow. Too big integral constant.");
+                    Current = Token.Error;
+                    return;
+                } 
                 reader.Move();
             }
-
-            if (int.TryParse(buffer.ToString(), out int value)) // TODO: poprawić
-            {
-                Current = Token.IntConst;
-                IntValue = value;
-            }
-            else
-            {
-                throwError("Buffer overflow. Too long integral constant.");
-                return false;
-            }
-            return true;
+            Current = Token.IntConst;
+            IntValue = value;
         }
 
-        private bool tryReadSymbolStartingToken()
+        private void tryReadSymbolStartingToken()
         {
             switch (reader.NextChar)
             {
-                case '|': Current = tryReadOrToken(); break;
-                case '&': Current = tryReadAndToken(); break;
-                case '/': Current = tryReadCommentToken(); break;
-                case '"': Current = readStringToken(); break;
-                default:
-                    Current = reader.NextChar switch
-                    {
-                        '(' => Token.RoundBracketOpen,
-                        ')' => Token.RoundBracketClose,
-                        '{' => Token.CurlyBracketOpen,
-                        '}' => Token.CurlyBracketClose,
-                        '-' => Token.Minus,
-                        '+' => Token.Plus,
-                        '*' => Token.Star,
-                        '<' => Token.LessThan,  // dwuznaki
-                        '>' => Token.GreaterThan,
-                        '=' => Token.Equals,    // ==
-                        '!' => Token.Not,
-                        ';' => Token.Semicolon,
-                        ',' => Token.Comma,
-                        '.' => Token.Dot,
-                        _ => Token.Error
-                    };
-                    reader.Move();
-                    break;
-            }
-            return true;
+                case '|': tryReadOrToken(); break;
+                case '&': tryReadAndToken(); break;
+                case '/': tryReadCommentToken(); break;
+                case '"': tryReadStringToken(); break;
+                default: tryReadSingleSymbolToken(); break;
+            };
+            return;
         }
 
-        private Token tryReadOrToken()
+        private void tryReadOrToken()
         {
             reader.Move();
-            switch (reader.NextChar)
+            if (reader.NextChar == '|')
             {
-                case '|':
-                    reader.Move();
-                    return Token.Or;
-                default:
-                    return Token.Error;
+                reader.Move();
+                Current = Token.Or;
+                return;
             }
+            throwErrorAndClearValues("Unknown token");
+            Current = Token.Error;
         }
 
-        private Token tryReadAndToken()
+        private void tryReadAndToken()
         {
             reader.Move();
-            switch (reader.NextChar)
+            if (reader.NextChar == '&')
             {
-                case '&':
-                    reader.Move();
-                    return Token.And;
-                default:
-                    return Token.Error;
+                reader.Move();
+                Current = Token.And;
+                return;
             }
+            throwErrorAndClearValues("Unknown token");
+            Current = Token.Error;
         }
 
-        private Token tryReadCommentToken()
+        private void tryReadCommentToken()
         {
             reader.Move();
             if (reader.NextChar == '/')
@@ -171,19 +194,20 @@ namespace TKOM.Scanner
                 {
                     if (!buffer.Append(reader.NextChar))
                     {
-                        throwWarning();
-                        while (reader.Move() && reader.NextChar != '\n')     // ???????????
-                            ;
-                            //reader.ReadNext();
+                        skipCurrentLine();
+                        throwWarning("Buffer overflow. Too long comment.");
+                        Current = Token.Comment;
+                        break;
                     }
                 }
                 StringValue = buffer.ToString();
-                return Token.Comment;
+                Current = Token.Comment;
+                return;
             }
-            return Token.Slash;
+            Current = Token.Slash;
         }
 
-        private Token readStringToken()
+        private void tryReadStringToken()
         {
             while (reader.Move() && reader.NextChar != '"' && reader.NextChar != '\n')      // po co w ogóle robić ograniczenia, jeśli trudno ograniczyć stringa?
             {                                                                               // poza tym StringBuilder ma już swoje ograniczenie
@@ -197,47 +221,75 @@ namespace TKOM.Scanner
                         case 't': appended = buffer.Append('\t'); break;
                         case '\"': appended = buffer.Append('\"'); break;
                         case '\\': appended = buffer.Append('\\'); break;
-                        default:    // TODO: error
-                            if (buffer.Append('\\'))
-                                appended = buffer.Append(reader.NextChar);
-                            else appended = false;
-                            break;
+                        default:
+                            skipToQuoteOrNewline();
+                            throwErrorAndClearValues("Illegal escape sequence.");
+                            Current = Token.Error;
+                            return;
                     }
                 }
                 else
                     appended = buffer.Append(reader.NextChar);
                 if (!appended)
                 {
-                    throwError("Buffer overflow. Too long string.");
-                    return Token.Error;
+                    skipToQuoteOrNewline();
+                    throwErrorAndClearValues("Buffer overflow. Too long string.");
+                    Current = Token.Error;
+                    return;
                 }
             }
 
-            if (reader.NextChar == '\n')    // TODO: error
+            if (reader.NextChar == '\n')
             {
-                // TODO: inne newline'y
-                StringValue = buffer.ToString();
-                return Token.String;
+                throwErrorAndClearValues("String broken by newline. Close the string in current line.");
+                Current = Token.Error;
             }
             else
             {
                 StringValue = buffer.ToString();
                 reader.Move();  // read second quote (")
-                return Token.String;
+                Current = Token.String;
             }
         }
 
-        private void throwError(string message)
+        private void tryReadSingleSymbolToken()
+        {
+            Token t = reader.NextChar switch
+            {
+                '(' => Token.RoundBracketOpen,
+                ')' => Token.RoundBracketClose,
+                '{' => Token.CurlyBracketOpen,
+                '}' => Token.CurlyBracketClose,
+                '-' => Token.Minus,
+                '+' => Token.Plus,
+                '*' => Token.Star,
+                '<' => Token.LessThan,  // dwuznaki
+                '>' => Token.GreaterThan,
+                '=' => Token.Equals,    // ==
+                '!' => Token.Not,
+                ';' => Token.Semicolon,
+                ',' => Token.Comma,
+                '.' => Token.Dot,
+                _ => Token.Error
+            };
+            if (t == Token.Error)
+                throwErrorAndClearValues("Unknown token");
+            reader.Move();
+            Current = t;
+        }
+
+        private void throwErrorAndClearValues(string message)
         {
             LexLocation location = new LexLocation(tokenStartPosition, Position);
             ErrorHandler.HandleError(location, message);
-            Current = Token.Error;
+
+            StringValue = null;
+            IntValue = null;
         }
-        private void throwWarning()
+        private void throwWarning(string message)
         {
-            LexLocation location = new LexLocation(0, 0, 0, 0); // TODO popraw liczby
-            ErrorHandler.HandleWarning(location, "");
-            Current = Token.Error;  // TODO: czy na pewno?
+            LexLocation location = new LexLocation(tokenStartPosition, Position);
+            ErrorHandler.HandleWarning(location, message);
         }
     }
 }

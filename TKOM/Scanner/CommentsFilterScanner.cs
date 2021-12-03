@@ -7,7 +7,7 @@ namespace TKOM.Scanner
         private readonly IScanner scanner;
         public Token Current => scanner.Current;
         public string StringValue => scanner.StringValue;
-        public int IntValue => scanner.IntValue;
+        public int? IntValue => scanner.IntValue;
 
         public Position Position => scanner.Position;
         public IErrorHandler ErrorHandler => scanner.ErrorHandler;
