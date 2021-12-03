@@ -2,6 +2,7 @@
 
 namespace TKOM.Scanner.Test
 {
+    // actually there is probably too many tests
     public partial class ScannerTests
     {
         [Fact]
@@ -13,11 +14,11 @@ namespace TKOM.Scanner.Test
         }
 
         [Fact]
-        public void Column_InitializedAsOne()
+        public void Column_InitializedAsZero()
         {
             IScanner scanner = buildScanner("anything");
 
-            Assert.Equal<uint>(1, scanner.Position.Column);
+            Assert.Equal<uint>(0, scanner.Position.Column);
         }
 
         [Fact]
@@ -48,7 +49,7 @@ namespace TKOM.Scanner.Test
 
             scanner.MoveNext();
 
-            Assert.Equal<uint>(4, scanner.Position.Column);
+            Assert.Equal<uint>(3, scanner.Position.Column);
         }
 
         [Fact]
@@ -58,17 +59,17 @@ namespace TKOM.Scanner.Test
 
             scanner.MoveNext();
 
-            Assert.Equal<uint>(3, scanner.Position.Column);
+            Assert.Equal<uint>(2, scanner.Position.Column);
         }
 
-        [Fact(Skip = "refactoring")]
+        [Fact]
         public void readStringToken_AdvancesColumnNumber()
         {
             IScanner scanner = buildScanner("abc");
 
             scanner.MoveNext();
 
-            Assert.Equal<uint>(4, scanner.Position.Column);
+            Assert.Equal<uint>(3, scanner.Position.Column);
         }
 
         [Fact]
@@ -78,10 +79,10 @@ namespace TKOM.Scanner.Test
 
             scanner.MoveNext();
 
-            Assert.Equal<uint>(1, scanner.Position.Column);
+            Assert.Equal<uint>(4, scanner.Position.Column);
         }
 
-        [Fact(Skip = "refactoring")]
+        [Fact]
         public void WhenMovingAfterEOF_DoesntAdvanceColumnNumber()
         {
             IScanner scanner = buildScanner("abc");
@@ -89,7 +90,7 @@ namespace TKOM.Scanner.Test
             scanner.MoveNext();
             scanner.MoveNext();
 
-            Assert.Equal<uint>(4, scanner.Position.Column);
+            Assert.Equal<uint>(3, scanner.Position.Column);
         }
 
         [Fact]
@@ -100,7 +101,7 @@ namespace TKOM.Scanner.Test
             scanner.MoveNext();
             //scanner.MoveNext();
 
-            Assert.Equal<uint>(1, scanner.Position.Column);
+            Assert.Equal<uint>(3, scanner.Position.Column);
         }
     }
 }

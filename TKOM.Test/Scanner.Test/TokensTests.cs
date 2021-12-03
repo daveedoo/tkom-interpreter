@@ -156,7 +156,7 @@ namespace TKOM.Scanner.Test
         [InlineData("+41", new[] { Token.Plus, Token.IntConst }, new object[] { null, 41 })]            // number with plus
         [InlineData("-44", new[] { Token.Minus, Token.IntConst }, new object[] { null, 44 })]           // number with minus
         [InlineData("2+2", new[] { Token.IntConst, Token.Plus, Token.IntConst }, new object[] { 2, null, 2 })]  // simple equation
-        [InlineData("\"AA\n BB\"", new[] { Token.String, Token.Identifier, Token.String }, new[] { "AA", "BB", "" })]   // string broken by newline
+        [InlineData("\"AA\n BB\"", new[] { Token.String, Token.Identifier, Token.String }, new[] { "AA", "BB", "" })]   // string broken by newline // TODO: u sure?
         [InlineData("int //comment1\n//comment2\n//comment3\n17",                                       // multiple comments
                     new[] { Token.Int, Token.Comment, Token.Comment, Token.Comment, Token.IntConst },
                     new object[] { null, "comment1", "comment2", "comment3", 17 })]

@@ -1,10 +1,10 @@
 ﻿
 namespace TKOM.ErrorHandler
 {
-    public struct Position
+    public record Position
     {
-        public uint Line;
-        public uint Column;
+        public uint Line { get;private set; }
+        public uint Column { get; private set; }
 
         public Position(uint line, uint column)
         {
@@ -12,11 +12,17 @@ namespace TKOM.ErrorHandler
             Column = column;
         }
 
+        /// <summary>
+        /// Increment line counter and reset column counter.
+        /// </summary>
         public void IncrementLine()
         {
             Line++;
             Column = 0;
         }
+        /// <summary>
+        /// Increment column counter
+        /// </summary>
         public void IncrementColumn()
         {
             Column++;
