@@ -3,6 +3,7 @@
 namespace TKOM.Scanner.Test
 {
     // actually there is probably too many tests
+    // this class should be testing PositionTrackingTextReader class, TODO in unspecified future
     public partial class ScannerTests
     {
         [Fact]
@@ -89,17 +90,6 @@ namespace TKOM.Scanner.Test
 
             scanner.MoveNext();
             scanner.MoveNext();
-
-            Assert.Equal<uint>(3, scanner.Position.Column);
-        }
-
-        [Fact]
-        public void Test_DoesntAdvanceColumnNumber()
-        {
-            IScanner scanner = buildScanner("xyz\n");
-
-            scanner.MoveNext();
-            //scanner.MoveNext();
 
             Assert.Equal<uint>(3, scanner.Position.Column);
         }

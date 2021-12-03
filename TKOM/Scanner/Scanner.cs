@@ -23,7 +23,6 @@ namespace TKOM.Scanner
             this.reader = new PositionTrackingTextReader(reader);
             Current = Token.Error;
             buffer = new LimitedStringBuilder(MAX_TOKEN_LENGTH);
-            //this.reader.ReadNext();
         }
 
         private Position tokenStartPosition;
@@ -186,8 +185,8 @@ namespace TKOM.Scanner
 
         private Token readStringToken()
         {
-            while (reader.Move() && reader.NextChar != '"' && reader.NextChar != '\n')        // po co w ogóle robić ograniczenia, jeśli trudno ograniczyć stringa?
-            {
+            while (reader.Move() && reader.NextChar != '"' && reader.NextChar != '\n')      // po co w ogóle robić ograniczenia, jeśli trudno ograniczyć stringa?
+            {                                                                               // poza tym StringBuilder ma już swoje ograniczenie
                 bool appended;
                 if (reader.NextChar == '\\')
                 {
