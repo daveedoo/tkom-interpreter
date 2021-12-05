@@ -49,7 +49,7 @@ namespace TKOM.Scanner
 
         public bool MoveNext()
         {
-            skipWhitespaces();
+            reader.SkipWhitespaces();
             tokenStartPosition = new Position(Position.Line, Position.Column);
 
             buffer.Clear();
@@ -65,41 +65,13 @@ namespace TKOM.Scanner
             return true;
         }
 
-        private void skipWhitespaces()
-        {
-            while (char.IsWhiteSpace(reader.NextChar))
-                reader.Move();
-        }
-        private void skipLettersAndDigits()
-        {
-            while (char.IsLetterOrDigit(reader.NextChar))
-                reader.Move();
-        }
-        private void skipDigits()
-        {
-            while (char.IsDigit(reader.NextChar))
-                reader.Move();
-        }
-        private void skipCurrentLine()
-        {
-            while (reader.NextChar != '\n' && reader.Move())
-                ;
-            reader.Move();
-        }
-        private void skipToQuoteOrNewline()
-        {
-            while (reader.NextChar != '\n' && reader.NextChar != '\"' && reader.Move())
-                ;
-            reader.Move();
-        }
-
         private void tryReadKeywordOrIdentifier()
         {
             while (char.IsLetterOrDigit(reader.NextChar))
             {
                 if (!buffer.Append(reader.NextChar))
                 {
-                    skipLettersAndDigits();
+                    reader.SkipLettersAndDigits();
                     throwErrorAndClearValues("Buffer overflow. Too long identifier.");
                     Current = Token.Error;
                     return;
@@ -134,7 +106,7 @@ namespace TKOM.Scanner
                 reader.Move();
                 if (char.IsDigit(reader.NextChar))
                 {
-                    skipDigits();
+                    reader.SkipDigits();
                     throwErrorAndClearValues("Illegal leading zero.");
                     Current = Token.Error;
                     return;
@@ -153,7 +125,7 @@ namespace TKOM.Scanner
                         value += reader.NextChar - '0';
                     }
                 } catch (OverflowException) {
-                    skipDigits();
+                    reader.SkipDigits();
                     throwErrorAndClearValues("Buffer overflow. Too big integral constant.");
                     Current = Token.Error;
                     return;
@@ -212,7 +184,7 @@ namespace TKOM.Scanner
                 {
                     if (!buffer.Append(reader.NextChar))
                     {
-                        skipCurrentLine();
+                        reader.SkipCurrentLine();
                         throwWarning("Buffer overflow. Too long comment.");
                         Current = Token.Comment;
                         break;
@@ -240,7 +212,7 @@ namespace TKOM.Scanner
                         case '\"': appended = buffer.Append('\"'); break;
                         case '\\': appended = buffer.Append('\\'); break;
                         default:
-                            skipToQuoteOrNewline();
+                            reader.SkipToQuoteOrNewline();
                             throwErrorAndClearValues("Illegal escape sequence.");
                             Current = Token.Error;
                             return;
@@ -250,7 +222,7 @@ namespace TKOM.Scanner
                     appended = buffer.Append(reader.NextChar);
                 if (!appended)
                 {
-                    skipToQuoteOrNewline();
+                    reader.SkipToQuoteOrNewline();
                     throwErrorAndClearValues("Buffer overflow. Too long string.");
                     Current = Token.Error;
                     return;

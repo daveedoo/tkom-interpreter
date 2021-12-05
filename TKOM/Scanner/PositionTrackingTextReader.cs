@@ -43,5 +43,33 @@ namespace TKOM.Scanner
                 eof = true;
             NextChar = (char)nextChar;
         }
+
+        public void SkipWhitespaces()
+        {
+            while (char.IsWhiteSpace(NextChar))
+                Move();
+        }
+        public void SkipLettersAndDigits()
+        {
+            while (char.IsLetterOrDigit(NextChar))
+                Move();
+        }
+        public void SkipDigits()
+        {
+            while (char.IsDigit(NextChar))
+                Move();
+        }
+        public void SkipCurrentLine()
+        {
+            while (NextChar != '\n' && Move())
+                ;
+            Move();
+        }
+        public void SkipToQuoteOrNewline()
+        {
+            while (NextChar != '\n' && NextChar != '\"' && Move())
+                ;
+            Move();
+        }
     }
 }
