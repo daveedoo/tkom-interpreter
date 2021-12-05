@@ -23,6 +23,7 @@
         Minus, Plus, Star, Slash,
         Or, And,
         LessThan, GreaterThan, Equals, Not,
+        LessEqual, GreaterEqual, IsEqual, IsNotEqual,
         Semicolon, Comma, Dot
     }
 }

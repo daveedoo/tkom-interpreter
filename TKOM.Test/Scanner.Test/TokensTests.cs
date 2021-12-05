@@ -76,6 +76,7 @@ namespace TKOM.Scanner.Test
         [InlineData("-", Token.Minus)]      [InlineData("+", Token.Plus)]           [InlineData("*", Token.Star)]   [InlineData("/", Token.Slash)]
         [InlineData("||", Token.Or)]        [InlineData("&&", Token.And)]
         [InlineData("<", Token.LessThan)]   [InlineData(">", Token.GreaterThan)]    [InlineData("=", Token.Equals)] [InlineData("!", Token.Not)]
+        [InlineData("<=", Token.LessEqual)] [InlineData(">=", Token.GreaterEqual)]  [InlineData("==", Token.IsEqual)] [InlineData("!=", Token.IsNotEqual)]
         [InlineData(";", Token.Semicolon)]  [InlineData(",", Token.Comma)]          [InlineData(".", Token.Dot)]
         public void SimpleToken(string program, Token token)
         {

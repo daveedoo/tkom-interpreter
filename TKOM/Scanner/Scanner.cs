@@ -140,10 +140,14 @@ namespace TKOM.Scanner
         {
             switch (reader.NextChar)
             {
-                case '|': tryReadOrToken(); break;
-                case '&': tryReadAndToken(); break;
                 case '/': tryReadCommentToken(); break;
                 case '"': tryReadStringToken(); break;
+                case '|': readNextOrThrowError('|', Token.Or, "Unknown token"); break;
+                case '&': readNextOrThrowError('&', Token.And, "Unknown token"); break;
+                case '<': readNextAndDecideBetween('=', Token.LessEqual, Token.LessThan); break;
+                case '>': readNextAndDecideBetween('=', Token.GreaterEqual, Token.GreaterThan); break;
+                case '=': readNextAndDecideBetween('=', Token.IsEqual, Token.Equals); break;
+                case '!': readNextAndDecideBetween('=', Token.IsNotEqual, Token.Not); break;
                 default: tryReadSingleSymbolToken(); break;
             };
             if (Current != Token.Comment && Current != Token.String && Current != Token.Error)
@@ -151,30 +155,29 @@ namespace TKOM.Scanner
             return;
         }
 
-        private void tryReadOrToken()
+        private void readNextOrThrowError(char ch, Token tokenIfMet, string errorElse)
         {
             reader.Move();
-            if (reader.NextChar == '|')
+            if (reader.NextChar == ch)
             {
                 reader.Move();
-                Current = Token.Or;
+                Current = tokenIfMet;
                 return;
             }
-            throwErrorAndClearValues("Unknown token");
+            throwErrorAndClearValues(errorElse);
             Current = Token.Error;
         }
 
-        private void tryReadAndToken()
+        private void readNextAndDecideBetween(char ch, Token tokenIfMet, Token tokenElse)
         {
             reader.Move();
-            if (reader.NextChar == '&')
+            if (reader.NextChar == ch)
             {
+                Current = tokenIfMet;
                 reader.Move();
-                Current = Token.And;
-                return;
             }
-            throwErrorAndClearValues("Unknown token");
-            Current = Token.Error;
+            else
+                Current = tokenElse;
         }
 
         private void tryReadCommentToken()
@@ -255,10 +258,6 @@ namespace TKOM.Scanner
                 '-' => Token.Minus,
                 '+' => Token.Plus,
                 '*' => Token.Star,
-                '<' => Token.LessThan,  // dwuznaki
-                '>' => Token.GreaterThan,
-                '=' => Token.Equals,    // ==
-                '!' => Token.Not,
                 ';' => Token.Semicolon,
                 ',' => Token.Comma,
                 '.' => Token.Dot,
