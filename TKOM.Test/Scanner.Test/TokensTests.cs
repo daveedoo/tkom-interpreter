@@ -161,9 +161,31 @@ namespace TKOM.Scanner.Test
         }
 
         [Fact]
-        public void IntValueIsCleared()
+        public void WhenSetStringValue_IntValueIsCleared()
         {
             string program = "123 abc";
+            IScanner scanner = buildScanner(program);
+
+            scanner.MoveNext();
+            scanner.MoveNext();
+
+            Assert.Null(scanner.IntValue);
+        }
+        [Fact]
+        public void WhenSetIntValue_StringValueIsCleared()
+        {
+            string program = "abc 123";
+            IScanner scanner = buildScanner(program);
+
+            scanner.MoveNext();
+            scanner.MoveNext();
+
+            Assert.Null(scanner.StringValue);
+        }
+        [Fact]
+        public void WhenRecognizedSymbolToken_IntValueIsCleared()
+        {
+            string program = "123 =";
             IScanner scanner = buildScanner(program);
 
             scanner.MoveNext();

@@ -146,6 +146,8 @@ namespace TKOM.Scanner
                 case '"': tryReadStringToken(); break;
                 default: tryReadSingleSymbolToken(); break;
             };
+            if (Current != Token.Comment && Current != Token.String && Current != Token.Error)
+                clearValues();
             return;
         }
 
@@ -268,13 +270,17 @@ namespace TKOM.Scanner
             Current = t;
         }
 
+        private void clearValues()
+        {
+            _stringValue = null;
+            _intValue = null;
+        }
         private void throwErrorAndClearValues(string message)
         {
             LexLocation location = new LexLocation(tokenStartPosition, Position);
             ErrorHandler.HandleError(location, message);
 
-            StringValue = null;
-            IntValue = null;
+            clearValues();
         }
         private void throwWarning(string message)
         {
