@@ -11,8 +11,26 @@ namespace TKOM.Scanner
         public IErrorHandler ErrorHandler { get; }
         public Token Current { get; private set; }
 
-        public string StringValue { get; private set; }
-        public int? IntValue { get; private set; }
+        private string _stringValue;
+        public string StringValue
+        {
+            get => _stringValue;
+            private set
+            {
+                _stringValue = value;
+                _intValue = null;
+            }
+        }
+        private int? _intValue;
+        public int? IntValue
+        {
+            get => _intValue;
+            private set
+            {
+                _intValue = value;
+                _stringValue = null;
+            }
+        }
 
         private readonly PositionTrackingTextReader reader;
         public Position Position => reader.Position;

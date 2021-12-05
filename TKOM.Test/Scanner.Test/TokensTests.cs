@@ -159,5 +159,17 @@ namespace TKOM.Scanner.Test
             }
             Assert.False(scanner.MoveNext());
         }
+
+        [Fact]
+        public void IntValueIsCleared()
+        {
+            string program = "123 abc";
+            IScanner scanner = buildScanner(program);
+
+            scanner.MoveNext();
+            scanner.MoveNext();
+
+            Assert.Null(scanner.IntValue);
+        }
     }
 }
