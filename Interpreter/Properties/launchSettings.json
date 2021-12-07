@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Interpreter": {
+      "commandName": "Project",
+      "commandLineArgs": "../../../program.txt"
+    }
+  }
+}
