@@ -87,8 +87,6 @@ namespace TKOM.Scanner
                 "if"        => Token.If,
                 "else"      => Token.Else,
                 "while"     => Token.While,
-                "read"      => Token.Read,
-                "print"     => Token.Print,
                 "try"       => Token.Try,
                 "catch"     => Token.Catch,
                 "finally"   => Token.Finally,

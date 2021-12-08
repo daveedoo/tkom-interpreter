@@ -21,7 +21,6 @@ statement           : simple_statement ";"
                     ;
 simple_statement    : declaration
                     | function_call
-                    | builtin_func_call
                     | return
                     | assignment
                     | throw
@@ -38,10 +37,6 @@ decl_opt_assign     : IDENTIFIER [ "=" const ]
                     ;
 
 function_call       : IDENTIFIER "(" [ expression { "," expression } ] ")"
-                    ;
-
-builtin_func_call   : "read" "(" IDENTIFIER ")"
-                    | "print" "(" ( string | expression ) ")"
                     ;
 
 string              : STRING { "+" ( STRING | const ) }
@@ -69,40 +64,46 @@ catch               : "catch" "Exception" IDENTIFIER [ "when" "(" expression ")"
 
 // ================= OPERATORS =================
 expression          : assignment
-                    | logicalOr
+                    | logical_or
                     ;
 
 assignment          : lvalue "=" expression
                     ;
 
-logical_or          : logical_or "||" logical_and
-                    | logical_and
+logical_or          : logical_and { "||" logical_and }
                     ;
 
-logical_and         : logical_and "&&" in_equality
-                    | in_equality
+logical_and         : in_equality { "&&" in_equality }
                     ;
 
-in_equality         : in_equality "==" relation
-                    | in_equality "!=" relation
-                    | relation
+in_equality         : relation _in_equality
+                    ;
+_in_equality        : "==" relation _in_equality
+                    | "!=" relation _in_equality
+                    | e
                     ;
 
-relation            : relation "<=" additive
-                    | relation ">=" additive
-                    | relation "<" additive
-                    | relation ">" additive
-                    | additive
+relation            : additive _relation
+                    ;
+_relation           : "<=" additive _relation
+                    | ">=" additive _relation
+                    | "<" additive _relation
+                    | ">" additive _relation
+                    | e
                     ;
 
-additive            : additive "+" multiplicative
-                    | additive "-" multiplicative
-                    | multiplicative
+additive            : multiplicative _additive
+                    ;
+_additive           : "+" multiplicative _additive
+                    | "-" multiplicative _additive
+                    | e
                     ;
 
-multiplicative      : multiplicative "*" unar
-                    | multiplicative "/" unar
-                    | unar
+multiplicative      : unar _multiplicative
+                    ;
+_multiplicative     : "*" unar _multiplicative
+                    | "/" unar _multiplicative
+                    | e
                     ;
 
 unar                : "-" unar
@@ -111,7 +112,7 @@ unar                : "-" unar
                     | const
                     | lvalue
                     | function_call
-                    | >>string<< ///
+                    | string
                     | "(" expression ")"
                     ;
 

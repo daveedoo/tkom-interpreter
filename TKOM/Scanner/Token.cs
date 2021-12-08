@@ -15,7 +15,6 @@
         Void, Int,
         Return,
         If, Else, While,
-        Read, Print,
         Try, Catch, Finally, Throw, When, Exception,
         // Operators
         RoundBracketOpen, RoundBracketClose,
