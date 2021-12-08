@@ -1,14 +1,16 @@
-﻿namespace TKOM.Scanner
+﻿using TKOM.ErrorHandler;
+
+namespace TKOM.Scanner
 {
     public class CommentsFilterScanner : IScanner
     {
         private readonly IScanner scanner;
         public Token Current => scanner.Current;
         public string StringValue => scanner.StringValue;
-        public int IntValue => scanner.IntValue;
+        public int? IntValue => scanner.IntValue;
 
-        public uint LineNumber => scanner.LineNumber;
-        public uint ColumnNumber => scanner.ColumnNumber;
+        public Position Position => scanner.Position;
+        public IErrorHandler ErrorHandler => scanner.ErrorHandler;
 
         public CommentsFilterScanner(IScanner scanner)
         {

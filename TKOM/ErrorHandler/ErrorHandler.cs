@@ -8,12 +8,12 @@ namespace TKOM.ErrorHandler
 
         public void HandleError(LexLocation location, string message)
         {
-            Console.WriteLine($"{location.StartLine}:{location.StartColumn} {message}");
+            Console.WriteLine($"{location.Start.Line}:{location.Start.Column} {message}");
         }
 
         public void HandleWarning(LexLocation location, string message)
         {
-            Console.WriteLine($"{location.StartLine}:{location.StartColumn} {message}");
+            Console.WriteLine($"{location.Start.Line}:{location.Start.Column} {message}");
         }
     }
 }

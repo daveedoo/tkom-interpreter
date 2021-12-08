@@ -21,5 +21,19 @@ namespace TKOM.Scanner.Test
         {
             warningsList.Add((location, message));
         }
+
+        public (LexLocation location, string message)? GetLastError()
+        {
+            if (errorCount == 0)
+                return null;
+            return errorsList[errorCount - 1];
+        }
+
+        public (LexLocation location, string message)? GetLastWarning()
+        {
+            if (warningsCount == 0)
+                return null;
+            return warningsList[warningsCount - 1];
+        }
     }
 }

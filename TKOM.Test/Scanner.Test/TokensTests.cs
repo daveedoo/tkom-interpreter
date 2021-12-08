@@ -6,11 +6,12 @@ namespace TKOM.Scanner.Test
 {
     public partial class ScannerTests
     {
+        private ErrorCollecter errorCollecter;
         private IScanner buildScanner(string program)
         {
             StringReader reader = new(program);
-            IErrorHandler errorHandler = new ErrorHandler.ErrorHandler();
-            return new Scanner(reader, errorHandler);
+            errorCollecter = new ErrorCollecter();
+            return new Scanner(reader, errorCollecter);
         }
 
 
@@ -45,9 +46,9 @@ namespace TKOM.Scanner.Test
         }
 
         [Theory]
+        [InlineData("0", 0)]            // zero
         [InlineData("1", 1)]            // single digit
         [InlineData("10432", 10432)]    // more digits
-        [InlineData("007", 7)]          // leading zeros
         public void IntConst(string program, int expectedValue)
         {
             IScanner scanner = buildScanner(program);
@@ -75,6 +76,7 @@ namespace TKOM.Scanner.Test
         [InlineData("-", Token.Minus)]      [InlineData("+", Token.Plus)]           [InlineData("*", Token.Star)]   [InlineData("/", Token.Slash)]
         [InlineData("||", Token.Or)]        [InlineData("&&", Token.And)]
         [InlineData("<", Token.LessThan)]   [InlineData(">", Token.GreaterThan)]    [InlineData("=", Token.Equals)] [InlineData("!", Token.Not)]
+        [InlineData("<=", Token.LessEqual)] [InlineData(">=", Token.GreaterEqual)]  [InlineData("==", Token.IsEqual)] [InlineData("!=", Token.IsNotEqual)]
         [InlineData(";", Token.Semicolon)]  [InlineData(",", Token.Comma)]          [InlineData(".", Token.Dot)]
         public void SimpleToken(string program, Token token)
         {
@@ -114,7 +116,6 @@ namespace TKOM.Scanner.Test
         [InlineData("\"12 \\n 34", "12 \n 34")]                     // special character - newline
         [InlineData("\"12 \\t 34", "12 \t 34")]                     // special character - tabulator
         [InlineData("\"12 \\\\ 34", "12 \\ 34")]                    // special character - slash
-        [InlineData("\"12 \\x 34", "12 \\x 34")]                    // illegal special character
         [InlineData("\"abcd", "abcd")]                              // ended with an EOF
         public void String(string program, string expectedValue)
         {
@@ -130,21 +131,6 @@ namespace TKOM.Scanner.Test
         }
 
         [Theory]
-        [InlineData("|")] [InlineData("&")]
-        [InlineData("\\")]  // backslash is not a divide operator
-        public void ErrorToken(string program)
-        {
-            IScanner scanner = buildScanner(program);
-
-            bool moved = scanner.MoveNext();
-
-            Assert.True(moved);
-            Assert.Equal(Token.Error, scanner.Current);
-            
-            Assert.False(scanner.MoveNext());
-        }
-
-        [Theory]
         [InlineData("vx abc", new[] { Token.Identifier, Token.Identifier }, new[] { "vx", "abc" })]     // identifier starting as keyword
         [InlineData("void abc void", new[] { Token.Void, Token.Identifier, Token.Void }, new[] { null, "abc", null })]  // multiple tokens
         [InlineData("&A", new[] { Token.Error, Token.Identifier }, new[] { null, "A" })]                // only first char of AND operator
@@ -155,7 +141,6 @@ namespace TKOM.Scanner.Test
         [InlineData("+41", new[] { Token.Plus, Token.IntConst }, new object[] { null, 41 })]            // number with plus
         [InlineData("-44", new[] { Token.Minus, Token.IntConst }, new object[] { null, 44 })]           // number with minus
         [InlineData("2+2", new[] { Token.IntConst, Token.Plus, Token.IntConst }, new object[] { 2, null, 2 })]  // simple equation
-        [InlineData("\"AA\n BB\"", new[] { Token.String, Token.Identifier, Token.String }, new[] { "AA", "BB", "" })]   // string broken by newline
         [InlineData("int //comment1\n//comment2\n//comment3\n17",                                       // multiple comments
                     new[] { Token.Int, Token.Comment, Token.Comment, Token.Comment, Token.IntConst },
                     new object[] { null, "comment1", "comment2", "comment3", 17 })]
@@ -174,6 +159,40 @@ namespace TKOM.Scanner.Test
                         Assert.Equal(values[i], scanner.IntValue);
             }
             Assert.False(scanner.MoveNext());
+        }
+
+        [Fact]
+        public void WhenSetStringValue_IntValueIsCleared()
+        {
+            string program = "123 abc";
+            IScanner scanner = buildScanner(program);
+
+            scanner.MoveNext();
+            scanner.MoveNext();
+
+            Assert.Null(scanner.IntValue);
+        }
+        [Fact]
+        public void WhenSetIntValue_StringValueIsCleared()
+        {
+            string program = "abc 123";
+            IScanner scanner = buildScanner(program);
+
+            scanner.MoveNext();
+            scanner.MoveNext();
+
+            Assert.Null(scanner.StringValue);
+        }
+        [Fact]
+        public void WhenRecognizedSymbolToken_IntValueIsCleared()
+        {
+            string program = "123 =";
+            IScanner scanner = buildScanner(program);
+
+            scanner.MoveNext();
+            scanner.MoveNext();
+
+            Assert.Null(scanner.IntValue);
         }
     }
 }

@@ -1,5 +1,5 @@
-﻿using System.IO;
-using System.Text;
+﻿using System;
+using System.IO;
 using TKOM.ErrorHandler;
 
 namespace TKOM.Scanner
@@ -8,290 +8,281 @@ namespace TKOM.Scanner
     {
         public static readonly int MAX_TOKEN_LENGTH = 500;
 
-        private IErrorHandler errorHandler;
-        private readonly TextReader reader;
+        public IErrorHandler ErrorHandler { get; }
         public Token Current { get; private set; }
 
-        private bool eof = false;
-        private int nextChar;
-        public string StringValue { get; private set; }
-        public int IntValue { get; private set; }
+        private string _stringValue;
+        public string StringValue
+        {
+            get => _stringValue;
+            private set
+            {
+                _stringValue = value;
+                _intValue = null;
+            }
+        }
+        private int? _intValue;
+        public int? IntValue
+        {
+            get => _intValue;
+            private set
+            {
+                _intValue = value;
+                _stringValue = null;
+            }
+        }
 
-        public uint LineNumber { get; private set; }
-        public uint ColumnNumber { get; private set; }
+        private readonly PositionTrackingTextReader reader;
+        public Position Position => reader.Position;
+
 
         public Scanner(TextReader reader, IErrorHandler errorHandler)
         {
-            this.errorHandler = errorHandler;
-            this.reader = reader;
+            this.ErrorHandler = errorHandler;
+            this.reader = new PositionTrackingTextReader(reader);
             Current = Token.Error;
-            LineNumber = 1;
-            ColumnNumber = 0;
-            readNextChar();
+            buffer = new LimitedStringBuilder(MAX_TOKEN_LENGTH);
         }
+
+        private Position tokenStartPosition;
+        private LimitedStringBuilder buffer;
 
         public bool MoveNext()
         {
-            skipWhitespaces();
-            char ch = (char)nextChar;
+            reader.SkipWhitespaces();
+            tokenStartPosition = new Position(Position.Line, Position.Column);
 
-            StringBuilder buffer = new();
-            buffer.Append(ch);
-            if (char.IsLetter(ch))
-            {
-                if (!readWhileLetterOrDigit(buffer))
-                {
-                    Current = Token.Error;
-                    return true;
-                }
-                StringValue = buffer.ToString();
-                Current = StringValue switch
-                {
-                    "void" => Token.Void,
-                    "int"           => Token.Int,
-                    "return"        => Token.Return,
-                    "if"            => Token.If,
-                    "else"          => Token.Else,
-                    "while"         => Token.While,
-                    "read"          => Token.Read,
-                    "print"         => Token.Print,
-                    "try"           => Token.Try,
-                    "catch"         => Token.Catch,
-                    "finally"       => Token.Finally,
-                    "throw"         => Token.Throw,
-                    "when"          => Token.When,
-                    "Exception"     => Token.Exception,
-                    _ => Token.Identifier
-                };
-            }
-            else if (char.IsDigit(ch))
-            {
-                (uint startLine, uint startColumn) errStart = (LineNumber, ColumnNumber);
-                if (!readWhileDigit(buffer))
-                {
-                    Current = Token.Error;
-                    return true;
-                }
-                if (int.TryParse(buffer.ToString(), out int value))
-                {
-                    Current = Token.IntConst;
-                    IntValue = value;
-                }
-                else
-                {
-                    LexLocation location = new LexLocation(errStart.startLine, errStart.startColumn, LineNumber, ColumnNumber);
-                    errorHandler.HandleError(location, "Integral constant is too large");
-                    Current = Token.Error;
-                }
-            }
-            else if (nextChar < 0)
-            {
-                if (!eof)
-                {
-                    ColumnNumber++;
-                    eof = true;
-                }
+            buffer.Clear();
+            if (char.IsLetter(reader.NextChar))
+                tryReadKeywordOrIdentifier();
+            else if (char.IsDigit(reader.NextChar))
+                tryReadIntConst();
+            else if (reader.eof)
                 return false;
+            else
+                tryReadSymbolStartingToken();
+            buffer.Clear();
+            return true;
+        }
+
+        private void tryReadKeywordOrIdentifier()
+        {
+            while (char.IsLetterOrDigit(reader.NextChar))
+            {
+                if (!buffer.Append(reader.NextChar))
+                {
+                    reader.SkipLettersAndDigits();
+                    throwErrorAndClearValues("Buffer overflow. Too long identifier.");
+                    Current = Token.Error;
+                    return;
+                }
+                reader.Move();
+            }
+            StringValue = buffer.ToString();
+            Current = StringValue switch    // TODO: dictionary
+            {
+                "void"      => Token.Void,
+                "int"       => Token.Int,
+                "return"    => Token.Return,
+                "if"        => Token.If,
+                "else"      => Token.Else,
+                "while"     => Token.While,
+                "try"       => Token.Try,
+                "catch"     => Token.Catch,
+                "finally"   => Token.Finally,
+                "throw"     => Token.Throw,
+                "when"      => Token.When,
+                "Exception" => Token.Exception,
+                _ => Token.Identifier
+            };
+        }
+
+        private void tryReadIntConst()
+        {
+            if (reader.NextChar == '0')
+            {
+                reader.Move();
+                if (char.IsDigit(reader.NextChar))
+                {
+                    reader.SkipDigits();
+                    throwErrorAndClearValues("Illegal leading zero.");
+                    Current = Token.Error;
+                    return;
+                }
+                Current = Token.IntConst;
+                IntValue = 0;
+                return;
+            }
+
+            int value = 0;
+            while (char.IsDigit(reader.NextChar))
+            {
+                try {
+                    checked {
+                        value *= 10;
+                        value += reader.NextChar - '0';
+                    }
+                } catch (OverflowException) {
+                    reader.SkipDigits();
+                    throwErrorAndClearValues("Buffer overflow. Too big integral constant.");
+                    Current = Token.Error;
+                    return;
+                } 
+                reader.Move();
+            }
+            Current = Token.IntConst;
+            IntValue = value;
+        }
+
+        private void tryReadSymbolStartingToken()
+        {
+            switch (reader.NextChar)
+            {
+                case '/': tryReadCommentToken(); break;
+                case '"': tryReadStringToken(); break;
+                case '|': readNextOrThrowError('|', Token.Or, "Unknown token"); break;
+                case '&': readNextOrThrowError('&', Token.And, "Unknown token"); break;
+                case '<': readNextAndDecideBetween('=', Token.LessEqual, Token.LessThan); break;
+                case '>': readNextAndDecideBetween('=', Token.GreaterEqual, Token.GreaterThan); break;
+                case '=': readNextAndDecideBetween('=', Token.IsEqual, Token.Equals); break;
+                case '!': readNextAndDecideBetween('=', Token.IsNotEqual, Token.Not); break;
+                default: tryReadSingleSymbolToken(); break;
+            };
+            if (Current != Token.Comment && Current != Token.String && Current != Token.Error)
+                clearValues();
+            return;
+        }
+
+        private void readNextOrThrowError(char ch, Token tokenIfMet, string errorElse)
+        {
+            reader.Move();
+            if (reader.NextChar == ch)
+            {
+                reader.Move();
+                Current = tokenIfMet;
+                return;
+            }
+            throwErrorAndClearValues(errorElse);
+            Current = Token.Error;
+        }
+
+        private void readNextAndDecideBetween(char ch, Token tokenIfMet, Token tokenElse)
+        {
+            reader.Move();
+            if (reader.NextChar == ch)
+            {
+                Current = tokenIfMet;
+                reader.Move();
             }
             else
+                Current = tokenElse;
+        }
+
+        private void tryReadCommentToken()
+        {
+            reader.Move();
+            if (reader.NextChar == '/')
             {
-                switch (ch)
+                while (reader.Move() && reader.NextChar != '\n')
                 {
-                    case '|': Current = tryReadOrToken(); break;
-                    case '&': Current = tryReadAndToken(); break;
-                    case '/': Current = tryReadCommentToken(); break;
-                    case '"': Current = readStringToken(); break;
-                    default:
-                        Current = ch switch
-                        {
-                            '(' => Token.RoundBracketOpen,
-                            ')' => Token.RoundBracketClose,
-                            '{' => Token.CurlyBracketOpen,
-                            '}' => Token.CurlyBracketClose,
-                            '-' => Token.Minus,
-                            '+' => Token.Plus,
-                            '*' => Token.Star,
-                            '<' => Token.LessThan,
-                            '>' => Token.GreaterThan,
-                            '=' => Token.Equals,
-                            '!' => Token.Not,
-                            ';' => Token.Semicolon,
-                            ',' => Token.Comma,
-                            '.' => Token.Dot,
-                            _ => Token.Error
-                        };
-                        readNextChar();
+                    if (!buffer.Append(reader.NextChar))
+                    {
+                        reader.SkipCurrentLine();
+                        throwWarning("Buffer overflow. Too long comment.");
+                        Current = Token.Comment;
                         break;
-                }
-            }
-            return true;
-        }
-
-        private void skipWhitespaces()
-        {
-            while (char.IsWhiteSpace((char)nextChar))
-            {
-                if (nextChar == '\n')
-                {
-                    LineNumber++;
-                    ColumnNumber = 0;
-                }
-                readNextChar();
-            }
-                //ColumnNumber++;
-        }
-
-        private bool readWhileLetterOrDigit(StringBuilder buffer)
-        {
-            (uint startLine, uint startColumn) errStart = (LineNumber, ColumnNumber);
-            readNextChar();
-            char ch = (char)nextChar;
-            while (char.IsLetterOrDigit(ch) && buffer.Length < MAX_TOKEN_LENGTH)
-            {
-                buffer.Append(ch);
-                readNextChar();
-                ch = (char)nextChar;
-            }
-            if (char.IsLetterOrDigit((char)nextChar))
-            {
-                do
-                    readNextChar();
-                while (char.IsLetterOrDigit((char)nextChar)) ;
-                LexLocation location = new LexLocation(errStart.startLine, errStart.startColumn, LineNumber, ColumnNumber);
-                errorHandler.HandleError(location, "Identifier is too long");
-                return false;
-            }
-            return true;
-        }
-
-        private bool readWhileDigit(StringBuilder buffer)
-        {
-            (uint startLine, uint startColumn) errStart = (LineNumber, ColumnNumber);
-            readNextChar();
-            char ch = (char)nextChar;
-            while (char.IsDigit(ch) && buffer.Length < MAX_TOKEN_LENGTH)
-            {
-                buffer.Append(ch);
-                readNextChar();
-                ch = (char)nextChar;
-            }
-            if (char.IsDigit((char)nextChar))
-            {
-                do
-                    readNextChar();
-                while (char.IsDigit((char)nextChar)) ;
-                LexLocation location = new LexLocation(errStart.startLine, errStart.startColumn, LineNumber, ColumnNumber);
-                errorHandler.HandleError(location, "Number is too long");
-                return false;
-            }
-            return true;
-        }
-
-        private Token tryReadOrToken()
-        {
-            readNextChar();
-            switch (nextChar)
-            {
-                case '|':
-                    readNextChar();
-                    return Token.Or;
-                default:
-                    return Token.Error;
-            }
-        }
-
-        private Token tryReadAndToken()
-        {
-            readNextChar();
-            switch (nextChar)
-            {
-                case '&':
-                    readNextChar();
-                    return Token.And;
-                default:
-                    return Token.Error;
-            }
-        }
-
-        private Token tryReadCommentToken()
-        {
-            readNextChar();
-            if (nextChar == '/')
-            {
-                (uint startLine, uint startColumn) errStart = (LineNumber, ColumnNumber);
-                StringBuilder buffer = new();
-                readNextChar();
-                while (nextChar >= 0 && nextChar != '\n' && buffer.Length < MAX_TOKEN_LENGTH)
-                {
-                    buffer.Append((char)nextChar);
-                    readNextChar();
-                }
-                if (buffer.Length >= MAX_TOKEN_LENGTH)
-                {
-                    do
-                        readNextChar();
-                    while (nextChar >= 0 && nextChar != '\n');
-                    LexLocation location = new LexLocation(errStart.startLine, errStart.startColumn, LineNumber, ColumnNumber);
-                    errorHandler.HandleWarning(location, "This comment is very long!");
+                    }
                 }
                 StringValue = buffer.ToString();
-                return Token.Comment;
+                Current = Token.Comment;
+                return;
             }
-            return Token.Slash;
+            Current = Token.Slash;
         }
 
-        private Token readStringToken()
+        private void tryReadStringToken()
         {
-            (uint startLine, uint startColumn) errStart = (LineNumber, ColumnNumber);
-            StringBuilder buffer = new();
-            readNextChar();
-            while (nextChar >= 0 && nextChar != '"' && buffer.Length < MAX_TOKEN_LENGTH - 1)
-            {
-                if (nextChar == '\n')    // TODO: error
+            while (reader.Move() && reader.NextChar != '"' && reader.NextChar != '\n')      // po co w ogóle robić ograniczenia, jeśli trudno ograniczyć stringa?
+            {                                                                               // poza tym StringBuilder ma już swoje ograniczenie
+                bool appended;
+                if (reader.NextChar == '\\')
                 {
-                    LineNumber++;
-                    ColumnNumber = 0;
-                    break;
-                }
-                if (nextChar == '\\')
-                {
-                    readNextChar();
-                    switch (nextChar)
+                    reader.Move();
+                    switch (reader.NextChar)
                     {
-                        case 'n': buffer.Append('\n'); break;
-                        case 't': buffer.Append('\t'); break;
-                        case '\"': buffer.Append('\"'); break;
-                        case '\\': buffer.Append('\\'); break;
-                        default:    // TODO: error
-                            buffer.Append('\\');
-                            buffer.Append((char)nextChar);
-                            break;
+                        case 'n': appended = buffer.Append('\n'); break;
+                        case 't': appended = buffer.Append('\t'); break;
+                        case '\"': appended = buffer.Append('\"'); break;
+                        case '\\': appended = buffer.Append('\\'); break;
+                        default:
+                            reader.SkipToQuoteOrNewline();
+                            throwErrorAndClearValues("Illegal escape sequence.");
+                            Current = Token.Error;
+                            return;
                     }
                 }
                 else
-                    buffer.Append((char)nextChar);
-                readNextChar();
+                    appended = buffer.Append(reader.NextChar);
+                if (!appended)
+                {
+                    reader.SkipToQuoteOrNewline();
+                    throwErrorAndClearValues("Buffer overflow. Too long string.");
+                    Current = Token.Error;
+                    return;
+                }
             }
-            if (buffer.Length >= MAX_TOKEN_LENGTH - 1)
+
+            if (reader.NextChar == '\n')
             {
-                do
-                    readNextChar();
-                while (nextChar >= 0 && nextChar != '"');
-                LexLocation location = new LexLocation(errStart.startLine, errStart.startColumn, LineNumber, ColumnNumber);
-                errorHandler.HandleError(location, "String is too long");
-                readNextChar();
-                return Token.Error;
+                throwErrorAndClearValues("String broken by newline. Close the string in current line.");
+                Current = Token.Error;
             }
-            StringValue = buffer.ToString();
-            readNextChar();
-            return Token.String;
+            else
+            {
+                StringValue = buffer.ToString();
+                reader.Move();  // read second quote (")
+                Current = Token.String;
+            }
         }
 
-        private void readNextChar()
+        private void tryReadSingleSymbolToken()
         {
-            nextChar = reader.Read();
-            if (nextChar > 0)
-                ColumnNumber++;
+            Token t = reader.NextChar switch
+            {
+                '(' => Token.RoundBracketOpen,
+                ')' => Token.RoundBracketClose,
+                '{' => Token.CurlyBracketOpen,
+                '}' => Token.CurlyBracketClose,
+                '-' => Token.Minus,
+                '+' => Token.Plus,
+                '*' => Token.Star,
+                ';' => Token.Semicolon,
+                ',' => Token.Comma,
+                '.' => Token.Dot,
+                _ => Token.Error
+            };
+            if (t == Token.Error)
+                throwErrorAndClearValues("Unknown token");
+            reader.Move();
+            Current = t;
+        }
+
+        private void clearValues()
+        {
+            _stringValue = null;
+            _intValue = null;
+        }
+        private void throwErrorAndClearValues(string message)
+        {
+            LexLocation location = new LexLocation(tokenStartPosition, Position);
+            ErrorHandler.HandleError(location, message);
+
+            clearValues();
+        }
+        private void throwWarning(string message)
+        {
+            LexLocation location = new LexLocation(tokenStartPosition, Position);
+            ErrorHandler.HandleWarning(location, message);
         }
     }
 }
