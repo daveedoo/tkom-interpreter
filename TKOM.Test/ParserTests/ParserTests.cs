@@ -71,6 +71,19 @@ namespace TKOMTest.ParserTests
                         new Declaration(Type.IntType, "a"),
                         new Declaration(Type.IntType, "b")
                     }))
+                })),
+            new TestCase("int main() \n" +                              // assignment
+                "{\n" +
+                "   int a;\n" +
+                "   a = 7;" +
+                "}",
+                new Program(new List<FunctionDefinition>
+                {
+                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    {
+                        new Declaration(Type.IntType, "a"),
+                        new Assignment("a", new IntConst(7))
+                    }))
                 }))
         };
 

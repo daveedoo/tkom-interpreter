@@ -80,8 +80,11 @@ namespace TKOM.Node
         }
     }
 
+    public interface IExpression { }
     public interface IStatement { }
     public record Declaration(Type Type, string Name) : IStatement;
+    public record Assignment(string Variable, IExpression Expression) : IStatement;
+    public record IntConst(int Value) : IExpression;
 
     public enum Type
     {

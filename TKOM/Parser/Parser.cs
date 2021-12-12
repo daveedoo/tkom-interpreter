@@ -132,65 +132,84 @@ namespace TKOM.Parser
                 return false;
 
             var statements = new List<IStatement>();
+            bool loop = true;
             do
             {
                 if (!Move())
                     return false;
                 if (TryCastTokenToType(scanner.Current, out Type? _))
                 {
-                    if (TryParseSimpleStatement(out IStatement statement))
-                        statements.Add(statement);
+                    if (TryParseSimpleStatement(out IList<IStatement> statementsList))
+                        statements.AddRange(statementsList);
                     else
                         return false;
                 }
                 else
                     switch (scanner.Current)
                     {
+                        case Token.Identifier:
+                            if (!TryParseSimpleStatement(out IList<IStatement> statementsList) ||
+                                !MoveAndAssertFor(Token.CurlyBracketClose))
+                                return false;
+                            statements.AddRange(statementsList);
+                            loop = false;
+                            break;
                         case Token.CurlyBracketClose:
-                            block = new Block(statements);
-                            return true;
+                            loop = false;
+                            break;
                         default:
                             return false;
                     } 
-            } while (true);
+            } while (loop);
+            block = new Block(statements);
+            return true;
         }
-
-        private bool TryParseSimpleStatement(out IStatement statement)
+        // statement           : simple_statement ";"
+        private bool TryParseSimpleStatement(out IList<IStatement> statementsList)
         {
-            statement = null;
+            statementsList = null;
             if (TryCastTokenToType(scanner.Current, out Type? _))
             {
-                if (TryParseDeclaration(out Declaration declaration))
-                    statement = declaration;
-                else
+                if (!TryParseDeclarationsAndAssignmentsList(out IList<IStatement> statements))
                     return false;
+                statementsList = statements;
+            }
+            else if (scanner.Current == Token.Identifier)
+            {
+                if (!TryParseAssignmentOrFunctionCall(out IStatement statement))
+                    return false;
+                statementsList = new List<IStatement> { statement };
             }
             if (!MoveAndAssertFor(Token.Semicolon))
                 return false;
             return true;
         }
 
+        private bool TryParseAssignmentOrFunctionCall(out IStatement statement)
+        {
+            statement = null;
+            string identifier = scanner.StringValue;
+            if (MoveAndCheckFor(Token.Equals))
+            {
+                if (!MoveAndAssertFor(Token.IntConst, out int? intVal))
+                    return false;
+                statement = new Assignment(identifier, new IntConst(intVal.Value));
+                return true;
+            }
+
+            return false;
+        }
+
         // declaration         : type declOptAssign { "," decl_opt_assign }
-        private bool TryParseDeclaration(out Declaration declaration)
+        private bool TryParseDeclarationsAndAssignmentsList(out IList<IStatement> statements)
         {
             if (!TryCastTokenToType(scanner.Current, out Type? type) ||
                 !MoveAndAssertFor(Token.Identifier, out string identifier))
             {
-                declaration = null;
+                statements = null;
                 return false;
             }
-            declaration = new Declaration(type.Value, identifier);
-            return true;
-        }
-
-        private bool TryParseNotVoidType(out Type? type)
-        {
-            if (!MoveAndAssertFor(Token.Int))
-            {
-                type = null;
-                return false;
-            }
-            type = Type.IntType;
+            statements = new List<IStatement> { new Declaration(type.Value, identifier) };
             return true;
         }
 
