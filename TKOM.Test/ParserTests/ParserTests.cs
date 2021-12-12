@@ -58,6 +58,19 @@ namespace TKOMTest.ParserTests
                     {
                         new Declaration(Type.IntType, "a")
                     }))
+                })),
+            new TestCase("int main() \n" +                              // multiple instructions in block
+                "{\n" +
+                "   int a;\n" +
+                "   int b;\n" +
+                "}",
+                new Program(new List<FunctionDefinition>
+                {
+                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    {
+                        new Declaration(Type.IntType, "a"),
+                        new Declaration(Type.IntType, "b")
+                    }))
                 }))
         };
 

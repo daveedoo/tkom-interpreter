@@ -131,31 +131,28 @@ namespace TKOM.Parser
             if (!MoveAndAssertFor(Token.CurlyBracketOpen))
                 return false;
 
-            if (!Move())
-                return false;
             var statements = new List<IStatement>();
-            if (TryCastTokenToType(scanner.Current, out Type? _))
+            do
             {
-                if (TryParseSimpleStatement(out IStatement statement))
-                    statements.Add(statement);
-                else 
+                if (!Move())
                     return false;
-            }
-            else
-                switch (scanner.Current)
+                if (TryCastTokenToType(scanner.Current, out Type? _))
                 {
-                    case Token.CurlyBracketClose:
-                        block = new Block(statements);
-                        return true;
-                    default:
+                    if (TryParseSimpleStatement(out IStatement statement))
+                        statements.Add(statement);
+                    else
                         return false;
                 }
-
-            if (!MoveAndAssertFor(Token.CurlyBracketClose))
-                return false;
-
-            block = new Block(statements);
-            return true;
+                else
+                    switch (scanner.Current)
+                    {
+                        case Token.CurlyBracketClose:
+                            block = new Block(statements);
+                            return true;
+                        default:
+                            return false;
+                    } 
+            } while (true);
         }
 
         private bool TryParseSimpleStatement(out IStatement statement)
