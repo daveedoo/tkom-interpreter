@@ -16,7 +16,7 @@ namespace TKOM.Parser.Test
             errorHandler = new ErrorHandler.ErrorHandler();
             TextReader reader = new StringReader(program);
             IScanner scanner = new Scanner.Scanner(reader, errorHandler);
-            return new Parser(scanner);
+            return new Parser(scanner, errorHandler);
         }
 
         [Fact]
