@@ -49,6 +49,9 @@ namespace TKOM.Scanner
 
         public bool MoveNext()
         {
+            if (Current == Token.EOF)
+                return false;
+
             reader.SkipWhitespaces();
             tokenStartPosition = new Position(Position.Line, Position.Column);
 
@@ -58,7 +61,10 @@ namespace TKOM.Scanner
             else if (char.IsDigit(reader.NextChar))
                 tryReadIntConst();
             else if (reader.eof)
-                return false;
+            {
+                Current = Token.EOF;
+                return true;
+            }
             else
                 tryReadSymbolStartingToken();
             buffer.Clear();

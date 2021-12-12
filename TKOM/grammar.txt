@@ -1,13 +1,13 @@
 program             : { function }
                     ;
 
-function            : ( "void" | type ) IDENTIFIER "(" [param_list] ")" block
+function            : ( "void" | type ) IDENTIFIER param_list block
                     ;
 
 type                : "int"
                     ;
 
-param_list          : type IDENTIFIER { "," type IDENTIFIER }
+param_list          : "(" [ type IDENTIFIER { "," type IDENTIFIER } ] ")"
                     ;
 
 block               : "{" { statement } "}"

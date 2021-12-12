@@ -23,6 +23,7 @@
         Or, And,
         LessThan, GreaterThan, Equals, Not,
         LessEqual, GreaterEqual, IsEqual, IsNotEqual,
-        Semicolon, Comma, Dot
+        Semicolon, Comma, Dot,
+        EOF
     }
 }

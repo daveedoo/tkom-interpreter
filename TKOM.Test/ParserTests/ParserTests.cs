@@ -1,4 +1,5 @@
 ﻿using Shouldly;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using TKOM.Node;
@@ -12,6 +13,29 @@ namespace TKOMTest.ParserTests
     {
         private ErrorCollecter errorHandler;
 
+        public static TheoryData<string, Program> validPrograms => new TheoryData<string, Program>
+        {
+            { "int main() {}",
+                new Program(new List<FunctionDefinition>
+                {
+                    new FunctionDefinition(TKOM.Node.Type.IntType, "main", new List<Parameter>())
+                })},
+            { "int main(int a) {}",
+                new Program(new List<FunctionDefinition>
+                {
+                    new FunctionDefinition(TKOM.Node.Type.IntType, "main", new List<Parameter>
+                    {
+                        new Parameter(TKOM.Node.Type.IntType, "a")
+                    })
+                }) }
+        };
+
+        public static TheoryData<string> invalidPrograms => new TheoryData<string>
+        {
+            "",                         // empty program
+            "int return() {}"           // keyword as identifier
+        };
+
         private IParser buildParser(string program)
         {
             errorHandler = new ErrorCollecter();
@@ -20,58 +44,59 @@ namespace TKOMTest.ParserTests
             return new Parser(scanner, errorHandler);
         }
 
-        [Fact]
-        public void WhenEmptyProgram_ReturnsFalse()
+        [Theory]
+        [MemberData(nameof(validPrograms))]
+        public void ValidProgram_ShouldCreateProperAST_AndReturnTrue(string program, Program expected)
         {
-            IParser parser = buildParser("");
+            IParser parser = buildParser(program);
 
-            bool parsedSuccessfully = parser.TryParse(out _);
+            bool parsed = parser.TryParse(out Program actualTree);
 
-            parsedSuccessfully.ShouldBe(false);
-        }
-        [Fact]
-        public void WhenEmptyProgram_SetsOutParamToNull()
-        {
-            IParser parser = buildParser("");
-
-            parser.TryParse(out Program program);
-
-            program.ShouldBeNull();
+            parsed.ShouldBeTrue();
+            actualTree.ShouldBeEquivalentTo(expected);
         }
 
-        [Fact]
-        public void TryParseFunctionDefinition_WhenEmptyFunctionDefinition_ShouldHaveSingleItem()
+        [Theory]
+        [MemberData(nameof(validPrograms))]
+        public void ValidProgram_ShouldntThrowAnyErrors(string program, Program expected)
         {
-            IParser parser = buildParser("int main() {}");
-            List<FunctionDefinition> functions = new List<FunctionDefinition>
-            {
-                new FunctionDefinition(Type.IntType, "main", new List<Parameter>())
-            };
-            Program expectedProgram = new Program(functions);
+            IParser parser = buildParser(program);
 
-            parser.TryParse(out Program program);
+            parser.TryParse(out Program actualTree);
 
-            program.ShouldBeEquivalentTo(expectedProgram);
+            errorHandler.errorCount.ShouldBe(0);
         }
 
-        [Fact]
-        public void TryParseFunctionDefinition_WhenKeywordAsIdentifier_ShouldReturnFalse()
-        {
-            IParser parser = buildParser("int return() {}");
 
-            bool parsed = parser.TryParse(out Program program);
+        [Theory]
+        [MemberData(nameof(invalidPrograms))]
+        public void InvalidProgram_ShouldSetASTToNull(string program)
+        {
+            IParser parser = buildParser(program);
+
+            parser.TryParse(out Program ast);
+
+            ast.ShouldBeNull();
+        }
+        [Theory]
+        [MemberData(nameof(invalidPrograms))]
+        public void InvalidProgram_ShouldReturnFalse(string program)
+        {
+            IParser parser = buildParser(program);
+
+            bool parsed = parser.TryParse(out Program _);
 
             parsed.ShouldBeFalse();
         }
-
-        [Fact]
-        public void TryParseFunctionDefinition_WhenKeywordAsIdentifier_ShouldThrowError()
+        [Theory]
+        [MemberData(nameof(invalidPrograms))]
+        public void InvalidProgram_ShouldThrowError(string program)
         {
-            IParser parser = buildParser("int return() {}");
+            IParser parser = buildParser(program);
 
-            parser.TryParse(out Program program);
-            
-            errorco
+            parser.TryParse(out Program _);
+
+            errorHandler.errorCount.ShouldBeGreaterThan(0);
         }
     }
 }

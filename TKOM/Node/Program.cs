@@ -54,11 +54,7 @@ namespace TKOM.Node
         }
     }
 
-    public record Parameter
-    {
-        public Type Type { get; }
-        public string Name { get; }
-    }
+    public record Parameter(Type Type, string Name);
 
     public enum Type
     {
