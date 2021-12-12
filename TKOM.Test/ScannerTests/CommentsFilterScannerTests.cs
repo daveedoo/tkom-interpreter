@@ -1,8 +1,9 @@
 ﻿using System.IO;
 using TKOM.ErrorHandler;
+using TKOM.Scanner;
 using Xunit;
 
-namespace TKOM.Scanner.Test
+namespace TKOMTest.ScannerTests
 {
     public class CommentsFilterScannerTests
     {
@@ -13,8 +14,8 @@ namespace TKOM.Scanner.Test
         {
             StringReader reader = new StringReader(program);
             IErrorHandler errorHandler = new ErrorCollecter();
-            Scanner baseScanner = new Scanner(reader, errorHandler);
-            IScanner scanner = new CommentsFilterScanner(baseScanner);
+            Scanner baseScanner = new(reader, errorHandler);
+            IScanner scanner = new TKOM.Scanner.CommentsFilterScanner(baseScanner);
 
             Assert.True(scanner.MoveNext());
             Assert.Equal(Token.Identifier, scanner.Current);

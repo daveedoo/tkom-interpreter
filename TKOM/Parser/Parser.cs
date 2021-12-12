@@ -27,6 +27,7 @@ namespace TKOM.Parser
             }
             if (functions.Count == 0)
             {
+                errorHandler.HandleError("Program should have an entry point.");
                 program = null;
                 return false;
             }

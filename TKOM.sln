@@ -5,9 +5,9 @@ VisualStudioVersion = 17.0.31912.275
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TKOM", "TKOM\TKOM.csproj", "{5435311B-F88A-402C-95A7-92C5F8BA1A1D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TKOM.Test", "TKOM.Test\TKOM.Test.csproj", "{5BDD67A4-9091-4156-842F-02A20E50907C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TKOMTest", "TKOM.Test\TKOMTest.csproj", "{5BDD67A4-9091-4156-842F-02A20E50907C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Interpreter", "Interpreter\Interpreter.csproj", "{48625EF9-4572-4122-8F8F-DFA25DED8C36}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Interpreter", "Interpreter\Interpreter.csproj", "{48625EF9-4572-4122-8F8F-DFA25DED8C36}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

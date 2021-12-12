@@ -1,8 +1,8 @@
 using System.IO;
-using TKOM.ErrorHandler;
+using TKOM.Scanner;
 using Xunit;
 
-namespace TKOM.Scanner.Test
+namespace TKOMTest.ScannerTests
 {
     public partial class ScannerTests
     {
@@ -11,7 +11,7 @@ namespace TKOM.Scanner.Test
         {
             StringReader reader = new(program);
             errorCollecter = new ErrorCollecter();
-            return new Scanner(reader, errorCollecter);
+            return new TKOM.Scanner.Scanner(reader, errorCollecter);
         }
 
 

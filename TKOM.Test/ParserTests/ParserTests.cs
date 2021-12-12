@@ -2,20 +2,21 @@
 using System.Collections.Generic;
 using System.IO;
 using TKOM.Node;
+using TKOM.Parser;
 using TKOM.Scanner;
 using Xunit;
 
-namespace TKOM.Parser.Test
+namespace TKOMTest.ParserTests
 {
     public class ParserTests
     {
-        private ErrorHandler.ErrorHandler errorHandler;
+        private ErrorCollecter errorHandler;
 
         private IParser buildParser(string program)
         {
-            errorHandler = new ErrorHandler.ErrorHandler();
+            errorHandler = new ErrorCollecter();
             TextReader reader = new StringReader(program);
-            IScanner scanner = new Scanner.Scanner(reader, errorHandler);
+            IScanner scanner = new Scanner(reader, errorHandler);
             return new Parser(scanner, errorHandler);
         }
 
@@ -57,11 +58,20 @@ namespace TKOM.Parser.Test
         public void TryParseFunctionDefinition_WhenKeywordAsIdentifier_ShouldReturnFalse()
         {
             IParser parser = buildParser("int return() {}");
-            Program expectedProgram = new Program(new List<FunctionDefinition>());
+
+            bool parsed = parser.TryParse(out Program program);
+
+            parsed.ShouldBeFalse();
+        }
+
+        [Fact]
+        public void TryParseFunctionDefinition_WhenKeywordAsIdentifier_ShouldThrowError()
+        {
+            IParser parser = buildParser("int return() {}");
 
             parser.TryParse(out Program program);
-
-            program.ShouldBeEquivalentTo(expectedProgram);
+            
+            errorco
         }
     }
 }

@@ -1,14 +1,17 @@
 ﻿using System.Collections.Generic;
 using TKOM.ErrorHandler;
 
-namespace TKOM.Scanner.Test
+namespace TKOMTest
 {
     internal class ErrorCollecter : IErrorHandler
     {
         private List<(LexLocation, string)> errorsList = new List<(LexLocation, string)>();
-        public int errorCount => errorsList.Count;
+        private List<string> noLocationErrorsList = new List<string>();
+        public int errorCount => errorsList.Count + noLocationErrorsList.Count;
+
         private List<(LexLocation, string)> warningsList = new List<(LexLocation, string)>();
-        public int warningsCount => warningsList.Count;
+        private List<string> noLocationWarningsList = new List<string>();
+        public int warningsCount => warningsList.Count + noLocationWarningsList.Count;
 
         public ErrorCollecter() { }
 
@@ -34,6 +37,16 @@ namespace TKOM.Scanner.Test
             if (warningsCount == 0)
                 return null;
             return warningsList[warningsCount - 1];
+        }
+
+        public void HandleError(string message)
+        {
+            noLocationErrorsList.Add(message);
+        }
+
+        public void HandleWarning(string message)
+        {
+            noLocationWarningsList.Add(message);
         }
     }
 }
