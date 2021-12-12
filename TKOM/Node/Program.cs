@@ -30,12 +30,14 @@ namespace TKOM.Node
         public Type ReturnType { get; }
         public string Name { get; }
         public IList<Parameter> Parameters { get; }
+        public Block Body { get; }
 
-        public FunctionDefinition(Type returnType, string name, IList<Parameter> parameters)
+        public FunctionDefinition(Type returnType, string name, IList<Parameter> parameters, Block body)
         {
             ReturnType = returnType;
             Name = name;
             Parameters = parameters;
+            Body = body;
         }
 
         public bool Equals(FunctionDefinition other)
@@ -55,6 +57,31 @@ namespace TKOM.Node
     }
 
     public record Parameter(Type Type, string Name);
+
+    public class Block : INode, IEquatable<Block>
+    {
+        public IList<IStatement> Statements { get; }
+
+        public Block(IList<IStatement> statements)
+        {
+            Statements = statements;
+        }
+
+        public bool Equals(Block other)
+        {
+            IEnumerator<IStatement> statementsThis = Statements.GetEnumerator();
+            IEnumerator<IStatement> statementsOther = other.Statements.GetEnumerator();
+            while (statementsThis.MoveNext())
+            {
+                if (!statementsOther.MoveNext())
+                    return false;
+            }
+            return true;
+        }
+    }
+
+    public interface IStatement { }
+    public record Declaration(Type Type, string Name) : IStatement;
 
     public enum Type
     {

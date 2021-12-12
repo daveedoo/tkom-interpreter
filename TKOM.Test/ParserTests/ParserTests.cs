@@ -1,5 +1,4 @@
 ﻿using Shouldly;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using TKOM.Node;
@@ -13,21 +12,53 @@ namespace TKOMTest.ParserTests
     {
         private ErrorCollecter errorHandler;
 
-        public static TheoryData<string, Program> validPrograms => new TheoryData<string, Program>
+        public class TestCase
         {
-            { "int main() {}",
+            public string Program { get; }
+            public Program AST { get; }
+
+            public TestCase(string program, Program ast)
+            {
+                Program = program;
+                AST = ast;
+            }
+        }
+
+        public static TheoryData<TestCase> validPrograms => new TheoryData<TestCase>
+        {
+            new TestCase("int main() {}",                              // empty function
                 new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(TKOM.Node.Type.IntType, "main", new List<Parameter>())
-                })},
-            { "int main(int a) {}",
+                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>()))
+                })),
+            new TestCase("int main(int a) {}",                         // function with single param
                 new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(TKOM.Node.Type.IntType, "main", new List<Parameter>
+                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>
                     {
-                        new Parameter(TKOM.Node.Type.IntType, "a")
-                    })
-                }) }
+                        new Parameter(Type.IntType, "a")
+                    }, new Block(new List<IStatement>()))
+                })),
+            new TestCase("int main(int a, int b) {}",                  // function with more params
+                new Program(new List<FunctionDefinition>
+                {
+                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>
+                    {
+                        new Parameter(Type.IntType, "a"),
+                        new Parameter(Type.IntType, "b")
+                    }, new Block(new List<IStatement>()))
+                })),
+            new TestCase("int main() \n" +                              // declaration
+                "{\n" +
+                "   int a;\n" +
+                "}",
+                new Program(new List<FunctionDefinition>
+                {
+                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    {
+                        new Declaration(Type.IntType, "a")
+                    }))
+                }))
         };
 
         public static TheoryData<string> invalidPrograms => new TheoryData<string>
@@ -46,27 +77,16 @@ namespace TKOMTest.ParserTests
 
         [Theory]
         [MemberData(nameof(validPrograms))]
-        public void ValidProgram_ShouldCreateProperAST_AndReturnTrue(string program, Program expected)
+        public void ValidProgram_ShouldCreateProperAST_ReturnTrue_NoErrors(TestCase testCase)
         {
-            IParser parser = buildParser(program);
+            IParser parser = buildParser(testCase.Program);
 
             bool parsed = parser.TryParse(out Program actualTree);
 
             parsed.ShouldBeTrue();
-            actualTree.ShouldBeEquivalentTo(expected);
-        }
-
-        [Theory]
-        [MemberData(nameof(validPrograms))]
-        public void ValidProgram_ShouldntThrowAnyErrors(string program, Program expected)
-        {
-            IParser parser = buildParser(program);
-
-            parser.TryParse(out Program actualTree);
-
+            actualTree.ShouldBeEquivalentTo(testCase.AST);
             errorHandler.errorCount.ShouldBe(0);
         }
-
 
         [Theory]
         [MemberData(nameof(invalidPrograms))]

@@ -117,24 +117,83 @@ namespace TKOM.Parser
             }
             if (!MoveAndAssertFor(Token.Identifier, out string functionName) ||
                 !TryParseParameters(out IList<Parameter> parameters) ||
-                !TryParseBlock())
+                !TryParseBlock(out Block block))
                 return false;
 
-            funDef = new FunctionDefinition(type.Value, functionName, parameters);
+            funDef = new FunctionDefinition(type.Value, functionName, parameters, block);
             return true;
         }
 
         // block                : "{" { statement } "}"
-        private bool TryParseBlock()
+        private bool TryParseBlock(out Block block)
         {
+            block = null;
             if (!MoveAndAssertFor(Token.CurlyBracketOpen))
-            {
                 return false;
+
+            if (!Move())
+                return false;
+            var statements = new List<IStatement>();
+            if (TryCastTokenToType(scanner.Current, out Type? _))
+            {
+                if (TryParseSimpleStatement(out IStatement statement))
+                    statements.Add(statement);
+                else 
+                    return false;
             }
+            else
+                switch (scanner.Current)
+                {
+                    case Token.CurlyBracketClose:
+                        block = new Block(statements);
+                        return true;
+                    default:
+                        return false;
+                }
+
             if (!MoveAndAssertFor(Token.CurlyBracketClose))
+                return false;
+
+            block = new Block(statements);
+            return true;
+        }
+
+        private bool TryParseSimpleStatement(out IStatement statement)
+        {
+            statement = null;
+            if (TryCastTokenToType(scanner.Current, out Type? _))
             {
+                if (TryParseDeclaration(out Declaration declaration))
+                    statement = declaration;
+                else
+                    return false;
+            }
+            if (!MoveAndAssertFor(Token.Semicolon))
+                return false;
+            return true;
+        }
+
+        // declaration         : type declOptAssign { "," decl_opt_assign }
+        private bool TryParseDeclaration(out Declaration declaration)
+        {
+            if (!TryCastTokenToType(scanner.Current, out Type? type) ||
+                !MoveAndAssertFor(Token.Identifier, out string identifier))
+            {
+                declaration = null;
                 return false;
             }
+            declaration = new Declaration(type.Value, identifier);
+            return true;
+        }
+
+        private bool TryParseNotVoidType(out Type? type)
+        {
+            if (!MoveAndAssertFor(Token.Int))
+            {
+                type = null;
+                return false;
+            }
+            type = Type.IntType;
             return true;
         }
 
@@ -142,13 +201,14 @@ namespace TKOM.Parser
         private bool TryParseParameters(out IList<Parameter> parameters)
         {
             parameters = null;
-            if (!MoveAndAssertFor(Token.RoundBracketOpen) ||
-                !Move())
+            if (!MoveAndAssertFor(Token.RoundBracketOpen))
                 return false;
 
             parameters = new List<Parameter>();
             do
             {
+                if (!Move())
+                    return false;
                 if (scanner.Current == Token.Int)
                 {
                     if (!MoveAndAssertFor(Token.Identifier, out string paramName))
