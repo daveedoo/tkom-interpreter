@@ -25,6 +25,8 @@ namespace TKOMTest.ScannerTests
             Assert.Equal(Token.IntConst, scanner.Current);
             Assert.Equal(17, scanner.IntValue);
 
+            Assert.True(scanner.MoveNext());
+            Assert.Equal(Token.EOF, scanner.Current);
             Assert.False(scanner.MoveNext());
         }
     }
