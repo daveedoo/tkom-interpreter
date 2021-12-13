@@ -81,11 +81,23 @@ namespace TKOM.Node
     }
 
     public interface IExpression { }
-    public interface IStatement { }
+    public interface IStatement : INode { }
     public record Declaration(Type Type, string Name) : IStatement;
     public record Assignment(string Variable, IExpression Expression) : IStatement;
     public record IntConst(int Value) : IExpression;
+    public record Variable(string Identifier) : IExpression;
     public record Return(IExpression Expression) : IStatement;
+    public class FunctionCall : IStatement, IExpression
+    {
+        public string Identifier { get; set; }
+        public IList<IExpression> Arguments { get; }
+
+        public FunctionCall(string identifier, IList<IExpression> arguments)
+        {
+            Identifier = identifier;
+            Arguments = arguments;
+        }
+    }
 
     public enum Type
     {
