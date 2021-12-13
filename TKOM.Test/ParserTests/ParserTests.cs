@@ -12,98 +12,6 @@ namespace TKOMTest.ParserTests
     {
         private ErrorCollecter errorHandler;
 
-        public class TestCase
-        {
-            public string Program { get; }
-            public Program AST { get; }
-
-            public TestCase(string program, Program ast)
-            {
-                Program = program;
-                AST = ast;
-            }
-        }
-
-        public static TheoryData<TestCase> validPrograms => new TheoryData<TestCase>
-        {
-            new TestCase("int main() {}",                              // empty function
-                new Program(new List<FunctionDefinition>
-                {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>()))
-                })),
-            new TestCase("int main(int a) {}",                         // function with single param
-                new Program(new List<FunctionDefinition>
-                {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>
-                    {
-                        new Parameter(Type.IntType, "a")
-                    }, new Block(new List<IStatement>()))
-                })),
-            new TestCase("int main(int a, int b) {}",                  // function with more params
-                new Program(new List<FunctionDefinition>
-                {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>
-                    {
-                        new Parameter(Type.IntType, "a"),
-                        new Parameter(Type.IntType, "b")
-                    }, new Block(new List<IStatement>()))
-                })),
-            new TestCase("int main()" +                                 // declaration
-                "{" +
-                "   int a;" +
-                "}",
-                new Program(new List<FunctionDefinition>
-                {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
-                    {
-                        new Declaration(Type.IntType, "a")
-                    }))
-                })),
-            new TestCase("int main()" +                                 // multiple instructions in block
-                "{" +
-                "   int a;" +
-                "   int b;" +
-                "}",
-                new Program(new List<FunctionDefinition>
-                {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
-                    {
-                        new Declaration(Type.IntType, "a"),
-                        new Declaration(Type.IntType, "b")
-                    }))
-                })),
-            new TestCase("int main()" +                                 // assignment
-                "{" +
-                "   int a;" +
-                "   a = 7;" +
-                "}",
-                new Program(new List<FunctionDefinition>
-                {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
-                    {
-                        new Declaration(Type.IntType, "a"),
-                        new Assignment("a", new IntConst(7))
-                    }))
-                })),
-            new TestCase("int main()" +                                 // return
-                "{" +
-                "   return 10;" +
-                "}",
-                new Program(new List<FunctionDefinition>
-                {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
-                    {
-                        new Return(new IntConst(10))
-                    }))
-                }))
-        };
-
-        public static TheoryData<string> invalidPrograms => new TheoryData<string>
-        {
-            "",                         // empty program
-            "int return() {}"           // keyword as identifier
-        };
-
         private IParser buildParser(string program)
         {
             errorHandler = new ErrorCollecter();
@@ -112,16 +20,202 @@ namespace TKOMTest.ParserTests
             return new Parser(scanner, errorHandler);
         }
 
-        [Theory]
-        [MemberData(nameof(validPrograms))]
-        public void ValidProgram_ShouldCreateProperAST_ReturnTrue_NoErrors(TestCase testCase)
+
+        public static TheoryData<string> invalidPrograms => new TheoryData<string>
         {
-            IParser parser = buildParser(testCase.Program);
+            "",                         // empty program
+            "int return() {}"           // keyword as identifier
+        };
+
+        [Fact]
+        public void EmptyFunction()
+        {
+            string program = "int main() {}";
+            Program ast = new Program(new List<FunctionDefinition>
+                {
+                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>()))
+                });
+            IParser parser = buildParser(program);
 
             bool parsed = parser.TryParse(out Program actualTree);
 
             parsed.ShouldBeTrue();
-            actualTree.ShouldBeEquivalentTo(testCase.AST);
+            actualTree.ShouldBeEquivalentTo(ast);
+            errorHandler.errorCount.ShouldBe(0);
+        }
+        [Fact]
+        public void FunctioWithSingleParam()
+        {
+            string program = "int main(int a) {}";
+            Program ast = new Program(new List<FunctionDefinition>
+                {
+                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>
+                    {
+                        new Parameter(Type.IntType, "a")
+                    }, new Block(new List<IStatement>()))
+                });
+            IParser parser = buildParser(program);
+
+            bool parsed = parser.TryParse(out Program actualTree);
+
+            parsed.ShouldBeTrue();
+            actualTree.ShouldBeEquivalentTo(ast);
+            errorHandler.errorCount.ShouldBe(0);
+        }
+        [Fact]
+        public void FunctionWithMultipleParameters()
+        {
+            string program = "int main(int a, int b) {}";
+            Program ast = new Program(new List<FunctionDefinition>
+                {
+                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>
+                    {
+                        new Parameter(Type.IntType, "a"),
+                        new Parameter(Type.IntType, "b")
+                    }, new Block(new List<IStatement>()))
+                });
+            IParser parser = buildParser(program);
+
+            bool parsed = parser.TryParse(out Program actualTree);
+
+            parsed.ShouldBeTrue();
+            actualTree.ShouldBeEquivalentTo(ast);
+            errorHandler.errorCount.ShouldBe(0);
+        }
+        [Fact]
+        public void Declaration()
+        {
+            string program = "int main()" +
+                "{" +
+                "   int a;" +
+                "}";
+            Program ast = new Program(new List<FunctionDefinition>
+                {
+                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    {
+                        new Declaration(Type.IntType, "a")
+                    }))
+                });
+            IParser parser = buildParser(program);
+
+            bool parsed = parser.TryParse(out Program actualTree);
+
+            parsed.ShouldBeTrue();
+            actualTree.ShouldBeEquivalentTo(ast);
+            errorHandler.errorCount.ShouldBe(0);
+        }
+        [Fact]
+        public void MultipleInstructionsInBlock()
+        {
+            string program = "int main()" +
+                "{" +
+                "   int a;" +
+                "   int b;" +
+                "}";
+            Program ast = new Program(new List<FunctionDefinition>
+                {
+                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    {
+                        new Declaration(Type.IntType, "a"),
+                        new Declaration(Type.IntType, "b")
+                    }))
+                });
+            IParser parser = buildParser(program);
+
+            bool parsed = parser.TryParse(out Program actualTree);
+
+            parsed.ShouldBeTrue();
+            actualTree.ShouldBeEquivalentTo(ast);
+            errorHandler.errorCount.ShouldBe(0);
+        }
+        [Fact]
+        public void Assignment()
+        {
+            string program = "int main()" +
+                "{" +
+                "   int a;" +
+                "   a = 7;" +
+                "}";
+            Program ast = new Program(new List<FunctionDefinition>
+                {
+                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    {
+                        new Declaration(Type.IntType, "a"),
+                        new Assignment("a", new IntConst(7))
+                    }))
+                });
+            IParser parser = buildParser(program);
+
+            bool parsed = parser.TryParse(out Program actualTree);
+
+            parsed.ShouldBeTrue();
+            actualTree.ShouldBeEquivalentTo(ast);
+            errorHandler.errorCount.ShouldBe(0);
+        }
+        [Fact]
+        public void ReturnStatement()
+        {
+            string program = "int main()" +
+                "{" +
+                "   return 10;" +
+                "}";
+            Program ast = new Program(new List<FunctionDefinition>
+                {
+                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    {
+                        new Return(new IntConst(10))
+                    }))
+                });
+            IParser parser = buildParser(program);
+
+            bool parsed = parser.TryParse(out Program actualTree);
+
+            parsed.ShouldBeTrue();
+            actualTree.ShouldBeEquivalentTo(ast);
+            errorHandler.errorCount.ShouldBe(0);
+        }
+        [Fact]
+        public void BasicFunctionCall()
+        {
+            string program = "int main()" +
+                "{" +
+                "   foo();" +
+                "}";
+            Program ast = new Program(new List<FunctionDefinition>
+                {
+                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    {
+                        new FunctionCall(new List<IExpression>())
+                    }))
+                });
+            IParser parser = buildParser(program);
+
+            bool parsed = parser.TryParse(out Program actualTree);
+
+            parsed.ShouldBeTrue();
+            actualTree.ShouldBeEquivalentTo(ast);
+            errorHandler.errorCount.ShouldBe(0);
+        }
+        [Fact]
+        public void FunctionCallWithParameters()
+        {
+            string program = "int main()" +
+                "{" +
+                "   foo(a);" +
+                "}";
+            Program ast = new Program(new List<FunctionDefinition>
+                {
+                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    {
+                        new FunctionCall(new List<IExpression>{ new Variable("a") })
+                    }))
+                });
+            IParser parser = buildParser(program);
+
+            bool parsed = parser.TryParse(out Program actualTree);
+
+            parsed.ShouldBeTrue();
+            actualTree.ShouldBeEquivalentTo(ast);
             errorHandler.errorCount.ShouldBe(0);
         }
 
