@@ -48,9 +48,9 @@ namespace TKOMTest.ParserTests
                         new Parameter(Type.IntType, "b")
                     }, new Block(new List<IStatement>()))
                 })),
-            new TestCase("int main() \n" +                              // declaration
-                "{\n" +
-                "   int a;\n" +
+            new TestCase("int main()" +                                 // declaration
+                "{" +
+                "   int a;" +
                 "}",
                 new Program(new List<FunctionDefinition>
                 {
@@ -59,10 +59,10 @@ namespace TKOMTest.ParserTests
                         new Declaration(Type.IntType, "a")
                     }))
                 })),
-            new TestCase("int main() \n" +                              // multiple instructions in block
-                "{\n" +
-                "   int a;\n" +
-                "   int b;\n" +
+            new TestCase("int main()" +                                 // multiple instructions in block
+                "{" +
+                "   int a;" +
+                "   int b;" +
                 "}",
                 new Program(new List<FunctionDefinition>
                 {
@@ -72,9 +72,9 @@ namespace TKOMTest.ParserTests
                         new Declaration(Type.IntType, "b")
                     }))
                 })),
-            new TestCase("int main() \n" +                              // assignment
-                "{\n" +
-                "   int a;\n" +
+            new TestCase("int main()" +                                 // assignment
+                "{" +
+                "   int a;" +
                 "   a = 7;" +
                 "}",
                 new Program(new List<FunctionDefinition>
@@ -83,6 +83,17 @@ namespace TKOMTest.ParserTests
                     {
                         new Declaration(Type.IntType, "a"),
                         new Assignment("a", new IntConst(7))
+                    }))
+                })),
+            new TestCase("int main()" +                                 // return
+                "{" +
+                "   return 10;" +
+                "}",
+                new Program(new List<FunctionDefinition>
+                {
+                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    {
+                        new Return(new IntConst(10))
                     }))
                 }))
         };

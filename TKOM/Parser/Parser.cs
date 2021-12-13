@@ -132,35 +132,24 @@ namespace TKOM.Parser
                 return false;
 
             var statements = new List<IStatement>();
-            bool loop = true;
-            do
+            while (!MoveAndCheckFor(Token.CurlyBracketClose))
             {
-                if (!Move())
-                    return false;
-                if (TryCastTokenToType(scanner.Current, out Type? _))
-                {
-                    if (TryParseSimpleStatement(out IList<IStatement> statementsList))
-                        statements.AddRange(statementsList);
-                    else
-                        return false;
-                }
-                else
-                    switch (scanner.Current)
+                bool simpleStmt = TryCastTokenToType(scanner.Current, out Type? _) ||
+                    scanner.Current switch
                     {
-                        case Token.Identifier:
-                            if (!TryParseSimpleStatement(out IList<IStatement> statementsList) ||
-                                !MoveAndAssertFor(Token.CurlyBracketClose))
-                                return false;
-                            statements.AddRange(statementsList);
-                            loop = false;
-                            break;
-                        case Token.CurlyBracketClose:
-                            loop = false;
-                            break;
-                        default:
-                            return false;
-                    } 
-            } while (loop);
+                        Token.Identifier
+                        or Token.Return => true,
+                        _ => false
+                    };
+
+                if (simpleStmt)
+                {
+                    if (!TryParseSimpleStatement(out IList<IStatement> statementsList))
+                        return false;
+                    statements.AddRange(statementsList);
+                }
+            }
+
             block = new Block(statements);
             return true;
         }
@@ -180,8 +169,24 @@ namespace TKOM.Parser
                     return false;
                 statementsList = new List<IStatement> { statement };
             }
+            else if (scanner.Current == Token.Return)
+            {
+                if (!TryParseExpression(out IExpression expression))
+                    return false;
+                statementsList = new List<IStatement> { new Return(expression) };
+            }
+
             if (!MoveAndAssertFor(Token.Semicolon))
                 return false;
+            return true;
+        }
+
+        private bool TryParseExpression(out IExpression expression)
+        {
+            expression = null;
+            if (!MoveAndAssertFor(Token.IntConst))
+                return false;
+            expression = new IntConst(scanner.IntValue.Value);
             return true;
         }
 

@@ -85,6 +85,7 @@ namespace TKOM.Node
     public record Declaration(Type Type, string Name) : IStatement;
     public record Assignment(string Variable, IExpression Expression) : IStatement;
     public record IntConst(int Value) : IExpression;
+    public record Return(IExpression Expression) : IStatement;
 
     public enum Type
     {
