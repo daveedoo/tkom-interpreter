@@ -38,6 +38,7 @@ namespace TKOMTest.ParserTests
             "int main() { foo(; }",             // incomplete function call
             "int main() { foo; }",              // incomplete function call
             "int main() { foo(2 int); }",       // function call with incorrect argument
+            "int main() { throw; }",            // incomplete throw
         };
 
         [Fact]
@@ -222,6 +223,28 @@ namespace TKOMTest.ParserTests
             errorHandler.errorCount.ShouldBe(0);
         }
         [Fact]
+        public void ReturnVoid()
+        {
+            string program = "int main()" +
+                "{" +
+                "   return;" +
+                "}";
+            Program ast = new Program(new List<FunctionDefinition>
+                {
+                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    {
+                        new Return()
+                    }))
+                });
+            IParser parser = buildParser(program);
+
+            bool parsed = parser.TryParse(out Program actualTree);
+
+            parsed.ShouldBeTrue();
+            actualTree.ShouldBeEquivalentTo(ast);
+            errorHandler.errorCount.ShouldBe(0);
+        }
+        [Fact]
         public void BasicFunctionCall()
         {
             string program = "int main()" +
@@ -277,6 +300,28 @@ namespace TKOMTest.ParserTests
                     new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new FunctionCall("foo", new List<IExpression>{ new Variable("a"), new Variable("b") })
+                    }))
+                });
+            IParser parser = buildParser(program);
+
+            bool parsed = parser.TryParse(out Program actualTree);
+
+            parsed.ShouldBeTrue();
+            actualTree.ShouldBeEquivalentTo(ast);
+            errorHandler.errorCount.ShouldBe(0);
+        }
+        [Fact]
+        public void ThrowStatement()
+        {
+            string program = "int main()" +
+                "{" +
+                "   throw Exception(10);" +
+                "}";
+            Program ast = new Program(new List<FunctionDefinition>
+                {
+                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    {
+                        new Throw(new IntConst(10))
                     }))
                 });
             IParser parser = buildParser(program);

@@ -149,49 +149,70 @@ namespace TKOM.Parser
             var statements = new List<IStatement>();
             while (!TryParseToken(Token.CurlyBracketClose))
             {
-                bool doSimpleStmt = IsTypeToken(scanner.Current, out Type? _) ||
-                    scanner.Current switch
-                    {
-                        Token.Identifier
-                        or Token.Return => true,
-                        _ => false
-                    };
-
-                if (doSimpleStmt)
-                {
-                    if (!TryParseSimpleStatement(out IStatement statement))
-                        return false;
-                    statements.Add(statement);
-                }
+                if (!TryParseSimpleStatement(out IStatement statement))
+                    return false;
+                statements.Add(statement);
             }
 
             block = new Block(statements);
             return true;
         }
+        // statement           : block_statement
+        private bool TryParseBlockStatement(out IStatement statement)
+        {
+            statement = null;
+            return false;
+        }
         // statement           : simple_statement ";"
         private bool TryParseSimpleStatement(out IStatement statement)
         {
             statement = null;
+            // simple_statement    : declaration
             if (IsTypeToken(scanner.Current, out Type? _) &&
                 !TryParseDeclarationsWithOptionalAssignments(out statement))
                 return false;
-            
+
+            // simple_statement    : assignment | function_call
             if (TryParseToken(Token.Identifier, out string identifier) &&
                 !TryParseAssignmentOrFunctionCallRest(identifier, out statement))
                 return false;
 
+            // simple_statement     : return    : "return" [ expression ]
             if (TryParseToken(Token.Return))
             {
-                if (!TryParseExpression(out IExpression expression))    // TODO: add return void type
+                if (TryParseToken(Token.Semicolon))
+                {
+                    statement = new Return();
+                    return true;
+                }
+                if (!TryParseExpression(out IExpression expression))
                     return false;
                 statement = new Return(expression);
             }
 
+            // simple_statement     : throw     : "throw" ...
+            if (TryParseToken(Token.Throw) &&
+                !TryParseThrowStatementRest(out statement))
+                return false;
+
+            // ";"
             if (!TryParseToken(Token.Semicolon))
             {
                 statement = null;
                 return false;
             }
+            return true;
+        }
+        // "Exception" "(" expression ")"
+        private bool TryParseThrowStatementRest(out IStatement statement)
+        {
+            statement = null;
+            if (!TryParseToken(Token.Exception) ||
+                !TryParseToken(Token.RoundBracketOpen) ||
+                !TryParseExpression(out IExpression expression) ||
+                !TryParseToken(Token.RoundBracketClose))
+                return false;
+            statement = new Throw(expression);
             return true;
         }
 
@@ -268,7 +289,7 @@ namespace TKOM.Parser
         }
 
         // declaration         : type declOptAssign { "," decl_opt_assign }
-        private bool TryParseDeclarationsWithOptionalAssignments(out IStatement statement)
+        private bool TryParseDeclarationsWithOptionalAssignments(out IStatement statement)  // TODO: add optional assignment
         {
             if (!TryParseTypeToken(out Type? type) ||
                 !TryParseToken(Token.Identifier, out string identifier))

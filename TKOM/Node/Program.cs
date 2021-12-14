@@ -86,7 +86,8 @@ namespace TKOM.Node
     public record Assignment(string Variable, IExpression Expression) : IStatement;
     public record IntConst(int Value) : IExpression;
     public record Variable(string Identifier) : IExpression;
-    public record Return(IExpression Expression) : IStatement;
+    public record Return(IExpression Expression = null) : IStatement;
+    public record Throw(IExpression Expression) : IStatement;
     public class FunctionCall : IStatement, IExpression
     {
         public string Identifier { get; set; }

@@ -20,9 +20,9 @@ statement           : simple_statement ";"
                     | block_statement
                     ;
 simple_statement    : declaration
+                    | assignment
                     | function_call
                     | return
-                    | assignment
                     | throw
                     ;
 block_statement     : block
