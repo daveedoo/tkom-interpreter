@@ -23,8 +23,21 @@ namespace TKOMTest.ParserTests
 
         public static TheoryData<string> invalidPrograms => new TheoryData<string>
         {
-            "",                         // empty program
-            "int return() {}"           // keyword as identifier
+            "",                                 // empty program
+            "int main",                         // incomplete function
+            "int return() {}",                  // keyword as identifier
+            "int main() {} &&",                 // illegal token at the end
+            "int main ( )",                     // no block
+            "int main(int) {}",                 // incomplete parameter
+            "int main(int a {}",                // not closed parameters list
+            "int main(int a,) {}",              // parameter with additional comma
+            "int main(void a) {}",              // void type parameter
+            "int main() { int; }",              // incomplete declaration
+            "int main() { a =; }",              // incomplete assignment
+            "int main() { a =5 }",              // instruction without semicolon
+            "int main() { foo(; }",             // incomplete function call
+            "int main() { foo; }",              // incomplete function call
+            "int main() { foo(2 int); }",       // function call with incorrect argument
         };
 
         [Fact]
@@ -33,6 +46,40 @@ namespace TKOMTest.ParserTests
             string program = "int main() {}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
+                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>()))
+                });
+            IParser parser = buildParser(program);
+
+            bool parsed = parser.TryParse(out Program actualTree);
+
+            parsed.ShouldBeTrue();
+            actualTree.ShouldBeEquivalentTo(ast);
+            errorHandler.errorCount.ShouldBe(0);
+        }
+        [Fact]
+        public void EmptyVoidFunction()
+        {
+            string program = "void main() {}";
+            Program ast = new Program(new List<FunctionDefinition>
+                {
+                    new FunctionDefinition(Type.Void, "main", new List<Parameter>(), new Block(new List<IStatement>()))
+                });
+            IParser parser = buildParser(program);
+
+            bool parsed = parser.TryParse(out Program actualTree);
+
+            parsed.ShouldBeTrue();
+            actualTree.ShouldBeEquivalentTo(ast);
+            errorHandler.errorCount.ShouldBe(0);
+        }
+        [Fact]
+        public void MultipleFunctions()
+        {
+            string program = "int foo() {}" +
+                             "int main() {}";
+            Program ast = new Program(new List<FunctionDefinition>
+                {
+                    new FunctionDefinition(Type.IntType, "foo", new List<Parameter>(), new Block(new List<IStatement>())),
                     new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>()))
                 });
             IParser parser = buildParser(program);
