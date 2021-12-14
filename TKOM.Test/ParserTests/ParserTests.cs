@@ -332,6 +332,85 @@ namespace TKOMTest.ParserTests
             actualTree.ShouldBeEquivalentTo(ast);
             errorHandler.errorCount.ShouldBe(0);
         }
+        [Fact]
+        public void IfStatementBasic()
+        {
+            string program = "int main()" +
+                "{" +
+                "   if (1)" +
+                "       a = 0;" +
+                "}";
+            Program ast = new Program(new List<FunctionDefinition>
+                {
+                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    {
+                        new If(new IntConst(1), new Assignment("a", new IntConst(0)))
+                    }))
+                });
+            IParser parser = buildParser(program);
+
+            bool parsed = parser.TryParse(out Program actualTree);
+
+            parsed.ShouldBeTrue();
+            actualTree.ShouldBeEquivalentTo(ast);
+            errorHandler.errorCount.ShouldBe(0);
+        }
+        [Fact]
+        public void IfStatementWithBlockStatement()
+        {
+            string program = "int main()" +
+                "{" +
+                "   if (1)" +
+                "   {" +
+                "       a = 0;" +
+                "   }" +
+                "}";
+            Program ast = new Program(new List<FunctionDefinition>
+                {
+                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    {
+                        new If(new IntConst(1), new Block(new List<IStatement>{
+                            new Assignment("a", new IntConst(0))
+                        }))
+                    }))
+                });
+            IParser parser = buildParser(program);
+
+            bool parsed = parser.TryParse(out Program actualTree);
+
+            parsed.ShouldBeTrue();
+            actualTree.ShouldBeEquivalentTo(ast);
+            errorHandler.errorCount.ShouldBe(0);
+        }
+        [Fact]
+        public void IfStatementWithElse()
+        {
+            string program = "int main()" +
+                "{" +
+                "   if (1)" +
+                "       a = 1;" +
+                "   else" +
+                "       a = 0;" +
+                "}";
+            Program ast = new Program(new List<FunctionDefinition>
+                {
+                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    {
+                        new If(new IntConst(1),
+                            new Assignment("a", new IntConst(1)),
+                            new Assignment("a", new IntConst(0))
+                        )
+                    }))
+                });
+            IParser parser = buildParser(program);
+
+            bool parsed = parser.TryParse(out Program actualTree);
+
+            parsed.ShouldBeTrue();
+            actualTree.ShouldBeEquivalentTo(ast);
+            errorHandler.errorCount.ShouldBe(0);
+        }
+
 
 
         [Theory]

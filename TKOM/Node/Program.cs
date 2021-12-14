@@ -58,7 +58,7 @@ namespace TKOM.Node
 
     public record Parameter(Type Type, string Name);
 
-    public class Block : INode, IEquatable<Block>
+    public class Block : INode, IStatement, IEquatable<Block>
     {
         public IList<IStatement> Statements { get; }
 
@@ -99,6 +99,9 @@ namespace TKOM.Node
             Arguments = arguments;
         }
     }
+
+    public record If (IExpression Condition, IStatement IfStatement, IStatement ElseStatement = null) : IStatement;
+    public record While(IExpression condition, IStatement Statement) : IStatement;
 
     public enum Type
     {

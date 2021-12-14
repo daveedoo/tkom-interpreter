@@ -149,20 +149,71 @@ namespace TKOM.Parser
             var statements = new List<IStatement>();
             while (!TryParseToken(Token.CurlyBracketClose))
             {
-                if (!TryParseSimpleStatement(out IStatement statement))
+                if (TryParseStatement(out IStatement statement))
+                    statements.Add(statement);
+                else
                     return false;
-                statements.Add(statement);
             }
 
             block = new Block(statements);
             return true;
         }
+        // statement           : simple_statement ";" | block_statement
+        private bool TryParseStatement(out IStatement statement)
+        {
+            if (TryParseSimpleStatement(out statement) ||
+                TryParseBlockStatement(out statement))
+                return true;
+            if (TryParseBlock(out Block block))
+            {
+                statement = block;
+                return true;
+            }
+            return false;
+        }
         // statement           : block_statement
         private bool TryParseBlockStatement(out IStatement statement)
         {
             statement = null;
+            // block_statement     : if
+            if (!TryParseIfStatement(out If ifStatement))
+                return false;
+            statement = ifStatement;
+            // block_statement     : while
+            // block_statement     : try_catch_finally
+            return true;
+        }
+        // if                  : "if" "(" expression ")" statement [ "else" statement ]
+        private bool TryParseIfStatement(out If ifStatement)
+        {
+            ifStatement = null;
+            if (!TryParseToken(Token.If) ||
+                !TryParseToken(Token.RoundBracketOpen) ||
+                !TryParseExpression(out IExpression condition) ||
+                !TryParseToken(Token.RoundBracketClose) ||
+                !TryParseStatement(out IStatement stmt))
+                return false;
+            
+            if (TryParseToken(Token.Else))
+            {
+                if (TryParseStatement(out IStatement elseStmt))
+                {
+                    ifStatement = new If(condition, stmt, elseStmt);
+                    return true;
+                }
+                return false;
+            }
+
+            ifStatement = new If(condition, stmt);
+            return true;
+        }
+        // while               : "while" "(" expression ")" statement
+        private bool TryParseWhileLoop(out While whileStatement)
+        {
+            whileStatement = null;
             return false;
         }
+
         // statement           : simple_statement ";"
         private bool TryParseSimpleStatement(out IStatement statement)
         {

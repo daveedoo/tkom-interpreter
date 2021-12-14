@@ -25,8 +25,7 @@ simple_statement    : declaration
                     | return
                     | throw
                     ;
-block_statement     : block
-                    | if
+block_statement     : if
                     | while
                     | try_catch_finally
                     ;
