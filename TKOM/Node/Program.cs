@@ -102,6 +102,20 @@ namespace TKOM.Node
 
     public record If (IExpression Condition, IStatement IfStatement, IStatement ElseStatement = null) : IStatement;
     public record While(IExpression condition, IStatement Statement) : IStatement;
+    public class TryCatchFinally : IStatement
+    {
+        public IStatement TryStatement { get; }
+        public IList<Catch> CatchStatements { get; }
+        public IStatement FinallyStatement { get; }
+
+        public TryCatchFinally(IStatement tryStatement, IList<Catch> catchStatements, IStatement finallyStatement = null)
+        {
+            TryStatement = tryStatement;
+            CatchStatements = catchStatements;
+            FinallyStatement = finallyStatement;
+        }
+    }
+    public record Catch(string Identifier, IStatement Statement, IExpression WhenExpression = null) : IStatement;
 
     public enum Type
     {

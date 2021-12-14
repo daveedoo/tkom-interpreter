@@ -433,6 +433,78 @@ namespace TKOMTest.ParserTests
             actualTree.ShouldBeEquivalentTo(ast);
             errorHandler.errorCount.ShouldBe(0);
         }
+        [Fact]
+        public void TryCatchStatement()
+        {
+            string program = "int main()" +
+                "{" +
+                "   try {" +
+                "       a = 10;" +
+                "   } catch Exception e" +
+                "       int x;" +
+                "}";
+            Program ast = new Program(new List<FunctionDefinition>
+                {
+                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    {
+                        new TryCatchFinally(new Block(new List<IStatement>{
+                            new Assignment("a", new IntConst(10)) }), 
+                        new List<Catch>
+                            {
+                                new Catch("e", new Declaration(Type.IntType, "x"))
+                            })
+                    }))
+                });
+            IParser parser = buildParser(program);
+
+            bool parsed = parser.TryParse(out Program actualTree);
+
+            parsed.ShouldBeTrue();
+            actualTree.ShouldBeEquivalentTo(ast);
+            errorHandler.errorCount.ShouldBe(0);
+        }
+        [Fact]
+        public void TryCatchFinallyMoreComplex()
+        {
+            string program = "int main()" +
+                "{" +
+                "   try {" +
+                "       a = 10;" +
+                "   } catch Exception e when 1" +
+                "       int x;" +
+                "   catch Exception f {" +
+                "   }" +
+                "   finally {" +
+                "       int k;" +
+                "       foo(k);" +
+                "   }" +
+                "}";
+            Program ast = new Program(new List<FunctionDefinition>
+                {
+                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    {
+                        new TryCatchFinally(new Block(new List<IStatement>{
+                            new Assignment("a", new IntConst(10)) }),
+                        new List<Catch>
+                        {
+                            new Catch("e", new Declaration(Type.IntType, "x"), new IntConst(1)),
+                            new Catch("f", new Block(new List<IStatement>()))
+                        },
+                        new Block(new List<IStatement>
+                        {
+                            new Declaration(Type.IntType, "k"),
+                            new FunctionCall("foo", new List<IExpression>{ new Variable("k") })
+                        }))
+                    }))
+                });
+            IParser parser = buildParser(program);
+
+            bool parsed = parser.TryParse(out Program actualTree);
+
+            parsed.ShouldBeTrue();
+            actualTree.ShouldBeEquivalentTo(ast);
+            errorHandler.errorCount.ShouldBe(0);
+        }
 
 
 

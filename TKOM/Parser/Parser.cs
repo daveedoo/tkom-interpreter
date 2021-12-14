@@ -179,6 +179,10 @@ namespace TKOM.Parser
                 statement = ifStatement;
             else if (TryParseWhileStatement(out While whileStatement))  // block_statement     : while
                 statement = whileStatement;
+            else if (TryParseTryCatchFinallyStatement(out TryCatchFinally tcfStatement))
+                statement = tcfStatement;
+            else if (TryParseBlock(out Block block))
+                statement = block;
             else
                 return false;
             // block_statement     : try_catch_finally
@@ -222,36 +226,62 @@ namespace TKOM.Parser
             return true;
         }
 
+        // try_catch_finally   : "try" statement catch { catch } [ "finally" statement]
+        private bool TryParseTryCatchFinallyStatement(out TryCatchFinally tcfStatement)
+        {
+            tcfStatement = null;
+            if (!TryParseToken(Token.Try) ||
+                !TryParseStatement(out IStatement tryStatement) ||
+                !TryParseCatch(out Catch @catch))
+                return false;
+            IList<Catch> catches = new List<Catch>();
+            catches.Add(@catch);
+
+            while (TryParseCatch(out Catch catchBlock))
+                catches.Add(catchBlock);
+            if (TryParseToken(Token.Finally))
+            {
+                if (!TryParseStatement(out IStatement finallyStatement))
+                    return false;
+                tcfStatement = new TryCatchFinally(tryStatement, catches, finallyStatement);
+                return true;
+            }
+            tcfStatement = new TryCatchFinally(tryStatement, catches);
+            return true;
+        }
+        // catch               : "catch" "Exception" IDENTIFIER [ "when" expression ] statement
+        private bool TryParseCatch(out Catch catchBlock)
+        {
+            catchBlock = null;
+            if (!TryParseToken(Token.Catch) ||
+                !TryParseToken(Token.Exception) ||
+                !TryParseToken(Token.Identifier, out string variable))
+                return false;
+            
+            if (TryParseToken(Token.When))
+            {
+                if (!TryParseExpression(out IExpression expression) ||
+                    !TryParseStatement(out IStatement stmt))
+                    return false;
+                catchBlock = new Catch(variable, stmt, expression);
+                return true;
+            }
+
+            if (!TryParseStatement(out IStatement statement))
+                return false;
+            
+            catchBlock = new Catch(variable, statement);
+            return true;
+        }
+
         // statement           : simple_statement ";"
         private bool TryParseSimpleStatement(out IStatement statement)
         {
             statement = null;
-            // simple_statement    : declaration
-            if (IsTypeToken(scanner.Current, out Type? _) &&
-                !TryParseDeclarationsWithOptionalAssignments(out statement))
-                return false;
-
-            // simple_statement    : assignment | function_call
-            if (TryParseToken(Token.Identifier, out string identifier) &&
-                !TryParseAssignmentOrFunctionCallRest(identifier, out statement))
-                return false;
-
-            // simple_statement     : return    : "return" [ expression ]
-            if (TryParseToken(Token.Return))
-            {
-                if (TryParseToken(Token.Semicolon))
-                {
-                    statement = new Return();
-                    return true;
-                }
-                if (!TryParseExpression(out IExpression expression))
-                    return false;
-                statement = new Return(expression);
-            }
-
-            // simple_statement     : throw     : "throw" ...
-            if (TryParseToken(Token.Throw) &&
-                !TryParseThrowStatementRest(out statement))
+            if (!TryParseDeclarationsWithOptionalAssignments(out statement) &&
+                !TryParseAssignmentOrFunctionCall(out statement) &&
+                !TryParseThrowStatementRest(out statement) &&
+                !TryParseReturnStatement(out statement))
                 return false;
 
             // ";"
@@ -262,11 +292,28 @@ namespace TKOM.Parser
             }
             return true;
         }
+        private bool TryParseReturnStatement(out IStatement statement)
+        {
+            statement = null;
+            if (!TryParseToken(Token.Return))
+                return false;
+
+            if (TokenIs(Token.Semicolon))
+            {
+                statement = new Return();
+                return true;
+            }
+            if (!TryParseExpression(out IExpression expression))
+                return false;
+            statement = new Return(expression);
+            return true;
+        }
         // "Exception" "(" expression ")"
         private bool TryParseThrowStatementRest(out IStatement statement)
         {
             statement = null;
-            if (!TryParseToken(Token.Exception) ||
+            if (!TryParseToken(Token.Throw) ||
+                !TryParseToken(Token.Exception) ||
                 !TryParseToken(Token.RoundBracketOpen) ||
                 !TryParseExpression(out IExpression expression) ||
                 !TryParseToken(Token.RoundBracketClose))
@@ -297,9 +344,11 @@ namespace TKOM.Parser
         }
 
         // simple_statement    : assignment | function_call
-        private bool TryParseAssignmentOrFunctionCallRest(string identifier, out IStatement statement)
+        private bool TryParseAssignmentOrFunctionCall(out IStatement statement)
         {
             statement = null;
+            if (!TryParseToken(Token.Identifier, out string identifier))
+                return false;
 
             // lvalue "=" expression
             if (TryParseToken(Token.Equals))
