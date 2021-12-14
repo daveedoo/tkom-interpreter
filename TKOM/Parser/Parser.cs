@@ -75,32 +75,6 @@ namespace TKOM.Parser
         {
             return scanner.Current == expectedToken;
         }
-        //private bool MoveAndCheckFor(Token expectedToken)
-        //{
-        //    if (!scanner.MoveNext() || scanner.Current != expectedToken)
-        //        return false;
-        //    return true;
-        //}
-        //private bool MoveAndCheckFor(Token expectedToken, out string stringValue)
-        //{
-        //    if (!scanner.MoveNext() || scanner.Current != expectedToken)
-        //    {
-        //        stringValue = null;
-        //        return false;
-        //    }
-        //    stringValue = scanner.StringValue;
-        //    return true;
-        //}
-        //private bool MoveAndCheckFor(Token expectedToken, out int? intValue)
-        //{
-        //    if (!scanner.MoveNext() || scanner.Current != expectedToken)
-        //    {
-        //        intValue = null;
-        //        return false;
-        //    }
-        //    intValue = scanner.IntValue;
-        //    return true;
-        //}
         private bool Move()
         {
             if (!scanner.MoveNext())
@@ -111,10 +85,6 @@ namespace TKOM.Parser
             return true;
         }
 
-        /// <summary>
-        /// </summary>
-        /// <param name="funDef">Function definition or null in case of any error.</param>
-        /// <returns>Value indicating if read <paramref name="funDef"/> is valid.</returns>
         // function             : ( "void" | type ) IDENTIFIER "(" [param_list] ")" block
         private bool TryParseFunctionDefinition(out FunctionDefinition funDef)
         {
@@ -175,17 +145,16 @@ namespace TKOM.Parser
         private bool TryParseBlockStatement(out IStatement statement)
         {
             statement = null;
-            if (TryParseIfStatement(out If ifStatement))                // block_statement     : if
+            if (TryParseIfStatement(out If ifStatement))                                    // block_statement     : if
                 statement = ifStatement;
-            else if (TryParseWhileStatement(out While whileStatement))  // block_statement     : while
+            else if (TryParseWhileStatement(out While whileStatement))                      // block_statement     : while
                 statement = whileStatement;
-            else if (TryParseTryCatchFinallyStatement(out TryCatchFinally tcfStatement))
+            else if (TryParseTryCatchFinallyStatement(out TryCatchFinally tcfStatement))    // block_statement     : try_catch_finally
                 statement = tcfStatement;
             else if (TryParseBlock(out Block block))
                 statement = block;
             else
                 return false;
-            // block_statement     : try_catch_finally
             return true;
         }
         // if                  : "if" "(" expression ")" statement [ "else" statement ]
@@ -278,10 +247,13 @@ namespace TKOM.Parser
         private bool TryParseSimpleStatement(out IStatement statement)
         {
             statement = null;
-            if (!TryParseDeclarationsWithOptionalAssignments(out statement) &&
-                !TryParseAssignmentOrFunctionCall(out statement) &&
-                !TryParseThrowStatementRest(out statement) &&
-                !TryParseReturnStatement(out statement))
+            if (TryParseDeclarationsWithOptionalAssignments(out Declaration declaration))
+                statement = declaration;
+            else if (TryParseThrowStatement(out Throw throwStatement))
+                statement = throwStatement;
+            else if (TryParseReturnStatement(out Return returnStatement))
+                statement = returnStatement;
+            else if (!TryParseAssignmentOrFunctionCall(out statement))
                 return false;
 
             // ";"
@@ -292,7 +264,7 @@ namespace TKOM.Parser
             }
             return true;
         }
-        private bool TryParseReturnStatement(out IStatement statement)
+        private bool TryParseReturnStatement(out Return statement)
         {
             statement = null;
             if (!TryParseToken(Token.Return))
@@ -309,7 +281,7 @@ namespace TKOM.Parser
             return true;
         }
         // "Exception" "(" expression ")"
-        private bool TryParseThrowStatementRest(out IStatement statement)
+        private bool TryParseThrowStatement(out Throw statement)
         {
             statement = null;
             if (!TryParseToken(Token.Throw) ||
@@ -325,22 +297,172 @@ namespace TKOM.Parser
         private bool TryParseExpression(out IExpression expression)
         {
             expression = null;
-            if (TryParseToken(Token.IntConst, out int? value))
+            if (TryParseIdentifierOrAssignmentOrFunctionCall(out IExpression expression1))
+                expression = expression1;
+            else if (TryParseLogicalOr(out IExpression logicalOr))
+                expression = logicalOr;
+            else
+                return false;
+            return true;
+        }
+        private bool TryParseIdentifierOrAssignmentOrFunctionCall(out IExpression expression)
+        {
+            expression = null;
+            if (!TryParseToken(Token.Identifier, out string identifier))
+                return false;
+            if (TokenIs(Token.Equals))
             {
-                expression = new IntConst(value.Value);
-                return true;
+                if (!TryParseAssignmentRest(identifier, out Assignment assignment))
+                    return false;
+                expression = assignment;
             }
-            if (TryParseToken(Token.Identifier, out string variable))
+            else if (TokenIs(Token.RoundBracketOpen))
             {
-                if (!TryParseToken(Token.RoundBracketOpen))
+                if (!TryParseFunctionArguments(out IList<IExpression> arguments))
+                    return false;
+                expression = new FunctionCall(identifier, arguments);
+            }
+            else
+                expression = new Variable(identifier);
+            return true;
+        }
+
+        private bool TryParseLogicalOr(out IExpression expression)
+        {
+            expression = null;
+            if (!TryParseLogicalAnd(out IExpression left))
+                return false;
+            expression = left;
+            while (TryParseToken(Token.Or))
+            {
+                if (!TryParseLogicalAnd(out IExpression right))
                 {
-                    expression = new Variable(variable);
-                    return true;
+                    expression = null;
+                    return false;
                 }
-                // TODO: tryParse funcall
+                expression = new LogicalOr(expression, right);
+            }
+            return true;
+        }
+        private bool TryParseLogicalAnd(out IExpression expression)
+        {
+            expression = null;
+            if (!TryParseEqualityComparer(out IExpression left))
+                return false;
+            expression = left;
+            while (TryParseToken(Token.And))
+            {
+                if (!TryParseEqualityComparer(out IExpression right))
+                {
+                    expression = null;
+                    return false;
+                }
+                expression = new LogicalAnd(expression, right);
+            }
+            return true;
+        }
+        private bool TryParseEqualityComparer(out IExpression expression)
+        {
+            expression = null;
+            if (!TryParseRelationOperator(out IExpression left))
+                return false;
+            expression = left;
+            while (true)
+            {
+                if (TryParseToken(Token.IsEqual))
+                {
+                    if (!TryParseRelationOperator(out IExpression right))
+                    {
+                        expression = null;
+                        return false;
+                    }
+                    expression = new EqualityComparer(expression, Token.IsEqual, right);
+                }
+                else if (TryParseToken(Token.IsNotEqual))
+                {
+                    if (!TryParseRelationOperator(out IExpression right))
+                    {
+                        expression = null;
+                        return false;
+                    }
+                    expression = new EqualityComparer(expression, Token.IsNotEqual, right);
+                }
+                else break;
+            }
+            return true;
+        }
+        private bool TryParseRelationOperator(out IExpression expression)
+        {
+            return TryParseUnar(out expression);
+        }
+        private bool TryParseAdditive(out IExpression expression)
+        {
+            return TryParseUnar(out expression);
+        }
+        private bool TryParseMultiplicative(out IExpression expression)
+        {
+            return TryParseUnar(out expression);
+        }
+        private bool TryParseUnar(out IExpression unar)
+        {
+            unar = null;
+            if (TryParseToken(Token.Minus))
+            {
+                if (!TryParseUnar(out IExpression expression))
+                    return false;
+                unar = new Uminus(expression);
+            }
+            else if (TryParseToken(Token.Plus))
+            {
+                if (!TryParseUnar(out IExpression expression))
+                    return false;
+                unar = new UPlus(expression);
+            }
+            else if (TryParseToken(Token.Not))
+            {
+                if (!TryParseUnar(out IExpression expression))
+                    return false;
+                unar = new Not(expression);
+            }
+            else if (TryParseIntConst(out IntConst intConst))
+                unar = intConst;
+            else if (TryParseIdentifierOrFunctionCall(out IExpression expression1))
+                unar = expression1;
+            else if (TryParseToken(Token.RoundBracketOpen) &&
+                TryParseExpression(out expression1) &&
+                TryParseToken(Token.RoundBracketClose))
+                unar = expression1;
+            // TODO: add string
+            else
+                return false;
+            return true;
+        }
+
+        private bool TryParseIdentifierOrFunctionCall(out IExpression expression)
+        {
+            expression = null;
+            if (!TryParseToken(Token.Identifier, out string identifier))
+                return false;
+            if (TokenIs(Token.RoundBracketOpen))
+            {
+                if (!TryParseFunctionArguments(out IList<IExpression> arguments))
+                    return false;
+                expression = new FunctionCall(identifier, arguments);
+            }
+            else
+                expression = new Variable(identifier);
+            return true;
+        }
+
+        private bool TryParseIntConst(out IntConst intConst)
+        {
+            if (!TryParseToken(Token.IntConst, out int? value))
+            {
+                intConst = null;
                 return false;
             }
-            return false;
+            intConst = new IntConst(value.Value);
+            return true;
         }
 
         // simple_statement    : assignment | function_call
@@ -350,29 +472,31 @@ namespace TKOM.Parser
             if (!TryParseToken(Token.Identifier, out string identifier))
                 return false;
 
-            // lvalue "=" expression
-            if (TryParseToken(Token.Equals))
-            {
-                if (!TryParseToken(Token.IntConst, out int? intVal))
-                    return false;
-                statement = new Assignment(identifier, new IntConst(intVal.Value));
-                return true;
-            }
-
-            // function_call       : IDENTIFIER "(" ...
-            if (TryParseToken(Token.RoundBracketOpen))
-            {
-                if (!TryParseFunctionArgumentsRest(out IList<IExpression> arguments))
-                    return false;
-                statement = new FunctionCall(identifier, arguments);
-                return true;
-            }
-            return false;
+            if (TryParseAssignmentRest(identifier, out Assignment assignment))      // assignment           : lvalue "=" expression
+                statement = assignment;
+            else if (TryParseFunctionArguments(out IList<IExpression> expression))  // function_call        : IDENTIFIER "(" ... ")"
+                statement = new FunctionCall(identifier, expression);
+            else
+                return false;
+            return true;
         }
-
-        // [ expression { "," expression } ] ")"
-        private bool TryParseFunctionArgumentsRest(out IList<IExpression> expressions)
+        // assignment           : lvalue "=" expression
+        private bool TryParseAssignmentRest(string identifier, out Assignment assignment)
         {
+            assignment = null;
+            if (!TryParseToken(Token.Equals) ||
+                !TryParseExpression(out IExpression expression))
+                    return false;
+            assignment = new Assignment(identifier, expression);
+            return true;
+        }
+        // [ expression { "," expression } ] ")"
+        private bool TryParseFunctionArguments(out IList<IExpression> expressions)
+        {
+            expressions = null;
+            if (!TryParseToken(Token.RoundBracketOpen))
+                return false;
+
             expressions = new List<IExpression>();
             if (TryParseToken(Token.RoundBracketClose))
                 return true;
@@ -397,7 +521,7 @@ namespace TKOM.Parser
         }
 
         // declaration         : type declOptAssign { "," decl_opt_assign }
-        private bool TryParseDeclarationsWithOptionalAssignments(out IStatement statement)  // TODO: add optional assignment
+        private bool TryParseDeclarationsWithOptionalAssignments(out Declaration statement)  // TODO: add optional assignment
         {
             if (!TryParseTypeToken(out Type? type) ||
                 !TryParseToken(Token.Identifier, out string identifier))

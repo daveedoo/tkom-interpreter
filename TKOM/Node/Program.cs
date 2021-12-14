@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using TKOM.Scanner;
 
 namespace TKOM.Node
 {
@@ -83,7 +84,7 @@ namespace TKOM.Node
     public interface IExpression { }
     public interface IStatement : INode { }
     public record Declaration(Type Type, string Name) : IStatement;
-    public record Assignment(string Variable, IExpression Expression) : IStatement;
+    public record Assignment(string Variable, IExpression Expression) : IStatement, IExpression;
     public record IntConst(int Value) : IExpression;
     public record Variable(string Identifier) : IExpression;
     public record Return(IExpression Expression = null) : IStatement;
@@ -102,7 +103,7 @@ namespace TKOM.Node
 
     public record If (IExpression Condition, IStatement IfStatement, IStatement ElseStatement = null) : IStatement;
     public record While(IExpression condition, IStatement Statement) : IStatement;
-    public class TryCatchFinally : IStatement
+    public class TryCatchFinally : IStatement, IEquatable<TryCatchFinally>
     {
         public IStatement TryStatement { get; }
         public IList<Catch> CatchStatements { get; }
@@ -114,8 +115,34 @@ namespace TKOM.Node
             CatchStatements = catchStatements;
             FinallyStatement = finallyStatement;
         }
+
+        public bool Equals(TryCatchFinally other)
+        {
+            if (!TryStatement.Equals(other.TryStatement) ||
+                !FinallyStatement.Equals(other.FinallyStatement))
+                return false;
+            IEnumerator<Catch> statementsThis = CatchStatements.GetEnumerator();
+            IEnumerator<Catch> statementsOther = other.CatchStatements.GetEnumerator();
+            while (statementsThis.MoveNext())
+            {
+                if (!statementsOther.MoveNext())
+                    return false;
+            }
+            return true;
+        }
     }
     public record Catch(string Identifier, IStatement Statement, IExpression WhenExpression = null) : IStatement;
+
+    // OPERATORS
+    public record LogicalOr(IExpression Expression1, IExpression Expression2) : IExpression;
+    public record LogicalAnd(IExpression Expression1, IExpression Expression2) : IExpression;
+    public record EqualityComparer(IExpression Expression1, Token Relation, IExpression Expression2) : IExpression;
+    public record RelationOperator(IExpression Expression1, Token Relation, IExpression Expression2) : IExpression;
+    public record Additive(IExpression Expression1, IExpression Expression2) : IExpression;
+    public record Multiplicative(IExpression Expression1, IExpression Expression2) : IExpression;
+    public record Uminus(IExpression Expression) : IExpression;
+    public record UPlus(IExpression Expression) : IExpression;
+    public record Not(IExpression Expression) : IExpression;
 
     public enum Type
     {
