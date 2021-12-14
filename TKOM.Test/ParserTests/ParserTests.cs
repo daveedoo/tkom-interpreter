@@ -410,6 +410,29 @@ namespace TKOMTest.ParserTests
             actualTree.ShouldBeEquivalentTo(ast);
             errorHandler.errorCount.ShouldBe(0);
         }
+        [Fact]
+        public void WhileStatement()
+        {
+            string program = "int main()" +
+                "{" +
+                "   while(1)" +
+                "       return;" +
+                "}";
+            Program ast = new Program(new List<FunctionDefinition>
+                {
+                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    {
+                        new While(new IntConst(1), new Return())
+                    }))
+                });
+            IParser parser = buildParser(program);
+
+            bool parsed = parser.TryParse(out Program actualTree);
+
+            parsed.ShouldBeTrue();
+            actualTree.ShouldBeEquivalentTo(ast);
+            errorHandler.errorCount.ShouldBe(0);
+        }
 
 
 

@@ -175,11 +175,12 @@ namespace TKOM.Parser
         private bool TryParseBlockStatement(out IStatement statement)
         {
             statement = null;
-            // block_statement     : if
-            if (!TryParseIfStatement(out If ifStatement))
+            if (TryParseIfStatement(out If ifStatement))                // block_statement     : if
+                statement = ifStatement;
+            else if (TryParseWhileStatement(out While whileStatement))  // block_statement     : while
+                statement = whileStatement;
+            else
                 return false;
-            statement = ifStatement;
-            // block_statement     : while
             // block_statement     : try_catch_finally
             return true;
         }
@@ -208,10 +209,17 @@ namespace TKOM.Parser
             return true;
         }
         // while               : "while" "(" expression ")" statement
-        private bool TryParseWhileLoop(out While whileStatement)
+        private bool TryParseWhileStatement(out While whileStatement)
         {
             whileStatement = null;
-            return false;
+            if (!TryParseToken(Token.While) ||
+                !TryParseToken(Token.RoundBracketOpen) ||
+                !TryParseExpression(out IExpression expression) ||
+                !TryParseToken(Token.RoundBracketClose) ||
+                !TryParseStatement(out IStatement statement))
+                return false;
+            whileStatement = new While(expression, statement);
+            return true;
         }
 
         // statement           : simple_statement ";"
