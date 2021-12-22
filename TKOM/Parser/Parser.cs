@@ -508,26 +508,25 @@ namespace TKOM.Parser
                 return false;
 
             expressions = new List<IExpression>();
-            if (TryParseToken(Token.RoundBracketClose))
-                return true;
-            do
+            if (TryParseExpression(out IExpression expression))
             {
-                if (!TryParseExpression(out IExpression expression))
-                    return false;
                 expressions.Add(expression);
-
-                switch (scanner.Current)
+                while (TryParseToken(Token.Comma))
                 {
-                    case Token.Comma:
-                        Move();
-                        break;
-                    case Token.RoundBracketClose:
-                        Move();
-                        return true;
-                    default:
+                    if (!TryParseExpression(out IExpression expression1))
+                    {
+                        expressions = null;
                         return false;
+                    }
+                    expressions.Add(expression1);
                 }
-            } while (true);
+            }
+            if (!TryParseToken(Token.RoundBracketClose))
+            {
+                expressions = null;
+                return false;
+            }
+            return true;
         }
 
         private bool TryParseEqualityComparerOperator(out EqualityComparerType? comparerType)
