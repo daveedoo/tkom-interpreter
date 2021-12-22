@@ -85,8 +85,6 @@ namespace TKOM.Node
     public interface IStatement : INode { }
     public record Declaration(Type Type, string Name) : IStatement;
     public record Assignment(string Variable, IExpression Expression) : IStatement, IExpression;
-    public record IntConst(int Value) : IExpression;
-    public record Variable(string Identifier) : IExpression;
     public record Return(IExpression Expression = null) : IStatement;
     public record Throw(IExpression Expression) : IStatement;
     public class FunctionCall : IStatement, IExpression
@@ -100,6 +98,9 @@ namespace TKOM.Node
             Arguments = arguments;
         }
     }
+    
+    public record IntConst(int Value) : IExpression;
+    public record Variable(string Identifier) : IExpression;
 
     public record If (IExpression Condition, IStatement IfStatement, IStatement ElseStatement = null) : IStatement;
     public record While(IExpression condition, IStatement Statement) : IStatement;
@@ -136,16 +137,35 @@ namespace TKOM.Node
     // OPERATORS
     public record LogicalOr(IExpression Expression1, IExpression Expression2) : IExpression;
     public record LogicalAnd(IExpression Expression1, IExpression Expression2) : IExpression;
-    public record EqualityComparer(IExpression Expression1, Token Relation, IExpression Expression2) : IExpression;
-    public record RelationOperator(IExpression Expression1, Token Relation, IExpression Expression2) : IExpression;
-    public record Additive(IExpression Expression1, IExpression Expression2) : IExpression;
-    public record Multiplicative(IExpression Expression1, IExpression Expression2) : IExpression;
-    public record Uminus(IExpression Expression) : IExpression;
-    public record UPlus(IExpression Expression) : IExpression;
-    public record Not(IExpression Expression) : IExpression;
+    public record EqualityComparer(IExpression Expression1, EqualityComparerType EqualityComparerType, IExpression Expression2) : IExpression;
+    public record RelationOperator(IExpression Expression1, RelationType Relation, IExpression Expression2) : IExpression;
+    public record Additive(IExpression Expression1, AdditiveOperator Operator, IExpression Expression2) : IExpression;
+    public record Multiplicative(IExpression Expression1, MultiplicativeOperator Operator, IExpression Expression2) : IExpression;
+    public record Unary(UnaryOperator Operator, IExpression Expression) : IExpression;
 
     public enum Type
     {
         Void, IntType
+    }
+    public enum RelationType
+    {
+        LessEqual, GreaterEqual,
+        LessThan, GreaterThan
+    }
+    public enum EqualityComparerType
+    {
+        Equality, Inequality
+    }
+    public enum AdditiveOperator
+    {
+        Add, Subtract
+    }
+    public enum MultiplicativeOperator
+    {
+        Multiply, Divide
+    }
+    public enum UnaryOperator
+    {
+        Uminus, LogicalNegation
     }
 }

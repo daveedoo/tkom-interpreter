@@ -16,10 +16,13 @@ namespace TKOM.Parser
             this.errorHandler = errorHandler;
         }
 
-        public bool TryParse(out Program program)
+
+
+        public bool TryParse(out Program program)                                           // program             : { function }
         {
             program = null;
-            Move();
+            if (!Move())
+                return false;
 
             IList<FunctionDefinition> functions = new List<FunctionDefinition>();
             while (TryParseFunctionDefinition(out FunctionDefinition function))
@@ -28,7 +31,7 @@ namespace TKOM.Parser
             }
             if (functions.Count == 0)
             {
-                errorHandler.HandleError("Program should have an entry point.");        // TODO: move error handling somewhere else
+                //errorHandler.HandleError("Program should have an entry point.");        // TODO: move error handling somewhere else
                 return false;
             }
             if (scanner.Current != Token.EOF)
@@ -37,6 +40,8 @@ namespace TKOM.Parser
             program = new Program(functions);
             return true;
         }
+
+        #region helper methods
         private bool TryParseToken(Token expectedToken)
         {
             if (scanner.Current != expectedToken)
@@ -71,36 +76,22 @@ namespace TKOM.Parser
             Move();
             return true;
         }
-        private bool TokenIs(Token expectedToken)
-        {
-            return scanner.Current == expectedToken;
-        }
         private bool Move()
         {
             if (!scanner.MoveNext())
             {
-                errorHandler.HandleError(new LexLocation(scanner.Position, scanner.Position), "Unexpected EOF.");   // TODO: add HandleError(Position, string)
+                //errorHandler.HandleError(new LexLocation(scanner.Position, scanner.Position), "Unexpected EOF.");   // TODO: add HandleError(Position, string)
                 return false;
             }
             return true;
         }
+        #endregion // helper methods
 
-        // function             : ( "void" | type ) IDENTIFIER "(" [param_list] ")" block
-        private bool TryParseFunctionDefinition(out FunctionDefinition funDef)
+        private bool TryParseFunctionDefinition(out FunctionDefinition funDef)              // function            : ( "void" | type ) IDENTIFIER param_list block
         {
             funDef = null;
-            if (TokenIs(Token.EOF))
-                return false;
-            Type? type;
-            if (TryParseToken(Token.Void))
-                type = Type.Void;
-            else if (!TryParseTypeToken(out type))
-            {
-                errorHandler.HandleError("Syntax error, function definition expected.");
-                return false;
-            }
-
-            if (!TryParseToken(Token.Identifier, out string functionName) ||
+            if (!TryParseFunctionReturnType(out Type? type) ||
+                !TryParseToken(Token.Identifier, out string functionName) ||
                 !TryParseParameters(out IList<Parameter> parameters) ||
                 !TryParseBlock(out Block block))
                 return false;
@@ -108,41 +99,107 @@ namespace TKOM.Parser
             funDef = new FunctionDefinition(type.Value, functionName, parameters, block);
             return true;
         }
-
-        // block                : "{" { statement } "}"
-        private bool TryParseBlock(out Block block)
+        private bool TryParseFunctionReturnType(out Type? type)                             // ( "void" | type )
         {
-            block = null;
-            if (!TryParseToken(Token.CurlyBracketOpen))
+            type = null;
+            if (TryParseTypeToken(out type))
+                return true;
+            if (TryParseToken(Token.Void))
+            {
+                type = Type.Void;
+                return true;
+            }
+            return false;
+
+        }
+        private bool TryParseTypeToken(out Type? type)                                      // type                : "int"
+        {
+            bool intParsed = TryParseToken(Token.Int);
+            type = intParsed ? Type.IntType : null;
+            return intParsed;
+        }
+        private bool TryParseParameters(out IList<Parameter> parameters)                    // param_list           : "(" [ type IDENTIFIER { "," type IDENTIFIER } ] ")"
+        {
+            parameters = null;
+            if (!TryParseToken(Token.RoundBracketOpen)) // TODO: brackety na poziom funkcji
                 return false;
 
+            parameters = new List<Parameter>();
+            if (TryParseTypeToken(out Type? t))
+            {
+                if (!TryParseToken(Token.Identifier, out string param))
+                {
+                    parameters = null;
+                    return false;
+                }
+                parameters.Add(new Parameter(t.Value, param));
+            }
+
+            while (TryParseToken(Token.Comma))
+            {
+                if (!TryParseTypeToken(out Type? type) ||
+                    !TryParseToken(Token.Identifier, out string paramName))
+                {
+                    parameters = null;
+                    return false;
+                }
+                parameters.Add(new Parameter(type.Value, paramName));
+            }
+
+            if (!TryParseToken(Token.RoundBracketClose))
+            {
+                parameters = null;
+                return false;
+            }
+            return true;
+        }
+
+        private bool TryParseBlock(out Block block)                                         // block                : "{" { statement } "}"
+        {
+            block = null;
             var statements = new List<IStatement>();
-            while (!TryParseToken(Token.CurlyBracketClose))
+        
+            if (!TryParseToken(Token.CurlyBracketOpen))
+                return false;
+            while (!TryParseToken(Token.CurlyBracketClose))     // TODO: tryparsestatement
             {
                 if (TryParseStatement(out IStatement statement))
                     statements.Add(statement);
                 else
                     return false;
             }
-
+            // TODO: tryparse curly bracket close
             block = new Block(statements);
             return true;
         }
-        // statement           : simple_statement ";" | block_statement
-        private bool TryParseStatement(out IStatement statement)
+        private bool TryParseStatement(out IStatement statement)                            // statement           : simple_statement ";" | block_statement
         {
             if (TryParseSimpleStatement(out statement) ||
                 TryParseBlockStatement(out statement))
                 return true;
-            if (TryParseBlock(out Block block))
-            {
-                statement = block;
-                return true;
-            }
             return false;
         }
-        // statement           : block_statement
-        private bool TryParseBlockStatement(out IStatement statement)
+        private bool TryParseSimpleStatement(out IStatement statement)                      // statement           : simple_statement ";"
+        {
+            statement = null;
+            if (TryParseDeclarationsWithOptionalAssignments(out Declaration declaration))   // simple_statement    : declaration
+                statement = declaration;
+            else if (TryParseReturnStatement(out Return returnStatement))                   //                     | return
+                statement = returnStatement;
+            else if (TryParseThrowStatement(out Throw throwStatement))                      //                     | throw
+                statement = throwStatement;
+            else if (!TryParse_Assignment_FunctionCall(out statement))                      //                     | assignment | function_call
+                return false;
+
+            // ";"
+            if (!TryParseToken(Token.Semicolon))
+            {
+                statement = null;
+                return false;
+            }
+            return true;
+        }                   
+        private bool TryParseBlockStatement(out IStatement statement)                       // statement           : block_statement
         {
             statement = null;
             if (TryParseIfStatement(out If ifStatement))                                    // block_statement     : if
@@ -157,8 +214,59 @@ namespace TKOM.Parser
                 return false;
             return true;
         }
-        // if                  : "if" "(" expression ")" statement [ "else" statement ]
-        private bool TryParseIfStatement(out If ifStatement)
+        
+        #region simple statements
+        // TODO: add optional assignment
+        private bool TryParseDeclarationsWithOptionalAssignments(out Declaration statement) // declaration         : type declOptAssign { "," decl_opt_assign }
+        {
+            if (!TryParseTypeToken(out Type? type) ||
+                !TryParseToken(Token.Identifier, out string identifier))
+            {
+                statement = null;
+                return false;
+            }
+            statement = new Declaration(type.Value, identifier);
+            return true;
+        }
+        private bool TryParseReturnStatement(out Return statement)                          // return              : "return" [ expression ]
+        {
+            statement = null;
+            if (!TryParseToken(Token.Return))
+                return false;
+
+            if (TryParseExpression(out IExpression expression))
+                statement = new Return(expression);
+            else
+                statement = new Return();
+            return true;
+        }
+        private bool TryParse_Assignment_FunctionCall(out IStatement statement)             // simple_statement    : assignment | function_call
+        {
+            statement = null;
+            if (!TryParseToken(Token.Identifier, out string identifier))
+                return false;
+
+            if (TryParseAssignmentRest(identifier, out Assignment assignment))              //  IDENTIFIER "=" expression
+                statement = assignment;
+            else if (TryParseFunctionArguments(out IList<IExpression> expression))          //  "(" ... ")"
+                statement = new FunctionCall(identifier, expression);
+            else
+                return false;
+            return true;
+        }
+        private bool TryParseAssignmentRest(string identifier, out Assignment assignment)   // assignment           : IDENTIFIER "=" expression
+        {
+            assignment = null;
+            if (!TryParseToken(Token.Equals) ||
+                !TryParseExpression(out IExpression expression))
+                return false;
+            assignment = new Assignment(identifier, expression);
+            return true;
+        }
+        #endregion
+
+        #region block statements
+        private bool TryParseIfStatement(out If ifStatement)                                // if                  : "if" "(" expression ")" statement [ "else" statement ]
         {
             ifStatement = null;
             if (!TryParseToken(Token.If) ||
@@ -167,22 +275,19 @@ namespace TKOM.Parser
                 !TryParseToken(Token.RoundBracketClose) ||
                 !TryParseStatement(out IStatement stmt))
                 return false;
-            
+
             if (TryParseToken(Token.Else))
             {
-                if (TryParseStatement(out IStatement elseStmt))
-                {
-                    ifStatement = new If(condition, stmt, elseStmt);
-                    return true;
-                }
-                return false;
+                if (!TryParseStatement(out IStatement elseStmt))
+                    return false;
+                ifStatement = new If(condition, stmt, elseStmt);
+                return true;
             }
 
             ifStatement = new If(condition, stmt);
             return true;
         }
-        // while               : "while" "(" expression ")" statement
-        private bool TryParseWhileStatement(out While whileStatement)
+        private bool TryParseWhileStatement(out While whileStatement)                       // while               : "while" "(" expression ")" statement
         {
             whileStatement = null;
             if (!TryParseToken(Token.While) ||
@@ -194,9 +299,20 @@ namespace TKOM.Parser
             whileStatement = new While(expression, statement);
             return true;
         }
-
-        // try_catch_finally   : "try" statement catch { catch } [ "finally" statement]
-        private bool TryParseTryCatchFinallyStatement(out TryCatchFinally tcfStatement)
+        
+        private bool TryParseThrowStatement(out Throw statement)                            // throw               : "throw" "Exception" "(" expression ")"
+        {
+            statement = null;
+            if (!TryParseToken(Token.Throw) ||
+                !TryParseToken(Token.Exception) ||
+                !TryParseToken(Token.RoundBracketOpen) ||
+                !TryParseExpression(out IExpression expression) ||
+                !TryParseToken(Token.RoundBracketClose))
+                return false;
+            statement = new Throw(expression);
+            return true;
+        }
+        private bool TryParseTryCatchFinallyStatement(out TryCatchFinally tcfStatement)     // try_catch_finally   : "try" statement catch { catch } [ "finally" statement]
         {
             tcfStatement = null;
             if (!TryParseToken(Token.Try) ||
@@ -208,6 +324,7 @@ namespace TKOM.Parser
 
             while (TryParseCatch(out Catch catchBlock))
                 catches.Add(catchBlock);
+
             if (TryParseToken(Token.Finally))
             {
                 if (!TryParseStatement(out IStatement finallyStatement))
@@ -218,8 +335,7 @@ namespace TKOM.Parser
             tcfStatement = new TryCatchFinally(tryStatement, catches);
             return true;
         }
-        // catch               : "catch" "Exception" IDENTIFIER [ "when" expression ] statement
-        private bool TryParseCatch(out Catch catchBlock)
+        private bool TryParseCatch(out Catch catchBlock)                                    // catch               : "catch" "Exception" IDENTIFIER [ "when" expression ] statement
         {
             catchBlock = null;
             if (!TryParseToken(Token.Catch) ||
@@ -235,99 +351,22 @@ namespace TKOM.Parser
                 catchBlock = new Catch(variable, stmt, expression);
                 return true;
             }
-
-            if (!TryParseStatement(out IStatement statement))
-                return false;
-            
-            catchBlock = new Catch(variable, statement);
-            return true;
-        }
-
-        // statement           : simple_statement ";"
-        private bool TryParseSimpleStatement(out IStatement statement)
-        {
-            statement = null;
-            if (TryParseDeclarationsWithOptionalAssignments(out Declaration declaration))
-                statement = declaration;
-            else if (TryParseThrowStatement(out Throw throwStatement))
-                statement = throwStatement;
-            else if (TryParseReturnStatement(out Return returnStatement))
-                statement = returnStatement;
-            else if (!TryParseAssignmentOrFunctionCall(out statement))
-                return false;
-
-            // ";"
-            if (!TryParseToken(Token.Semicolon))
+            else
             {
-                statement = null;
-                return false;
-            }
-            return true;
-        }
-        private bool TryParseReturnStatement(out Return statement)
-        {
-            statement = null;
-            if (!TryParseToken(Token.Return))
-                return false;
-
-            if (TokenIs(Token.Semicolon))
-            {
-                statement = new Return();
+                if (!TryParseStatement(out IStatement statement))
+                    return false;
+                catchBlock = new Catch(variable, statement);
                 return true;
             }
-            if (!TryParseExpression(out IExpression expression))
-                return false;
-            statement = new Return(expression);
-            return true;
         }
-        // "Exception" "(" expression ")"
-        private bool TryParseThrowStatement(out Throw statement)
-        {
-            statement = null;
-            if (!TryParseToken(Token.Throw) ||
-                !TryParseToken(Token.Exception) ||
-                !TryParseToken(Token.RoundBracketOpen) ||
-                !TryParseExpression(out IExpression expression) ||
-                !TryParseToken(Token.RoundBracketClose))
-                return false;
-            statement = new Throw(expression);
-            return true;
-        }
+        #endregion
 
-        private bool TryParseExpression(out IExpression expression)
+        #region expressions
+        private bool TryParseExpression(out IExpression expression)                         // expression          : logical_or
         {
-            expression = null;
-            if (TryParseIdentifierOrAssignmentOrFunctionCall(out IExpression expression1))
-                expression = expression1;
-            else if (TryParseLogicalOr(out IExpression logicalOr))
-                expression = logicalOr;
-            else
-                return false;
-            return true;
-        }
-        private bool TryParseIdentifierOrAssignmentOrFunctionCall(out IExpression expression)
-        {
-            expression = null;
-            if (!TryParseToken(Token.Identifier, out string identifier))
-                return false;
-            if (TokenIs(Token.Equals))
-            {
-                if (!TryParseAssignmentRest(identifier, out Assignment assignment))
-                    return false;
-                expression = assignment;
-            }
-            else if (TokenIs(Token.RoundBracketOpen))
-            {
-                if (!TryParseFunctionArguments(out IList<IExpression> arguments))
-                    return false;
-                expression = new FunctionCall(identifier, arguments);
-            }
-            else
-                expression = new Variable(identifier);
-            return true;
-        }
-
-        private bool TryParseLogicalOr(out IExpression expression)
+            return TryParseLogicalOr(out expression);
+        }        
+        private bool TryParseLogicalOr(out IExpression expression)                          // logical_or          : logical_and { "||" logical_and }
         {
             expression = null;
             if (!TryParseLogicalAnd(out IExpression left))
@@ -344,15 +383,15 @@ namespace TKOM.Parser
             }
             return true;
         }
-        private bool TryParseLogicalAnd(out IExpression expression)
+        private bool TryParseLogicalAnd(out IExpression expression)                         // logical_and         : in_equality { "&&" in_equality }
         {
             expression = null;
-            if (!TryParseEqualityComparer(out IExpression left))
+            if (!TryParseEqualityComparers(out IExpression left))
                 return false;
             expression = left;
             while (TryParseToken(Token.And))
             {
-                if (!TryParseEqualityComparer(out IExpression right))
+                if (!TryParseEqualityComparers(out IExpression right))
                 {
                     expression = null;
                     return false;
@@ -361,137 +400,108 @@ namespace TKOM.Parser
             }
             return true;
         }
-        private bool TryParseEqualityComparer(out IExpression expression)
+        private bool TryParseEqualityComparers(out IExpression expression)                  // in_equality         : relation [ ( "==" | "!=" ) relation ]
         {
             expression = null;
-            if (!TryParseRelationOperator(out IExpression left))
+            if (!TryParseRelation(out IExpression left))
                 return false;
             expression = left;
-            while (true)
+            if (TryParseEqualityComparerOperator(out EqualityComparerType? comparerType))
             {
-                if (TryParseToken(Token.IsEqual))
+                if (!TryParseRelation(out IExpression right))
                 {
-                    if (!TryParseRelationOperator(out IExpression right))
-                    {
-                        expression = null;
-                        return false;
-                    }
-                    expression = new EqualityComparer(expression, Token.IsEqual, right);
+                    expression = null;
+                    return false;
                 }
-                else if (TryParseToken(Token.IsNotEqual))
-                {
-                    if (!TryParseRelationOperator(out IExpression right))
-                    {
-                        expression = null;
-                        return false;
-                    }
-                    expression = new EqualityComparer(expression, Token.IsNotEqual, right);
-                }
-                else break;
+                expression = new EqualityComparer(expression, comparerType.Value, right);
             }
             return true;
         }
-        private bool TryParseRelationOperator(out IExpression expression)
-        {
-            return TryParseUnar(out expression);
-        }
-        private bool TryParseAdditive(out IExpression expression)
-        {
-            return TryParseUnar(out expression);
-        }
-        private bool TryParseMultiplicative(out IExpression expression)
-        {
-            return TryParseUnar(out expression);
-        }
-        private bool TryParseUnar(out IExpression unar)
-        {
-            unar = null;
-            if (TryParseToken(Token.Minus))
-            {
-                if (!TryParseUnar(out IExpression expression))
-                    return false;
-                unar = new Uminus(expression);
-            }
-            else if (TryParseToken(Token.Plus))
-            {
-                if (!TryParseUnar(out IExpression expression))
-                    return false;
-                unar = new UPlus(expression);
-            }
-            else if (TryParseToken(Token.Not))
-            {
-                if (!TryParseUnar(out IExpression expression))
-                    return false;
-                unar = new Not(expression);
-            }
-            else if (TryParseIntConst(out IntConst intConst))
-                unar = intConst;
-            else if (TryParseIdentifierOrFunctionCall(out IExpression expression1))
-                unar = expression1;
-            else if (TryParseToken(Token.RoundBracketOpen) &&
-                TryParseExpression(out expression1) &&
-                TryParseToken(Token.RoundBracketClose))
-                unar = expression1;
-            // TODO: add string
-            else
-                return false;
-            return true;
-        }
-
-        private bool TryParseIdentifierOrFunctionCall(out IExpression expression)
+        private bool TryParseRelation(out IExpression expression)                           // relation            : additive [ ( "<=" | ">=" | "<" | ">" ) additive ]
         {
             expression = null;
-            if (!TryParseToken(Token.Identifier, out string identifier))
+            if (!TryParseAdditive(out IExpression left))
                 return false;
-            if (TokenIs(Token.RoundBracketOpen))
+            expression = left;
+            
+            if (TryParseRelationOperator(out RelationType? relation))
             {
-                if (!TryParseFunctionArguments(out IList<IExpression> arguments))
+                if (!TryParseAdditive(out IExpression right))
+                {
+                    expression = null;
                     return false;
-                expression = new FunctionCall(identifier, arguments);
+                }
+                expression = new RelationOperator(left, relation.Value, right);
+            }
+            return true;
+        }
+        private bool TryParseAdditive(out IExpression expression)                           // additive            : multiplicative { ( "+" | "-" ) multiplicative }
+        {
+            if (!TryParseMultiplicative(out expression))
+                return false;
+            while (TryParseAdditiveOperator(out AdditiveOperator? additiveOperator))
+            {
+                if (!TryParseMultiplicative(out IExpression right))
+                {
+                    expression = null;
+                    return false;
+                }
+                expression = new Additive(expression, additiveOperator.Value, right);
+            }
+            return true;
+        }
+        private bool TryParseMultiplicative(out IExpression expression)                     // multiplicative      : unar { ( "*" | "/" ) unar }
+        {
+            if (!TryParseUnary(out expression))
+                return false;
+            while (TryParseMultiplicativeOperator(out MultiplicativeOperator? multiplicativeOperator))
+            {
+                if (!TryParseUnary(out IExpression unary))
+                {
+                    expression = null;
+                    return false;
+                }
+                expression = new Multiplicative(expression, multiplicativeOperator.Value, unary);
+            }
+            return true;
+        }
+        private bool TryParseUnary(out IExpression unary)                                    // unar                : [ "-" | "!" ] ( ( "(" expression ")" ) atomic )
+        {
+            unary = null;
+            TryParseUnaryOperator(out UnaryOperator? unaryOperator);
+
+            if (TryParseToken(Token.RoundBracketOpen))
+            {
+                if (!TryParseExpression(out IExpression expression) ||
+                    !TryParseToken(Token.RoundBracketClose))
+                    return false;
+                unary = expression;
+            }
+            else if (!TryParseAtomic(out unary))
+                return false;
+
+            if (unaryOperator.HasValue)
+                unary = new Unary(unaryOperator.Value, unary);
+            return true;
+        }
+        private bool TryParseAtomic(out IExpression expression)                             // atomic              : const | IDENTIFIER | function_call | string
+        {
+            expression = null;
+            if (TryParseToken(Token.IntConst, out int? intConst))
+                expression = new IntConst(intConst.Value);
+            else if (TryParseToken(Token.Identifier, out string identifier))
+            {
+                if (TryParseFunctionArguments(out IList<IExpression> expressions))
+                    expression = new FunctionCall(identifier, expressions);
+                else
+                    expression = new Variable(identifier);
             }
             else
-                expression = new Variable(identifier);
-            return true;
-        }
-
-        private bool TryParseIntConst(out IntConst intConst)
-        {
-            if (!TryParseToken(Token.IntConst, out int? value))
-            {
-                intConst = null;
-                return false;
-            }
-            intConst = new IntConst(value.Value);
-            return true;
-        }
-
-        // simple_statement    : assignment | function_call
-        private bool TryParseAssignmentOrFunctionCall(out IStatement statement)
-        {
-            statement = null;
-            if (!TryParseToken(Token.Identifier, out string identifier))
-                return false;
-
-            if (TryParseAssignmentRest(identifier, out Assignment assignment))      // assignment           : lvalue "=" expression
-                statement = assignment;
-            else if (TryParseFunctionArguments(out IList<IExpression> expression))  // function_call        : IDENTIFIER "(" ... ")"
-                statement = new FunctionCall(identifier, expression);
-            else
                 return false;
             return true;
         }
-        // assignment           : lvalue "=" expression
-        private bool TryParseAssignmentRest(string identifier, out Assignment assignment)
-        {
-            assignment = null;
-            if (!TryParseToken(Token.Equals) ||
-                !TryParseExpression(out IExpression expression))
-                    return false;
-            assignment = new Assignment(identifier, expression);
-            return true;
-        }
-        // [ expression { "," expression } ] ")"
-        private bool TryParseFunctionArguments(out IList<IExpression> expressions)
+
+        private bool TryParseFunctionArguments(out IList<IExpression> expressions)          // [ expression { "," expression } ] ")"
         {
             expressions = null;
             if (!TryParseToken(Token.RoundBracketOpen))
@@ -520,71 +530,83 @@ namespace TKOM.Parser
             } while (true);
         }
 
-        // declaration         : type declOptAssign { "," decl_opt_assign }
-        private bool TryParseDeclarationsWithOptionalAssignments(out Declaration statement)  // TODO: add optional assignment
+        private bool TryParseEqualityComparerOperator(out EqualityComparerType? comparerType)
         {
-            if (!TryParseTypeToken(out Type? type) ||
-                !TryParseToken(Token.Identifier, out string identifier))
+            comparerType = scanner.Current switch
             {
-                statement = null;
-                return false;
-            }
-            statement = new Declaration(type.Value, identifier);
-            return true;
-        }
-
-        // param_list           : "(" [ type IDENTIFIER { "," type IDENTIFIER } ] ")"
-        private bool TryParseParameters(out IList<Parameter> parameters)
-        {
-            parameters = null;
-            if (!TryParseToken(Token.RoundBracketOpen))
-                return false;
-
-            parameters = new List<Parameter>();
-            if (TryParseTypeToken(out Type? t))
+                Token.IsEqual => EqualityComparerType.Equality,
+                Token.IsNotEqual => EqualityComparerType.Inequality,
+                _ => null
+            };
+            if (comparerType.HasValue)
             {
-                if (!TryParseToken(Token.Identifier, out string param))
-                {
-                    parameters = null;
-                    return false;
-                }
-                parameters.Add(new Parameter(t.Value, param));
-            }
-                
-            while (TryParseToken(Token.Comma))
-            {
-                if (!TryParseTypeToken(out Type? type) ||
-                    !TryParseToken(Token.Identifier, out string paramName))
-                {
-                    parameters = null;
-                    return false;
-                }
-                parameters.Add(new Parameter(type.Value, paramName));
-            }
-
-            if (!TryParseToken(Token.RoundBracketClose))
-            {
-                parameters = null;
-                return false;
-            }
-            return true;
-        }
-
-        private bool TryParseTypeToken(out Type? type)
-        {
-            bool intParsed = TryParseToken(Token.Int);
-            type = intParsed ? Type.IntType : null;
-            return intParsed;
-        }
-        private bool IsTypeToken(Token token, out Type? type)
-        {
-            if (token == Token.Int)
-            {
-                type = Type.IntType;
+                Move();
                 return true;
             }
-            type = null;
             return false;
         }
+        private bool TryParseRelationOperator(out RelationType? relation)
+        {
+            relation = scanner.Current switch
+            {
+                Token.LessEqual => RelationType.LessEqual,
+                Token.GreaterEqual => RelationType.GreaterEqual,
+                Token.LessThan => RelationType.LessThan,
+                Token.GreaterThan => RelationType.GreaterThan,
+                _ => null
+            };
+            if (relation.HasValue)
+            {
+                Move();
+                return true;
+            }
+            return false;
+        }
+        private bool TryParseAdditiveOperator(out AdditiveOperator? additiveOperator)
+        {
+            additiveOperator = scanner.Current switch
+            {
+                Token.Plus=> AdditiveOperator.Add,
+                Token.Minus => AdditiveOperator.Subtract,
+                _ => null
+            };
+            if (additiveOperator.HasValue)
+            {
+                Move();
+                return true;
+            }
+            return false;
+        }
+        private bool TryParseMultiplicativeOperator(out MultiplicativeOperator? multiplicativeOperator)
+        {
+            multiplicativeOperator = scanner.Current switch
+            {
+                Token.Star => MultiplicativeOperator.Multiply,
+                Token.Slash => MultiplicativeOperator.Divide,
+                _ => null
+            };
+            if (multiplicativeOperator.HasValue)
+            {
+                Move();
+                return true;
+            }
+            return false;
+        }
+        private bool TryParseUnaryOperator(out UnaryOperator? unaryOperator)
+        {
+            unaryOperator = scanner.Current switch
+            {
+                Token.Minus => UnaryOperator.Uminus,
+                Token.Not => UnaryOperator.LogicalNegation,
+                _ => null
+            };
+            if (unaryOperator.HasValue)
+            {
+                Move();
+                return true;
+            }
+            return false;
+        }
+        #endregion expressions
     }
 }
