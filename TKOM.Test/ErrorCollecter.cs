@@ -3,7 +3,7 @@ using TKOM.ErrorHandler;
 
 namespace TKOMTest
 {
-    internal class ErrorCollecter : IErrorHandler
+    public class ErrorCollecter : IErrorHandler
     {
         private List<(LexLocation, string)> errorsList = new List<(LexLocation, string)>();
         private List<string> noLocationErrorsList = new List<string>();
