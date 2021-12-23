@@ -6,22 +6,22 @@ namespace TKOM.ErrorHandler
     {
         public ErrorHandler() { }
 
-        public void HandleError(LexLocation location, string message)
+        public void Error(LexLocation location, string message)
         {
             Console.WriteLine($"{location.Start.Line}:{location.Start.Column} {message}");
         }
 
-        public void HandleError(string message)
+        public void Error(string message)
         {
             Console.WriteLine(message);
         }
 
-        public void HandleWarning(LexLocation location, string message)
+        public void Warning(LexLocation location, string message)
         {
             Console.WriteLine($"{location.Start.Line}:{location.Start.Column} {message}");
         }
 
-        public void HandleWarning(string message)
+        public void Warning(string message)
         {
             Console.WriteLine(message);
         }

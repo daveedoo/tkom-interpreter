@@ -281,14 +281,14 @@ namespace TKOM.Scanner
         private void throwErrorAndClearValues(string message)
         {
             LexLocation location = new LexLocation(tokenStartPosition, Position);
-            ErrorHandler.HandleError(location, message);
+            ErrorHandler.Error(location, message);
 
             clearValues();
         }
         private void throwWarning(string message)
         {
             LexLocation location = new LexLocation(tokenStartPosition, Position);
-            ErrorHandler.HandleWarning(location, message);
+            ErrorHandler.Warning(location, message);
         }
     }
 }

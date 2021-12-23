@@ -168,4 +168,36 @@ namespace TKOM.Node
     {
         Uminus, LogicalNegation
     }
+
+
+    //public abstract class Nonterminal
+    //{
+    //    public static readonly ReturnTypeNonterminal ReturnType = new ReturnTypeNonterminal();
+
+    //    public sealed class ReturnTypeNonterminal : Nonterminal
+    //    {
+    //        private static readonly Token[] tokens = new Token[] { Token.Void, Token.Int };
+    //        protected ReturnTypeNonterminal() { }
+
+    //        public bool TryParse(out Type? type)
+    //        {
+    //            type = null;
+    //            return false;
+    //        }
+    //    }
+    //}
+    public interface INonterminal { }
+    public class ReturnType : INonterminal
+    {
+        public enum Type
+        {
+            Void, IntType
+        }
+        public static Token[] tokens = new Token[] { Token.Void, Token.Int };
+        public static bool TryParse(out Type? type)
+        {
+            type = null;
+            return false;
+        }
+    }
 }

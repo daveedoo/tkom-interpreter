@@ -15,12 +15,12 @@ namespace TKOMTest
 
         public ErrorCollecter() { }
 
-        public void HandleError(LexLocation location, string message)
+        public void Error(LexLocation location, string message)
         {
             errorsList.Add((location, message));
         }
 
-        public void HandleWarning(LexLocation location, string message)
+        public void Warning(LexLocation location, string message)
         {
             warningsList.Add((location, message));
         }
@@ -39,12 +39,12 @@ namespace TKOMTest
             return warningsList[warningsCount - 1];
         }
 
-        public void HandleError(string message)
+        public void Error(string message)
         {
             noLocationErrorsList.Add(message);
         }
 
-        public void HandleWarning(string message)
+        public void Warning(string message)
         {
             noLocationWarningsList.Add(message);
         }

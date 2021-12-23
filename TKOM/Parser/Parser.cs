@@ -25,17 +25,17 @@ namespace TKOM.Parser
                 return false;
 
             IList<FunctionDefinition> functions = new List<FunctionDefinition>();
-            while (TryParseFunctionDefinition(out FunctionDefinition function))
+            while (scanner.Current != Token.EOF)
             {
+                if (!TryParseFunctionDefinition(out FunctionDefinition function))
+                    return false;
                 functions.Add(function);
             }
-            if (functions.Count == 0)
-            {
-                //errorHandler.HandleError("Program should have an entry point.");        // TODO: move error handling somewhere else
-                return false;
-            }
-            if (scanner.Current != Token.EOF)
-                return false;
+            //if (functions.Count == 0)
+            //{
+            //    errorHandler.HandleError("Program should should contain at least main function.");
+            //    return false;
+            //}
 
             program = new Program(functions);
             return true;
@@ -90,7 +90,7 @@ namespace TKOM.Parser
         private bool TryParseFunctionDefinition(out FunctionDefinition funDef)              // function            : ( "void" | type ) IDENTIFIER param_list block
         {
             funDef = null;
-            if (!TryParseFunctionReturnType(out Type? type) ||
+            if (!TryParseFunctionReturnType(out Type? type, "Expected function return type.") ||
                 !TryParseToken(Token.Identifier, out string functionName) ||
                 !TryParseParameters(out IList<Parameter> parameters) ||
                 !TryParseBlock(out Block block))
@@ -99,9 +99,8 @@ namespace TKOM.Parser
             funDef = new FunctionDefinition(type.Value, functionName, parameters, block);
             return true;
         }
-        private bool TryParseFunctionReturnType(out Type? type)                             // ( "void" | type )
+        private bool TryParseFunctionReturnType(out Type? type, string errorMessage)                             // ( "void" | type )
         {
-            type = null;
             if (TryParseTypeToken(out type))
                 return true;
             if (TryParseToken(Token.Void))
@@ -109,6 +108,7 @@ namespace TKOM.Parser
                 type = Type.Void;
                 return true;
             }
+            errorHandler.Error(errorMessage);
             return false;
 
         }
