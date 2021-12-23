@@ -48,5 +48,15 @@ namespace TKOMTest
         {
             noLocationWarningsList.Add(message);
         }
+
+        public void Error(Position position, string message)
+        {
+            Error(new LexLocation(position, position), message);
+        }
+
+        public void Warning(Position position, string message)
+        {
+            Warning(new LexLocation(position, position), message);
+        }
     }
 }

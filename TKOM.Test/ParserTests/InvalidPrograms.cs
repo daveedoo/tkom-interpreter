@@ -10,13 +10,13 @@ namespace TKOMTest.ParserTests
         public static TheoryData<string> invalidPrograms => new TheoryData<string>
         {
             //"",                                 // empty program
-            "int main",                         // incomplete function
+            "int main ) {}",                    // incomplete parameters
             "int return() {}",                  // keyword as identifier
             "int main() {} &&",                 // illegal token at the end
             "int main ( )",                     // no block
-            "int main(int) {}",                 // incomplete parameter
+            "int main(int) {}",                 // incomplete parameter - no identifier
+            "int main(a) {}",                   // incomplete parameter - no type
             "int main(int a {}",                // not closed parameters list
-            "int main(int a,) {}",              // parameter with additional comma
             "int main(void a) {}",              // void type parameter
             "int main() { int; }",              // incomplete declaration
             "int main() { a =; }",              // incomplete assignment
@@ -24,8 +24,10 @@ namespace TKOMTest.ParserTests
             "int main() { a = b = c; }",        // multiple assignment
             "int main() { foo(; }",             // incomplete function call
             "int main() { foo; }",              // incomplete function call
-            "int main() { foo(2 int); }",       // function call with incorrect argument
-            "int main() { throw; }",            // incomplete throw
+            "int main() { foo(int); }",         // function call with incorrect argument
+            "int main() { throw (); }",         // incomplete throw - no "Exception"
+            "int main() { throw Exception); }", // incomplete throw - no "("
+            "int main() { throw Exception(; }", // incomplete throw - no ")"
             "int main() { a = b || ; }",        // incomplete logical or
             "int main() { a = b && ; }",        // incomplete logical and
             "int main() { a = b == ; }",        // incomplete equality operator
@@ -37,7 +39,7 @@ namespace TKOMTest.ParserTests
         };
 
 
-        [Theory]
+        [Theory(Skip = "no longer adequate")]
         [MemberData(nameof(invalidPrograms))]
         public void InvalidProgram_ShouldSetASTToNull(string program)
         {
@@ -48,7 +50,7 @@ namespace TKOMTest.ParserTests
             ast.ShouldBeNull();
         }
 
-        [Theory]
+        [Theory(Skip = "returns false no more")]
         [MemberData(nameof(invalidPrograms))]
         public void InvalidProgram_ShouldReturnFalse(string program)
         {
@@ -67,6 +69,7 @@ namespace TKOMTest.ParserTests
 
             parser.TryParse(out Program _);
 
+            System.Console.WriteLine(errorHandler.errorCount);
             errorHandler.errorCount.ShouldBeGreaterThan(0);
         }
     }
