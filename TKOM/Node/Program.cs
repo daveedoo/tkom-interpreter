@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using TKOM.Scanner;
+﻿using System.Collections.Generic;
 
 namespace TKOM.Node
 {
-    public class Program : INode, IEquatable<Program>
+    public class Program : INode
     {
         public IList<FunctionDefinition> functions { get; }
 
@@ -12,21 +10,9 @@ namespace TKOM.Node
         {
             functions = functionDefinitions;
         }
-
-        public bool Equals(Program other)
-        {
-            IEnumerator<FunctionDefinition> functionsThis = functions.GetEnumerator();
-            IEnumerator<FunctionDefinition> functionsOther = other.functions.GetEnumerator();
-            while (functionsThis.MoveNext())
-            {
-                if (!functionsOther.MoveNext() || functionsThis.Current.Equals(functionsOther.Current))
-                    return false;
-            }
-            return true;
-        }
     }
 
-    public class FunctionDefinition : INode, IEquatable<FunctionDefinition>
+    public class FunctionDefinition : INode
     {
         public Type ReturnType { get; }
         public string Name { get; }
@@ -40,26 +26,21 @@ namespace TKOM.Node
             Parameters = parameters;
             Body = body;
         }
+    }
 
-        public bool Equals(FunctionDefinition other)
+    public class Parameter
+    {
+        public Type Type { get; }
+        public string Name { get; }
+
+        public Parameter(Type type, string name)
         {
-            if (ReturnType != other.ReturnType || Name != other.Name)
-                return false;
-
-            IEnumerator<Parameter> paramsThis = Parameters.GetEnumerator();
-            IEnumerator<Parameter> paramsOther = other.Parameters.GetEnumerator();
-            while (paramsThis.MoveNext())
-            {
-                if (!paramsOther.MoveNext() || !paramsThis.Equals(paramsOther))
-                    return false;
-            }
-            return true;
+            Type = type;
+            Name = name;
         }
     }
 
-    public record Parameter(Type Type, string Name);
-
-    public class Block : INode, IStatement, IEquatable<Block>
+    public class Block : INode, IStatement
     {
         public IList<IStatement> Statements { get; }
 
@@ -67,26 +48,49 @@ namespace TKOM.Node
         {
             Statements = statements;
         }
-
-        public bool Equals(Block other)
-        {
-            IEnumerator<IStatement> statementsThis = Statements.GetEnumerator();
-            IEnumerator<IStatement> statementsOther = other.Statements.GetEnumerator();
-            while (statementsThis.MoveNext())
-            {
-                if (!statementsOther.MoveNext())
-                    return false;
-            }
-            return true;
-        }
     }
 
     public interface IExpression { }
     public interface IStatement : INode { }
-    public record Declaration(Type Type, string Name) : IStatement;
-    public record Assignment(string Variable, IExpression Expression) : IStatement, IExpression;
-    public record Return(IExpression Expression = null) : IStatement;
-    public record Throw(IExpression Expression) : IStatement;
+    public class Declaration : IStatement
+    {
+        public Type Type { get; }
+        public string Name { get; }
+        public Declaration(Type type, string name)
+        {
+            Type = type;
+            Name = name;
+        }
+    }
+    public class Assignment : IStatement, IExpression
+    {
+        public string Variable { get; }
+        public IExpression Expression { get;}
+
+        public Assignment(string variable, IExpression expression)
+        {
+            Variable = variable;
+            Expression = expression;
+        }
+    }
+    public class Return : IStatement
+    {
+        public IExpression Expression { get; }
+
+        public Return(IExpression expression = null)
+        {
+            Expression = expression;
+        }
+    }
+    public class Throw : IStatement
+    {
+        IExpression Expression { get; }
+
+        public Throw(IExpression expression)
+        {
+            Expression = expression;
+        }
+    }
     public class FunctionCall : IStatement, IExpression
     {
         public string Identifier { get; set; }
@@ -99,12 +103,51 @@ namespace TKOM.Node
         }
     }
     
-    public record IntConst(int Value) : IExpression;
-    public record Variable(string Identifier) : IExpression;
+    public class IntConst : IExpression
+    {
+        public int Value { get; }
 
-    public record If (IExpression Condition, IStatement IfStatement, IStatement ElseStatement = null) : IStatement;
-    public record While(IExpression condition, IStatement Statement) : IStatement;
-    public class TryCatchFinally : IStatement, IEquatable<TryCatchFinally>
+        public IntConst(int value)
+        {
+            Value = value;
+        }
+    }
+    public class Variable : IExpression
+    {
+        public string Identifier { get; }
+
+        public Variable(string identifier)
+        {
+            Identifier = identifier;
+        }
+    }
+
+    public class If : IStatement
+    {
+        public IExpression Condition { get; }
+        public IStatement IfStatement { get; }
+        public IStatement ElseStatement { get; }
+
+        public If(IExpression condition, IStatement ifStatement, IStatement elseStatement = null)
+        {
+            Condition = condition;
+            IfStatement = ifStatement;
+            ElseStatement = elseStatement;
+        }
+    }
+
+    public class While : IStatement
+    {
+        public IExpression condition { get; }
+        public IStatement Statement { get; }
+
+        public While(IExpression condition, IStatement statement)
+        {
+            this.condition = condition;
+            Statement = statement;
+        }
+    }
+    public class TryCatchFinally : IStatement
     {
         public IStatement TryStatement { get; }
         public IList<Catch> CatchStatements { get; }
@@ -116,32 +159,94 @@ namespace TKOM.Node
             CatchStatements = catchStatements;
             FinallyStatement = finallyStatement;
         }
+    }
+    public class Catch : IStatement
+    {
+        public string Identifier { get; }
+        public IStatement Statement { get; }
+        public IExpression WhenExpression { get; }
 
-        public bool Equals(TryCatchFinally other)
+        public Catch(string identifier, IStatement statement, IExpression whenExpression = null)
         {
-            if (!TryStatement.Equals(other.TryStatement) ||
-                !FinallyStatement.Equals(other.FinallyStatement))
-                return false;
-            IEnumerator<Catch> statementsThis = CatchStatements.GetEnumerator();
-            IEnumerator<Catch> statementsOther = other.CatchStatements.GetEnumerator();
-            while (statementsThis.MoveNext())
-            {
-                if (!statementsOther.MoveNext())
-                    return false;
-            }
-            return true;
+            Identifier = identifier;
+            Statement = statement;
+            WhenExpression = whenExpression;
         }
     }
-    public record Catch(string Identifier, IStatement Statement, IExpression WhenExpression = null) : IStatement;
 
     // OPERATORS
-    public record LogicalOr(IExpression Expression1, IExpression Expression2) : IExpression;
-    public record LogicalAnd(IExpression Expression1, IExpression Expression2) : IExpression;
-    public record EqualityComparer(IExpression Expression1, EqualityComparerType EqualityComparerType, IExpression Expression2) : IExpression;
-    public record RelationOperator(IExpression Expression1, RelationType Relation, IExpression Expression2) : IExpression;
-    public record Additive(IExpression Expression1, AdditiveOperator Operator, IExpression Expression2) : IExpression;
-    public record Multiplicative(IExpression Expression1, MultiplicativeOperator Operator, IExpression Expression2) : IExpression;
-    public record Unary(UnaryOperator Operator, IExpression Expression) : IExpression;
+    public abstract class BinaryOperator : IExpression
+    {
+        public IExpression Left { get; }
+        public IExpression Right { get; }
+
+        public BinaryOperator(IExpression left, IExpression right)
+        {
+            Left = left;
+            Right = right;
+        }
+    }
+    public class LogicalOr : BinaryOperator
+    {
+        public LogicalOr(IExpression left, IExpression right) : base(left, right)
+        { }
+    }
+    public class LogicalAnd : BinaryOperator
+    {
+        public LogicalAnd(IExpression left, IExpression right) : base(left, right)
+        { }
+    }
+    public class EqualityComparer : BinaryOperator
+    {
+        public EqualityComparerType ComparerType { get; }
+
+        public EqualityComparer(IExpression left, EqualityComparerType comparerType, IExpression right) : base(left, right)
+        {
+            ComparerType = comparerType;
+        }
+    }
+
+    public class RelationOperator : BinaryOperator
+    {
+        public RelationType RelationType { get; }
+
+        public RelationOperator(IExpression left, RelationType relationType, IExpression right) : base(left, right)
+        {
+            RelationType = relationType;
+        }
+    }
+
+    public class Additive : BinaryOperator
+    {
+        public AdditiveOperator AdditiveOperator { get; }
+        
+        public Additive(IExpression left, AdditiveOperator additiveOperator, IExpression right) : base(left, right)
+        {
+            AdditiveOperator = additiveOperator;
+        }
+    }
+
+    public class Multiplicative : BinaryOperator
+    {
+        public MultiplicativeOperator MultiplicativeOperator { get; }
+        
+        public Multiplicative(IExpression left, MultiplicativeOperator multiplicativeOperator, IExpression right) : base(left, right)
+        {
+            MultiplicativeOperator = multiplicativeOperator;
+        }
+    }
+
+    public class Unary : IExpression
+    {
+        public UnaryOperator Operator { get; }
+        public IExpression Expression { get; }
+
+        public Unary(UnaryOperator @operator, IExpression expression)
+        {
+            Operator = @operator;
+            Expression = expression;
+        }
+    }
 
     public enum Type
     {
@@ -167,37 +272,5 @@ namespace TKOM.Node
     public enum UnaryOperator
     {
         Uminus, LogicalNegation
-    }
-
-
-    //public abstract class Nonterminal
-    //{
-    //    public static readonly ReturnTypeNonterminal ReturnType = new ReturnTypeNonterminal();
-
-    //    public sealed class ReturnTypeNonterminal : Nonterminal
-    //    {
-    //        private static readonly Token[] tokens = new Token[] { Token.Void, Token.Int };
-    //        protected ReturnTypeNonterminal() { }
-
-    //        public bool TryParse(out Type? type)
-    //        {
-    //            type = null;
-    //            return false;
-    //        }
-    //    }
-    //}
-    public interface INonterminal { }
-    public class ReturnType : INonterminal
-    {
-        public enum Type
-        {
-            Void, IntType
-        }
-        public static Token[] tokens = new Token[] { Token.Void, Token.Int };
-        public static bool TryParse(out Type? type)
-        {
-            type = null;
-            return false;
-        }
     }
 }

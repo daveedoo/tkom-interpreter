@@ -169,7 +169,7 @@ namespace TKOM.Parser
 
         }
 
-        private bool TryParseBlock(out Block block)                                         // block                : "{" { statement } "}"
+        private bool TryParseBlock(out Block block)                                         // block               : "{" { statement } "}"
         {
             block = null;
             if (!TryParseToken(Token.CurlyBracketOpen, false))
@@ -258,7 +258,7 @@ namespace TKOM.Parser
                 return false;
             return true;
         }
-        private bool TryParseAssignmentRest(string identifier, out Assignment assignment)   // assignment           : IDENTIFIER "=" expression
+        private bool TryParseAssignmentRest(string identifier, out Assignment assignment)   // assignment          : IDENTIFIER "=" expression
         {
             assignment = null;
             if (!TryParseToken(Token.Equals, false))
