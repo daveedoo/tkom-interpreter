@@ -1,48 +1,44 @@
-program             : { function }
+program             : { function } EOF
                     ;
 
-function            : ( "void" | type ) IDENTIFIER "(" [param_list] ")" block
+function            : ( "void" | type ) IDENTIFIER param_list block
                     ;
 
 type                : "int"
                     ;
 
-param_list          : type IDENTIFIER { "," type IDENTIFIER }
+param_list          : "(" [ type IDENTIFIER { "," type IDENTIFIER } ] ")"
                     ;
 
 block               : "{" { statement } "}"
-                    ;
-
-const               : INT_CONST
                     ;
 
 statement           : simple_statement ";"
                     | block_statement
                     ;
 simple_statement    : declaration
-                    | function_call
                     | return
-                    | assignment
                     | throw
+                    | assignment
+                    | function_call
                     ;
-block_statement     : block
-                    | if
+block_statement     : if
                     | while
                     | try_catch_finally
                     ;
 
 declaration         : type declOptAssign { "," decl_opt_assign }
                     ;
-decl_opt_assign     : IDENTIFIER [ "=" const ]
-                    ;
-
-function_call       : IDENTIFIER "(" [ expression { "," expression } ] ")"
-                    ;
-
-string              : STRING { "+" ( STRING | const ) }
+decl_opt_assign     : IDENTIFIER [ "=" expression ]
                     ;
 
 return              : "return" [ expression ]
+                    ;
+
+assignment          : IDENTIFIER "=" expression
+                    ;
+
+function_call       : IDENTIFIER "(" [ expression { "," expression } ] ")"
                     ;
 
 if                  : "if" "(" expression ")" statement [ "else" statement ]
@@ -59,15 +55,11 @@ try_catch_finally   : "try" statement
                         catch { catch }
                         [ "finally" statement ]
                     ;
-catch               : "catch" "Exception" IDENTIFIER [ "when" "(" expression ")" ] statement
+catch               : "catch" "Exception" IDENTIFIER [ "when" expression ] statement
                     ;
 
 // ================= OPERATORS =================
-expression          : assignment
-                    | logical_or
-                    ;
-
-assignment          : lvalue "=" expression
+expression          : logical_or
                     ;
 
 logical_or          : logical_and { "||" logical_and }
@@ -76,45 +68,27 @@ logical_or          : logical_and { "||" logical_and }
 logical_and         : in_equality { "&&" in_equality }
                     ;
 
-in_equality         : relation _in_equality
-                    ;
-_in_equality        : "==" relation _in_equality
-                    | "!=" relation _in_equality
-                    | e
+in_equality         : relation [ ( "==" | "!=" ) relation ]
                     ;
 
-relation            : additive _relation
-                    ;
-_relation           : "<=" additive _relation
-                    | ">=" additive _relation
-                    | "<" additive _relation
-                    | ">" additive _relation
-                    | e
+relation            : additive [ ( "<=" | ">=" | "<" | ">" ) additive ]
                     ;
 
-additive            : multiplicative _additive
-                    ;
-_additive           : "+" multiplicative _additive
-                    | "-" multiplicative _additive
-                    | e
+additive            : multiplicative { ( "+" | "-" ) multiplicative }
                     ;
 
-multiplicative      : unar _multiplicative
-                    ;
-_multiplicative     : "*" unar _multiplicative
-                    | "/" unar _multiplicative
-                    | e
+multiplicative      : unar { ( "*" | "/" ) unar }
                     ;
 
-unar                : "-" unar
-                    | "+" unar
-                    | "!" unar
-                    | const
-                    | lvalue
+unar                : [ "-" | "!" ]
+                      ( ( "(" expression ")" ) | atomic )
+                    ;
+
+atomic              : const
+                    | IDENTIFIER
                     | function_call
                     | string
-                    | "(" expression ")"
                     ;
 
-lvalue              : IDENTIFIER { "." IDENTIFIER }
+string              : STRING { "+" ( STRING | const ) }
                     ;

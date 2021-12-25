@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using TKOM.ErrorHandler;
+﻿using TKOM.Scanner;
 using Xunit;
 
-namespace TKOM.Scanner.Test
+namespace TKOMTest.ScannerTests
 {
     public partial class ScannerTests
     {

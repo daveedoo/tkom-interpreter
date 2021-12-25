@@ -49,6 +49,9 @@ namespace TKOM.Scanner
 
         public bool MoveNext()
         {
+            if (Current == Token.EOF)
+                return false;
+
             reader.SkipWhitespaces();
             tokenStartPosition = new Position(Position.Line, Position.Column);
 
@@ -58,7 +61,10 @@ namespace TKOM.Scanner
             else if (char.IsDigit(reader.NextChar))
                 tryReadIntConst();
             else if (reader.eof)
-                return false;
+            {
+                Current = Token.EOF;
+                return true;
+            }
             else
                 tryReadSymbolStartingToken();
             buffer.Clear();
@@ -275,14 +281,14 @@ namespace TKOM.Scanner
         private void throwErrorAndClearValues(string message)
         {
             LexLocation location = new LexLocation(tokenStartPosition, Position);
-            ErrorHandler.HandleError(location, message);
+            ErrorHandler.Error(location, message);
 
             clearValues();
         }
         private void throwWarning(string message)
         {
             LexLocation location = new LexLocation(tokenStartPosition, Position);
-            ErrorHandler.HandleWarning(location, message);
+            ErrorHandler.Warning(location, message);
         }
     }
 }

@@ -1,8 +1,8 @@
 using System.IO;
-using TKOM.ErrorHandler;
+using TKOM.Scanner;
 using Xunit;
 
-namespace TKOM.Scanner.Test
+namespace TKOMTest.ScannerTests
 {
     public partial class ScannerTests
     {
@@ -22,10 +22,9 @@ namespace TKOM.Scanner.Test
         {
             IScanner scanner = buildScanner(program);
 
-            bool moved = scanner.MoveNext();
-
-            Assert.False(moved);
-            Assert.Equal(Token.Error, scanner.Current);
+            Assert.True(scanner.MoveNext());
+            Assert.Equal(Token.EOF, scanner.Current);
+            Assert.False(scanner.MoveNext());
         }
 
         [Theory]
@@ -42,6 +41,8 @@ namespace TKOM.Scanner.Test
             Assert.Equal(Token.Identifier, scanner.Current);
             Assert.Equal(expectedIdentifier, scanner.StringValue);
 
+            Assert.True(scanner.MoveNext());
+            Assert.Equal(Token.EOF, scanner.Current);
             Assert.False(scanner.MoveNext());
         }
 
@@ -59,6 +60,8 @@ namespace TKOM.Scanner.Test
             Assert.Equal(Token.IntConst, scanner.Current);
             Assert.Equal(expectedValue, scanner.IntValue);
 
+            Assert.True(scanner.MoveNext());
+            Assert.Equal(Token.EOF, scanner.Current);
             Assert.False(scanner.MoveNext());
         }
 
@@ -67,7 +70,6 @@ namespace TKOM.Scanner.Test
         [InlineData("void", Token.Void)]    [InlineData("int", Token.Int)] 
         [InlineData("return", Token.Return)]
         [InlineData("if", Token.If)]        [InlineData("else", Token.Else)]    [InlineData("while", Token.While)]
-        [InlineData("read", Token.Read)]    [InlineData("print", Token.Print)]
         [InlineData("try", Token.Try)]      [InlineData("catch", Token.Catch)]  [InlineData("finally", Token.Finally)]
         [InlineData("throw", Token.Throw)]  [InlineData("when", Token.When)]    [InlineData("Exception", Token.Exception)]
         // Operators
@@ -82,10 +84,15 @@ namespace TKOM.Scanner.Test
         {
             IScanner scanner = buildScanner(program);
 
-            bool moved = scanner.MoveNext();
+            bool moved1 = scanner.MoveNext();
+            Token token1 = scanner.Current;
+            bool moved2 = scanner.MoveNext();
+            Token token2 = scanner.Current;
 
-            Assert.True(moved);
-            Assert.Equal(token, scanner.Current);
+            Assert.True(moved1);
+            Assert.Equal(token, token1);
+            Assert.True(moved2);
+            Assert.Equal(Token.EOF, token2);
 
             Assert.False(scanner.MoveNext());
         }
@@ -105,6 +112,8 @@ namespace TKOM.Scanner.Test
             Assert.Equal(Token.Comment, scanner.Current);
             Assert.Equal(expectedValue, scanner.StringValue);
 
+            Assert.True(scanner.MoveNext());
+            Assert.Equal(Token.EOF, scanner.Current);
             Assert.False(scanner.MoveNext());
         }
 
@@ -127,6 +136,8 @@ namespace TKOM.Scanner.Test
             Assert.Equal(Token.String, scanner.Current);
             Assert.Equal(expectedValue, scanner.StringValue);
 
+            Assert.True(scanner.MoveNext());
+            Assert.Equal(Token.EOF, scanner.Current);
             Assert.False(scanner.MoveNext());
         }
 
@@ -158,6 +169,8 @@ namespace TKOM.Scanner.Test
                     else if (values[i] is int)
                         Assert.Equal(values[i], scanner.IntValue);
             }
+            Assert.True(scanner.MoveNext());
+            Assert.Equal(Token.EOF, scanner.Current);
             Assert.False(scanner.MoveNext());
         }
 

@@ -1,6 +1,7 @@
-﻿using Xunit;
+﻿using TKOM.Scanner;
+using Xunit;
 
-namespace TKOM.Scanner.Test
+namespace TKOMTest.ScannerTests
 {
     // actually there is probably too many tests
     // this class should be testing PositionTrackingTextReader class, TODO in unspecified future
