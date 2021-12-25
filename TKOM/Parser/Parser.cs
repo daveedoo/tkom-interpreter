@@ -397,11 +397,11 @@ namespace TKOM.Parser
             if (!TryParseRelation(out IExpression left))
                 return false;
             expression = left;
-            if (TryParseEqualityComparerOperator(out EqualityComparerType? comparerType))
+            if (TryParseEqualityComparerOperator(out EqualityOperatorType? comparerType))
             {
                 if (!TryParseRelation(out IExpression right))
                     errorHandler.Error(scanner.Position, "Syntax error, const value or identifier expected.");
-                expression = new EqualityComparer(expression, comparerType.Value, right);
+                expression = new EqualityOperator(expression, comparerType.Value, right);
             }
             return true;
         }
@@ -412,7 +412,7 @@ namespace TKOM.Parser
                 return false;
             expression = left;
             
-            if (TryParseRelationOperator(out RelationType? relation))
+            if (TryParseRelationOperator(out RelationOperatorType? relation))
             {
                 if(!TryParseAdditive(out IExpression right))
                     errorHandler.Error(scanner.Position, "Syntax error, const value or identifier expected.");
@@ -424,11 +424,11 @@ namespace TKOM.Parser
         {
             if (!TryParseMultiplicative(out expression))
                 return false;
-            while (TryParseAdditiveOperator(out AdditiveOperator? additiveOperator))
+            while (TryParseAdditiveOperator(out AdditiveOperatorType? additiveOperator))
             {
                 if (!TryParseMultiplicative(out IExpression right))
                     errorHandler.Error(scanner.Position, "Syntax error, const value or identifier expected.");
-                expression = new Additive(expression, additiveOperator.Value, right);
+                expression = new AdditiveOperator(expression, additiveOperator.Value, right);
             }
             return true;
         }
@@ -436,17 +436,17 @@ namespace TKOM.Parser
         {
             if (!TryParseUnary(out expression))
                 return false;
-            while (TryParseMultiplicativeOperator(out MultiplicativeOperator? multiplicativeOperator))
+            while (TryParseMultiplicativeOperator(out MultiplicativeOperatorType? multiplicativeOperator))
             {
                 if (!TryParseUnary(out IExpression unary))
                     errorHandler.Error(scanner.Position, "Syntax error, const value or identifier expected.");
-                expression = new Multiplicative(expression, multiplicativeOperator.Value, unary);
+                expression = new MultiplicativeOperator(expression, multiplicativeOperator.Value, unary);
             }
             return true;
         }
         private bool TryParseUnary(out IExpression unary)                                   // unar                : [ "-" | "!" ] ( ( "(" expression ")" ) | atomic )
         {
-            TryParseUnaryOperator(out UnaryOperator? unaryOperator);
+            TryParseUnaryOperator(out UnaryOperatorType? unaryOperator);
 
             if (TryParseToken(Token.RoundBracketOpen, false))
             {
@@ -466,7 +466,7 @@ namespace TKOM.Parser
             }
 
             if (unaryOperator.HasValue)
-                unary = new Unary(unaryOperator.Value, unary);
+                unary = new UnaryOperator(unaryOperator.Value, unary);
             return true;
         }
         private bool TryParseAtomic(out IExpression expression, bool errorMsg = true)       // atomic              : const | IDENTIFIER | function_call | string
@@ -506,12 +506,12 @@ namespace TKOM.Parser
             return true;
         }
 
-        private bool TryParseEqualityComparerOperator(out EqualityComparerType? comparerType)
+        private bool TryParseEqualityComparerOperator(out EqualityOperatorType? comparerType)
         {
             comparerType = scanner.Current switch
             {
-                Token.IsEqual => EqualityComparerType.Equality,
-                Token.IsNotEqual => EqualityComparerType.Inequality,
+                Token.IsEqual => EqualityOperatorType.Equality,
+                Token.IsNotEqual => EqualityOperatorType.Inequality,
                 _ => null
             };
             if (comparerType.HasValue)
@@ -521,14 +521,14 @@ namespace TKOM.Parser
             }
             return false;
         }
-        private bool TryParseRelationOperator(out RelationType? relation)
+        private bool TryParseRelationOperator(out RelationOperatorType? relation)
         {
             relation = scanner.Current switch
             {
-                Token.LessEqual => RelationType.LessEqual,
-                Token.GreaterEqual => RelationType.GreaterEqual,
-                Token.LessThan => RelationType.LessThan,
-                Token.GreaterThan => RelationType.GreaterThan,
+                Token.LessEqual => RelationOperatorType.LessEqual,
+                Token.GreaterEqual => RelationOperatorType.GreaterEqual,
+                Token.LessThan => RelationOperatorType.LessThan,
+                Token.GreaterThan => RelationOperatorType.GreaterThan,
                 _ => null
             };
             if (relation.HasValue)
@@ -538,12 +538,12 @@ namespace TKOM.Parser
             }
             return false;
         }
-        private bool TryParseAdditiveOperator(out AdditiveOperator? additiveOperator)
+        private bool TryParseAdditiveOperator(out AdditiveOperatorType? additiveOperator)
         {
             additiveOperator = scanner.Current switch
             {
-                Token.Plus=> AdditiveOperator.Add,
-                Token.Minus => AdditiveOperator.Subtract,
+                Token.Plus=> AdditiveOperatorType.Add,
+                Token.Minus => AdditiveOperatorType.Subtract,
                 _ => null
             };
             if (additiveOperator.HasValue)
@@ -553,12 +553,12 @@ namespace TKOM.Parser
             }
             return false;
         }
-        private bool TryParseMultiplicativeOperator(out MultiplicativeOperator? multiplicativeOperator)
+        private bool TryParseMultiplicativeOperator(out MultiplicativeOperatorType? multiplicativeOperator)
         {
             multiplicativeOperator = scanner.Current switch
             {
-                Token.Star => MultiplicativeOperator.Multiply,
-                Token.Slash => MultiplicativeOperator.Divide,
+                Token.Star => MultiplicativeOperatorType.Multiply,
+                Token.Slash => MultiplicativeOperatorType.Divide,
                 _ => null
             };
             if (multiplicativeOperator.HasValue)
@@ -568,12 +568,12 @@ namespace TKOM.Parser
             }
             return false;
         }
-        private bool TryParseUnaryOperator(out UnaryOperator? unaryOperator)
+        private bool TryParseUnaryOperator(out UnaryOperatorType? unaryOperator)
         {
             unaryOperator = scanner.Current switch
             {
-                Token.Minus => UnaryOperator.Uminus,
-                Token.Not => UnaryOperator.LogicalNegation,
+                Token.Minus => UnaryOperatorType.Uminus,
+                Token.Not => UnaryOperatorType.LogicalNegation,
                 _ => null
             };
             if (unaryOperator.HasValue)

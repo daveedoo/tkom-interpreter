@@ -637,7 +637,7 @@ namespace TKOMTest.ParserTests
                 {
                     new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
-                        new Assignment("a", new EqualityComparer(new IntConst(1), EqualityComparerType.Equality, new IntConst(2)))
+                        new Assignment("a", new EqualityOperator(new IntConst(1), EqualityOperatorType.Equality, new IntConst(2)))
                     }))
                 });
             IParser parser = buildParser(program);
@@ -660,7 +660,7 @@ namespace TKOMTest.ParserTests
                     new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
-                            new EqualityComparer(new IntConst(2), EqualityComparerType.Inequality, new IntConst(3)))
+                            new EqualityOperator(new IntConst(2), EqualityOperatorType.Inequality, new IntConst(3)))
                     }))
                 });
             IParser parser = buildParser(program);
@@ -684,7 +684,7 @@ namespace TKOMTest.ParserTests
                     {
                         new Assignment("a",
                             new RelationOperator(
-                                new IntConst(2), RelationType.LessEqual, new IntConst(3)))
+                                new IntConst(2), RelationOperatorType.LessEqual, new IntConst(3)))
                     }))
                 });
             IParser parser = buildParser(program);
@@ -708,7 +708,7 @@ namespace TKOMTest.ParserTests
                     {
                         new Assignment("a",
                             new RelationOperator(
-                                new IntConst(2), RelationType.GreaterEqual, new IntConst(3)))
+                                new IntConst(2), RelationOperatorType.GreaterEqual, new IntConst(3)))
                     }))
                 });
             IParser parser = buildParser(program);
@@ -732,7 +732,7 @@ namespace TKOMTest.ParserTests
                     {
                         new Assignment("a",
                             new RelationOperator(
-                                new IntConst(2), RelationType.LessThan, new IntConst(3)))
+                                new IntConst(2), RelationOperatorType.LessThan, new IntConst(3)))
                     }))
                 });
             IParser parser = buildParser(program);
@@ -756,7 +756,7 @@ namespace TKOMTest.ParserTests
                     {
                         new Assignment("a",
                             new RelationOperator(
-                                new IntConst(2), RelationType.GreaterThan, new IntConst(3)))
+                                new IntConst(2), RelationOperatorType.GreaterThan, new IntConst(3)))
                     }))
                 });
             IParser parser = buildParser(program);
@@ -779,8 +779,8 @@ namespace TKOMTest.ParserTests
                     new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
-                            new Additive(
-                                new IntConst(2), AdditiveOperator.Add, new IntConst(3)))
+                            new AdditiveOperator(
+                                new IntConst(2), AdditiveOperatorType.Add, new IntConst(3)))
                     }))
                 });
             IParser parser = buildParser(program);
@@ -803,8 +803,8 @@ namespace TKOMTest.ParserTests
                     new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
-                            new Additive(
-                                new IntConst(2), AdditiveOperator.Subtract, new IntConst(3)))
+                            new AdditiveOperator(
+                                new IntConst(2), AdditiveOperatorType.Subtract, new IntConst(3)))
                     }))
                 });
             IParser parser = buildParser(program);
@@ -827,8 +827,8 @@ namespace TKOMTest.ParserTests
                     new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
-                            new Multiplicative(
-                                new IntConst(2), MultiplicativeOperator.Multiply, new IntConst(3)))
+                            new MultiplicativeOperator(
+                                new IntConst(2), MultiplicativeOperatorType.Multiply, new IntConst(3)))
                     }))
                 });
             IParser parser = buildParser(program);
@@ -851,8 +851,8 @@ namespace TKOMTest.ParserTests
                     new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
-                            new Multiplicative(
-                                new IntConst(2), MultiplicativeOperator.Divide, new IntConst(3)))
+                            new MultiplicativeOperator(
+                                new IntConst(2), MultiplicativeOperatorType.Divide, new IntConst(3)))
                     }))
                 });
             IParser parser = buildParser(program);
@@ -875,8 +875,8 @@ namespace TKOMTest.ParserTests
                     new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
-                            new Unary(
-                                UnaryOperator.Uminus, new Variable("b")))
+                            new UnaryOperator(
+                                UnaryOperatorType.Uminus, new Variable("b")))
                     }))
                 });
             IParser parser = buildParser(program);
@@ -899,8 +899,8 @@ namespace TKOMTest.ParserTests
                     new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
-                            new Unary(
-                                UnaryOperator.LogicalNegation, new Variable("b")))
+                            new UnaryOperator(
+                                UnaryOperatorType.LogicalNegation, new Variable("b")))
                     }))
                 });
             IParser parser = buildParser(program);
