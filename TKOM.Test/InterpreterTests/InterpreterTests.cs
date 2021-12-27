@@ -1,30 +1,40 @@
 ﻿using Shouldly;
-using System;
+using System.Collections.Generic;
 using TKOM.Interpreter;
 using TKOM.Node;
 using Xunit;
+using Type = TKOM.Node.Type;
 
 namespace TKOMTest.InterpreterTests
 {
     public class InterpreterTests
     {
-        private Interpreter sut = new Interpreter();
-        private class TestNode : INode
+        private readonly ErrorCollecter errorHandler;
+        private readonly Interpreter sut;
+
+        public InterpreterTests()
         {
-            public void Accept(INodeVisitor visitor)
-            {
-                visitor.Visit(this);
-            }
+            errorHandler = new ErrorCollecter();
+            sut = new Interpreter(errorHandler);
         }
 
         [Fact]
-        public void WhenVisitingNodeOfUnknownType_ThrowsArgumentException()
+        public void WhenProgramHasAmbigousFunctionDefinitions_ThrowsAnError()
         {
-            var unknownNode = new TestNode();
+            FunctionDefinition funDefVoid = new FunctionDefinition(Type.Void, "foo", new List<TKOM.Node.Parameter> { },
+                new Block(new List<IStatement>()));
+            FunctionDefinition funDefInt = new FunctionDefinition(Type.IntType, "foo", new List<TKOM.Node.Parameter> { },
+                new Block(new List<IStatement>()));
+            FunctionDefinition main = new FunctionDefinition(Type.Void, "main", new List<TKOM.Node.Parameter> { },
+                new Block(new List<IStatement>()));
+            Program program = new Program(new List<FunctionDefinition>
+            {
+                funDefVoid, funDefInt, main
+            });
 
-            Action action = new Action(() => sut.Visit(unknownNode));
+            sut.Visit(program);
 
-            action.ShouldThrow<ArgumentException>();
+            errorHandler.errorCount.ShouldBe(1);
         }
     }
 }

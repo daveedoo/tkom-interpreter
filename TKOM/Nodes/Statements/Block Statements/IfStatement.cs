@@ -1,15 +1,15 @@
 ﻿namespace TKOM.Node
 {
-    public class If : IStatement
+    public class IfStatement : IStatement
     {
         public IExpression Condition { get; }
-        public IStatement IfStatement { get; }
+        public IStatement TrueStatement { get; }
         public IStatement ElseStatement { get; }
 
-        public If(IExpression condition, IStatement ifStatement, IStatement elseStatement = null)
+        public IfStatement(IExpression condition, IStatement trueStatement, IStatement elseStatement = null)
         {
             Condition = condition;
-            IfStatement = ifStatement;
+            TrueStatement = trueStatement;
             ElseStatement = elseStatement;
         }
 

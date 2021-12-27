@@ -1,10 +1,10 @@
 ﻿namespace TKOM.Node
 {
-    public class Throw : IStatement
+    public class ReturnStatement : IStatement
     {
-        IExpression Expression { get; }
+        public IExpression Expression { get; }
 
-        public Throw(IExpression expression)
+        public ReturnStatement(IExpression expression = null)
         {
             Expression = expression;
         }

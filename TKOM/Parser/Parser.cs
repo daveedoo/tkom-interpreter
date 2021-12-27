@@ -193,9 +193,9 @@ namespace TKOM.Parser
         {
             if (TryParseDeclarationsWithOptionalAssignments(out Declaration declaration))   // simple_statement    : declaration
                 statement = declaration;
-            else if (TryParseReturnStatement(out Return returnStatement))                   //                     | return
+            else if (TryParseReturnStatement(out ReturnStatement returnStatement))                   //                     | return
                 statement = returnStatement;
-            else if (TryParseThrowStatement(out Throw throwStatement))                      //                     | throw
+            else if (TryParseThrowStatement(out ThrowStatement throwStatement))                      //                     | throw
                 statement = throwStatement;
             else if (!TryParse_Assignment_FunctionCall(out statement))                      //                     | assignment | function_call
                 return false;
@@ -207,9 +207,9 @@ namespace TKOM.Parser
         private bool TryParseBlockStatement(out IStatement statement)                       // statement           : block_statement
         {
             statement = null;
-            if (TryParseIfStatement(out If ifStatement))                                    // block_statement     : if
+            if (TryParseIfStatement(out IfStatement ifStatement))                                    // block_statement     : if
                 statement = ifStatement;
-            else if (TryParseWhileStatement(out While whileStatement))                      // block_statement     : while
+            else if (TryParseWhileStatement(out WhileStatement whileStatement))                      // block_statement     : while
                 statement = whileStatement;
             else if (TryParseTryCatchFinallyStatement(out TryCatchFinally tcfStatement))    // block_statement     : try_catch_finally
                 statement = tcfStatement;
@@ -232,16 +232,16 @@ namespace TKOM.Parser
             statement = new Declaration(type.Value, identifier);
             return true;
         }
-        private bool TryParseReturnStatement(out Return statement)                          // return              : "return" [ expression ]
+        private bool TryParseReturnStatement(out ReturnStatement statement)                          // return              : "return" [ expression ]
         {
             statement = null;
             if (!TryParseToken(Token.Return, false))
                 return false;
 
             if (TryParseExpression(out IExpression expression))
-                statement = new Return(expression);
+                statement = new ReturnStatement(expression);
             else
-                statement = new Return();
+                statement = new ReturnStatement();
             return true;
         }
         private bool TryParse_Assignment_FunctionCall(out IStatement statement)             // simple_statement    : assignment | function_call
@@ -271,7 +271,7 @@ namespace TKOM.Parser
         #endregion
 
         #region block statements
-        private bool TryParseIfStatement(out If ifStatement)                                // if                  : "if" "(" expression ")" statement [ "else" statement ]
+        private bool TryParseIfStatement(out IfStatement ifStatement)                                // if                  : "if" "(" expression ")" statement [ "else" statement ]
         {
             ifStatement = null;
             if (!TryParseToken(Token.If, false))
@@ -284,14 +284,14 @@ namespace TKOM.Parser
             if (TryParseToken(Token.Else, false))
             {
                 TryParseStatement(out IStatement elseStmt);
-                ifStatement = new If(condition, stmt, elseStmt);
+                ifStatement = new IfStatement(condition, stmt, elseStmt);
                 return true;
             }
 
-            ifStatement = new If(condition, stmt);
+            ifStatement = new IfStatement(condition, stmt);
             return true;
         }
-        private bool TryParseWhileStatement(out While whileStatement)                       // while               : "while" "(" expression ")" statement
+        private bool TryParseWhileStatement(out WhileStatement whileStatement)                       // while               : "while" "(" expression ")" statement
         {
             whileStatement = null;
             if (!TryParseToken(Token.While, false))
@@ -301,11 +301,11 @@ namespace TKOM.Parser
             TryParseToken(Token.RoundBracketClose);
             TryParseStatement(out IStatement statement);
 
-            whileStatement = new While(expression, statement);
+            whileStatement = new WhileStatement(expression, statement);
             return true;
         }
         
-        private bool TryParseThrowStatement(out Throw statement)                            // throw               : "throw" "Exception" "(" expression ")"
+        private bool TryParseThrowStatement(out ThrowStatement statement)                            // throw               : "throw" "Exception" "(" expression ")"
         {
             statement = null;
             if (!TryParseToken(Token.Throw, false))
@@ -315,7 +315,7 @@ namespace TKOM.Parser
             TryParseExpression(out IExpression expression);
             TryParseToken(Token.RoundBracketClose);
 
-            statement = new Throw(expression);
+            statement = new ThrowStatement(expression);
             return true;
         }
         private bool TryParseTryCatchFinallyStatement(out TryCatchFinally tcfStatement)     // try_catch_finally   : "try" statement catch { catch } [ "finally" statement]

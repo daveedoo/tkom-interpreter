@@ -187,7 +187,7 @@ namespace TKOMTest.ParserTests
                 {
                     new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
-                        new Return(new IntConst(10))
+                        new ReturnStatement(new IntConst(10))
                     }))
                 });
             IParser parser = buildParser(program);
@@ -209,7 +209,7 @@ namespace TKOMTest.ParserTests
                 {
                     new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
-                        new Return()
+                        new ReturnStatement()
                     }))
                 });
             IParser parser = buildParser(program);
@@ -297,7 +297,7 @@ namespace TKOMTest.ParserTests
                 {
                     new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
-                        new Throw(new IntConst(10))
+                        new ThrowStatement(new IntConst(10))
                     }))
                 });
             IParser parser = buildParser(program);
@@ -320,7 +320,7 @@ namespace TKOMTest.ParserTests
                 {
                     new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
-                        new If(new IntConst(1), new Assignment("a", new IntConst(0)))
+                        new IfStatement(new IntConst(1), new Assignment("a", new IntConst(0)))
                     }))
                 });
             IParser parser = buildParser(program);
@@ -345,7 +345,7 @@ namespace TKOMTest.ParserTests
                 {
                     new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
-                        new If(new IntConst(1), new Block(new List<IStatement>{
+                        new IfStatement(new IntConst(1), new Block(new List<IStatement>{
                             new Assignment("a", new IntConst(0))
                         }))
                     }))
@@ -372,7 +372,7 @@ namespace TKOMTest.ParserTests
                 {
                     new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
-                        new If(new IntConst(1),
+                        new IfStatement(new IntConst(1),
                             new Assignment("a", new IntConst(1)),
                             new Assignment("a", new IntConst(0))
                         )
@@ -398,7 +398,7 @@ namespace TKOMTest.ParserTests
                 {
                     new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
-                        new While(new IntConst(1), new Return())
+                        new WhileStatement(new IntConst(1), new ReturnStatement())
                     }))
                 });
             IParser parser = buildParser(program);
