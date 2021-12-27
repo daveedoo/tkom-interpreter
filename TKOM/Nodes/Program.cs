@@ -10,5 +10,10 @@ namespace TKOM.Node
         {
             functions = functionDefinitions;
         }
+
+        public void Accept(INodeVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
     }
 }

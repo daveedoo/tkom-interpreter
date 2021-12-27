@@ -14,6 +14,11 @@ namespace TKOM.Node
             CatchStatements = catchStatements;
             FinallyStatement = finallyStatement;
         }
+
+        public void Accept(INodeVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
     }
 
     public class Catch

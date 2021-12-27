@@ -10,5 +10,10 @@
             this.condition = condition;
             Statement = statement;
         }
+
+        public void Accept(INodeVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
     }
 }

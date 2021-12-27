@@ -17,6 +17,11 @@ namespace TKOM.Node
             Parameters = parameters;
             Body = body;
         }
+
+        public void Accept(INodeVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
     }
     public class Parameter
     {

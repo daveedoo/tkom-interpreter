@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using TKOM.Node;
 
 namespace TKOM.Interpreter
 {
@@ -71,7 +72,7 @@ namespace TKOM.Interpreter
         }
     }
 
-    internal class Interpreter
+    internal class Interpreter : INodeVisitor
     {
         public Stack<FunctionCallContext> CallStack { get; }
 
@@ -81,6 +82,16 @@ namespace TKOM.Interpreter
 
             IntegerValue zero = new IntegerValue(0);
             Variable testVar = new Variable("x", zero);
+        }
+
+        public void Visit(INode node)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void Visit(Program program)
+        {
+
         }
     }
 }

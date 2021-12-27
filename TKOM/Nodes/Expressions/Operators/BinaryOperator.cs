@@ -10,5 +10,10 @@
             Left = left;
             Right = right;
         }
+
+        public void Accept(INodeVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
     }
 }

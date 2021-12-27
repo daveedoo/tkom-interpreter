@@ -12,5 +12,10 @@
             IfStatement = ifStatement;
             ElseStatement = elseStatement;
         }
+
+        public void Accept(INodeVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
     }
 }

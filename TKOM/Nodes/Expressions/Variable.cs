@@ -8,5 +8,10 @@
         {
             Identifier = identifier;
         }
+
+        public void Accept(INodeVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
     }
 }

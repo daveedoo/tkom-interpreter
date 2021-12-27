@@ -9,5 +9,10 @@
             Type = type;
             Name = name;
         }
+
+        public void Accept(INodeVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
     }
 }
