@@ -24,7 +24,10 @@ namespace TKOMTest.InterpreterTests
             FunctionDefinition funDefVoid = new FunctionDefinition(null, "foo", new List<TKOM.Node.Parameter> { },
                 new Block(new List<IStatement>()));
             FunctionDefinition funDefInt = new FunctionDefinition(Type.Int, "foo", new List<TKOM.Node.Parameter> { },
-                new Block(new List<IStatement>()));
+                new Block(new List<IStatement>
+                {
+                    new ReturnStatement(new IntConst(0))
+                }));
             FunctionDefinition main = new FunctionDefinition(null, "main", new List<TKOM.Node.Parameter> { },
                 new Block(new List<IStatement>()));
             Program program = new Program(new List<FunctionDefinition>
@@ -40,9 +43,15 @@ namespace TKOMTest.InterpreterTests
         public void WhenProgramHasMultipleEntryPoints_ThrowsAnError()
         {
             FunctionDefinition main1 = new FunctionDefinition(null, "main", new List<TKOM.Node.Parameter> { },
-                new Block(new List<IStatement>()));
+                new Block(new List<IStatement>
+                {
+                    new ReturnStatement()
+                }));
             FunctionDefinition main2 = new FunctionDefinition(Type.Int, "main", new List<TKOM.Node.Parameter> { },
-                new Block(new List<IStatement>()));
+                new Block(new List<IStatement>
+                {
+                    new ReturnStatement(new IntConst(0))
+                }));
             Program program = new Program(new List<FunctionDefinition>
             {
                 main1, main2
@@ -50,7 +59,22 @@ namespace TKOMTest.InterpreterTests
 
             sut.Visit(program);
 
-            errorHandler.errorCount.ShouldBe(2);
+            errorHandler.errorCount.ShouldBe(1);
+        }
+        [Fact]
+        public void FunctionWithNotnullReturnType_WithoutReturnStatement()
+        {
+            Program program = new Program(new List<FunctionDefinition>
+            {
+                new FunctionDefinition(Type.Int, "main", new List<TKOM.Node.Parameter>(), new Block(new List<IStatement>
+                {
+
+                }))
+            });
+
+            sut.Visit(program);
+
+            errorHandler.errorCount.ShouldBe(1);
         }
     }
 }

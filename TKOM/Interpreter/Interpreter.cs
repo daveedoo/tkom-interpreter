@@ -62,77 +62,115 @@ namespace TKOM.Interpreter
         //}
     }
 
+    /// <summary>
+    /// When visiting the tree, <see cref="Interpreter"/> assumes its syntactic correctness (e.g. required tree subnodes cannot be <c>null</c>).
+    /// </summary>
     public class Interpreter : INodeVisitor
     {
         private Stack<FunctionCallContext> CallStack { get; }
         private IList<FunctionSignature> FunctionSignatures { get; }
         private IErrorHandler ErrorHandler { get; }
-        
-        private IValue expressionValue;
+
+        private bool error;
+        private IValue lastExpressionValue;
 
 
         public Interpreter(IErrorHandler errorHandler)
         {
-            ErrorHandler = errorHandler;
             CallStack = new Stack<FunctionCallContext>();
             FunctionSignatures = new List<FunctionSignature>();
+            ErrorHandler = errorHandler;
+            error = false;
         }
 
+        private void Error(string message)
+        {
+            ErrorHandler.Error(message);
+            error = true;
+        }
 
         public void Visit(Program program)
         {
+            if (!SemanticCheck(program, out FunctionDefinition main))
+                return;
+
             foreach (FunctionDefinition funDef in program.functions)
                 FunctionSignatures.Add(new FunctionSignature(funDef.ReturnType, funDef.Name, funDef.Parameters.Select(param => new Parameter(param.Type, param.Name)).ToList()));
-            
-            // check for functions ambiguations
-            for (int i = 0; i < FunctionSignatures.Count - 1; i++)
+
+            main.Accept(this);
+        }
+        private bool SemanticCheck(Program program, out FunctionDefinition main)
+        {
+            main = null;
+            IList<FunctionDefinition> functions = program.functions;
+
+            // functions ambiguations
+            for (int i = 0; i < functions.Count - 1; i++)
             {
-                for (int j = i + 1; j < FunctionSignatures.Count; j++)
+                for (int j = i + 1; j < functions.Count; j++)
                 {
-                    if (FunctionSignatures[j].Parameters.Count != FunctionSignatures[i].Parameters.Count)
+                    if (functions[j].Parameters.Count != functions[i].Parameters.Count)
                         continue;
                     bool paramsSame = true;
-                    for (int p = 0; p < FunctionSignatures[i].Parameters.Count; p++)
-                        if (FunctionSignatures[i].Parameters[p].Type != FunctionSignatures[j].Parameters[p].Type)
+                    for (int p = 0; p < functions[i].Parameters.Count; p++)
+                        if (functions[i].Parameters[p].Type != functions[j].Parameters[p].Type)
                         {
                             paramsSame = false;
                             break;
                         }
-                    if (paramsSame && FunctionSignatures[i].Name == FunctionSignatures[j].Name)
-                        ErrorHandler.Error($"Program already defines function called '{FunctionSignatures[j].Name}' with the same parameter types.");
+                    if (paramsSame && functions[i].Name == functions[j].Name)
+                    {
+                        Error($"Program already defines function called '{functions[j].Name}' with the same parameter types.");
+                        return false;
+                    }
                 }
             }
 
-            var mains = from f in program.functions
-                        where f.Name == "main" && f.Parameters.Count == 0
-                        select f;
-
-            FunctionDefinition main;
+            // correct main
             try
             {
-                main = mains.Single();
+                main = functions.Single(f => f.Name == "main" && f.Parameters.Count == 0);
             }
             catch (InvalidOperationException)
             {
-                ErrorHandler.Error("Program should contain exactly one entry point (\"main()\" function).");
-                return;
+
+                Error("Program should contain an entry point (\"main()\" function).");
+                return false;
             }
-            main.Accept(this);
+            return true;
         }
+
         public void Visit(FunctionDefinition funDef)
         {
+            if (!SemanticCheck(funDef))
+                return;
             CallStack.Push(new FunctionCallContext());
 
             funDef.Body.Accept(this);
 
             CallStack.Pop();
         }
+        private bool SemanticCheck(FunctionDefinition funDef)
+        {
+            if (funDef.ReturnType is not null &&
+                !funDef.Body.Statements.Any(s => s is ReturnStatement))
+            {
+                Error($"Function {funDef.Name} should return a value.");
+                return false;
+            }
+            return true;
+        }
+
         public void Visit(Block block)
         {
             CallStack.Peek().CreateNewScope();
 
             foreach (IStatement statement in block.Statements)
+            {
                 statement.Accept(this);
+                if (error)
+                    return;
+            }
 
             CallStack.Peek().DeleteScope();
         }
@@ -141,39 +179,39 @@ namespace TKOM.Interpreter
         {
             throw new NotImplementedException();
         }
+
         public void Visit(TryCatchFinally tryCatchFinally)
         {
             throw new NotImplementedException();
         }
+
         public void Visit(WhileStatement whileStatement)
         {
             throw new NotImplementedException();
         }
+
         public void Visit(Assignment assignment)
         {
             if (!CallStack.Peek().TryFindVariable(assignment.VariableName, out IVariable variable))
             {
-                ErrorHandler.Error($"The variable {assignment.VariableName} does not exist in the current context.");
+                Error($"The variable {assignment.VariableName} does not exist in the current context.");
                 return;
             }
 
             assignment.Expression.Accept(this);
-
-            //variable.TryAssign
-            if (!expressionValue.TryAssignTo(variable))
-            {
-                ErrorHandler.Error($"Cannot assign value of type {expressionValue.Type} to '{variable.Name}' ({variable.Type})");
+            if (error)
                 return;
-            }
 
-
-            throw new NotImplementedException();
+            string expType = lastExpressionValue is null ? "void" : lastExpressionValue.Type.ToString();
+            if (lastExpressionValue is null || !lastExpressionValue.TryAssignTo(variable))
+                Error($"Cannot assign value of type {expType} to variable '{variable.Name}' of type {variable.Type}.");
         }
+
         public void Visit(Declaration declaration)
         {
             if (CallStack.Peek().TryFindVariable(declaration.Name, out _))
             {
-                ErrorHandler.Error($"Redeclaration of variable '{declaration.Name}'");
+                Error($"Redeclaration of variable '{declaration.Name}'");
                 return;
             }
 
@@ -184,23 +222,40 @@ namespace TKOM.Interpreter
 
         public void Visit(FunctionCall functionCall)
         {
+            //if (FunctionSignatures.Single(f =>
+            //{
+            //    if (f.Name != functionCall.Identifier)
+            //        return false;
+            //    if (f.Parameters.Count != functionCall.Arguments.Count)
+            //        return false;
+
+            //    for (int i = 0; i < f.Parameters.Count; i++)
+            //    {
+            //        if (f.Parameters[i].Type != functionCall.Arguments[i].Type)
+            //            return false;
+            //    }
+            //}))
             throw new NotImplementedException();
         }
+
         public void Visit(ReturnStatement returnStatement)
         {
             throw new NotImplementedException();
         }
+
         public void Visit(ThrowStatement throwStatement)
         {
             throw new NotImplementedException();
         }
+
         public void Visit(Node.Variable variable)
         {
             throw new NotImplementedException();
         }
+
         public void Visit(IntConst intConst)
         {
-            expressionValue = new IntValue(intConst.Value);
+            lastExpressionValue = new IntValue(intConst.Value);
         }
 
         public void Visit(BinaryOperator binaryOperator)
