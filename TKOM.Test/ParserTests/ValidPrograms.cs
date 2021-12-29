@@ -41,7 +41,7 @@ namespace TKOMTest.ParserTests
             string program = "void main() {}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.Void, "main", new List<Parameter>(), new Block(new List<IStatement>()))
+                    new FunctionDefinition(null, "main", new List<Parameter>(), new Block(new List<IStatement>()))
                 });
             IParser parser = buildParser(program);
 

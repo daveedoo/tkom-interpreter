@@ -151,7 +151,7 @@ namespace TKOM.Parser
             if (!TryParseBlock(out Block block))
                 errorHandler.Error("Syntax error, function body expected.");
 
-            funDef = new FunctionDefinition(type.Value, functionName, parameters, block);
+            funDef = new FunctionDefinition(type, functionName, parameters, block);
             return true;
         }
         private bool TryParseFunctionReturnType(out Type? type, bool errorMsg = true)       // ( "void" | type )
@@ -160,7 +160,7 @@ namespace TKOM.Parser
                 return true;
             if (TryParseToken(Token.Void, false))
             {
-                type = Type.Void;
+                type = null;
                 return true;
             }
             if (errorMsg)

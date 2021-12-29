@@ -9,11 +9,11 @@ namespace TKOM.Interpreter
 {
     public class FunctionSignature
     {
-        public Type ReturnType { get; }
+        public Type? ReturnType { get; }    // null == void
         public string Name { get; }
         public IList<Parameter> Parameters { get; }
 
-        public FunctionSignature(Type type, string name, IList<Parameter> parameters)
+        public FunctionSignature(Type? type, string name, IList<Parameter> parameters)
         {
             ReturnType = type;
             Name = name;
@@ -50,11 +50,26 @@ namespace TKOM.Interpreter
         }
     }
 
+    public static class TypeExtensions
+    {
+        //public static IntVariable CreateVariable(this Type type, string name)
+        //{
+        //    return type switch
+        //    {
+        //        Type.IntType => new IntVariable(name, new IntValue(0)),
+        //        _ => throw new ArgumentException("Invalid variable type.", nameof(type)),
+        //    };
+        //}
+    }
+
     public class Interpreter : INodeVisitor
     {
-        public Stack<FunctionCallContext> CallStack { get; }
-        public IList<FunctionSignature> FunctionSignatures { get; }
-        public IErrorHandler ErrorHandler { get; }
+        private Stack<FunctionCallContext> CallStack { get; }
+        private IList<FunctionSignature> FunctionSignatures { get; }
+        private IErrorHandler ErrorHandler { get; }
+        
+        private IValue expressionValue;
+
 
         public Interpreter(IErrorHandler errorHandler)
         {
@@ -62,6 +77,7 @@ namespace TKOM.Interpreter
             CallStack = new Stack<FunctionCallContext>();
             FunctionSignatures = new List<FunctionSignature>();
         }
+
 
         public void Visit(Program program)
         {
@@ -83,7 +99,7 @@ namespace TKOM.Interpreter
                             break;
                         }
                     if (paramsSame && FunctionSignatures[i].Name == FunctionSignatures[j].Name)
-                        ErrorHandler.Error($"Function signature ambiguous with {FunctionSignatures[j]}");
+                        ErrorHandler.Error($"Program already defines function called '{FunctionSignatures[j].Name}' with the same parameter types.");
                 }
             }
 
@@ -103,65 +119,88 @@ namespace TKOM.Interpreter
             }
             main.Accept(this);
         }
-
         public void Visit(FunctionDefinition funDef)
         {
-            return;
-        }
+            CallStack.Push(new FunctionCallContext());
 
+            funDef.Body.Accept(this);
+
+            CallStack.Pop();
+        }
         public void Visit(Block block)
         {
-            throw new NotImplementedException();
+            CallStack.Peek().CreateNewScope();
+
+            foreach (IStatement statement in block.Statements)
+                statement.Accept(this);
+
+            CallStack.Peek().DeleteScope();
         }
 
         public void Visit(IfStatement ifStatement)
         {
             throw new NotImplementedException();
         }
-
         public void Visit(TryCatchFinally tryCatchFinally)
         {
             throw new NotImplementedException();
         }
-
         public void Visit(WhileStatement whileStatement)
         {
             throw new NotImplementedException();
         }
-
         public void Visit(Assignment assignment)
         {
+            if (!CallStack.Peek().TryFindVariable(assignment.VariableName, out IVariable variable))
+            {
+                ErrorHandler.Error($"The variable {assignment.VariableName} does not exist in the current context.");
+                return;
+            }
+
+            assignment.Expression.Accept(this);
+
+            //variable.TryAssign
+            if (!expressionValue.TryAssignTo(variable))
+            {
+                ErrorHandler.Error($"Cannot assign value of type {expressionValue.Type} to '{variable.Name}' ({variable.Type})");
+                return;
+            }
+
+
             throw new NotImplementedException();
         }
-
         public void Visit(Declaration declaration)
         {
-            throw new NotImplementedException();
+            if (CallStack.Peek().TryFindVariable(declaration.Name, out _))
+            {
+                ErrorHandler.Error($"Redeclaration of variable '{declaration.Name}'");
+                return;
+            }
+
+            IVariable variable = VariablesBuilder.BuildVariable(declaration.Type, declaration.Name);
+
+            CallStack.Peek().AddVariable(variable);
         }
 
         public void Visit(FunctionCall functionCall)
         {
             throw new NotImplementedException();
         }
-
         public void Visit(ReturnStatement returnStatement)
         {
             throw new NotImplementedException();
         }
-
         public void Visit(ThrowStatement throwStatement)
         {
             throw new NotImplementedException();
         }
-
         public void Visit(Node.Variable variable)
         {
             throw new NotImplementedException();
         }
-
         public void Visit(IntConst intConst)
         {
-            throw new NotImplementedException();
+            expressionValue = new IntValue(intConst.Value);
         }
 
         public void Visit(BinaryOperator binaryOperator)

@@ -21,11 +21,11 @@ namespace TKOMTest.InterpreterTests
         [Fact]
         public void WhenProgramHasAmbigousFunctionDefinitions_ThrowsAnError()
         {
-            FunctionDefinition funDefVoid = new FunctionDefinition(Type.Void, "foo", new List<TKOM.Node.Parameter> { },
+            FunctionDefinition funDefVoid = new FunctionDefinition(null, "foo", new List<TKOM.Node.Parameter> { },
                 new Block(new List<IStatement>()));
             FunctionDefinition funDefInt = new FunctionDefinition(Type.IntType, "foo", new List<TKOM.Node.Parameter> { },
                 new Block(new List<IStatement>()));
-            FunctionDefinition main = new FunctionDefinition(Type.Void, "main", new List<TKOM.Node.Parameter> { },
+            FunctionDefinition main = new FunctionDefinition(null, "main", new List<TKOM.Node.Parameter> { },
                 new Block(new List<IStatement>()));
             Program program = new Program(new List<FunctionDefinition>
             {
@@ -35,6 +35,22 @@ namespace TKOMTest.InterpreterTests
             sut.Visit(program);
 
             errorHandler.errorCount.ShouldBe(1);
+        }
+        [Fact]
+        public void WhenProgramHasMultipleEntryPoints_ThrowsAnError()
+        {
+            FunctionDefinition main1 = new FunctionDefinition(null, "main", new List<TKOM.Node.Parameter> { },
+                new Block(new List<IStatement>()));
+            FunctionDefinition main2 = new FunctionDefinition(Type.IntType, "main", new List<TKOM.Node.Parameter> { },
+                new Block(new List<IStatement>()));
+            Program program = new Program(new List<FunctionDefinition>
+            {
+                main1, main2
+            });
+
+            sut.Visit(program);
+
+            errorHandler.errorCount.ShouldBe(2);
         }
     }
 }
