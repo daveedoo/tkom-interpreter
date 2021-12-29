@@ -4,7 +4,7 @@ namespace TKOM.Interpreter
 {
     public class IntVariable : IVariable
     {
-        public Type Type { get; } = Type.IntType;
+        public Type Type { get; } = Type.Int;
         public string Name { get; }
         public IValue Value { get; private set; }
 

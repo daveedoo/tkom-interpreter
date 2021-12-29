@@ -119,7 +119,7 @@ namespace TKOM.Parser
         private bool TryParseTypeToken(out Type? type, bool errorMsg = true)                // type                : "int"
         {
             bool intParsed = TryParseToken(Token.Int, errorMsg);
-            type = intParsed ? Type.IntType : null;
+            type = intParsed ? Type.Int : null;
             return intParsed;
         }
 

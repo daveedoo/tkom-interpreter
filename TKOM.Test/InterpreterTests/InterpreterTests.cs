@@ -23,7 +23,7 @@ namespace TKOMTest.InterpreterTests
         {
             FunctionDefinition funDefVoid = new FunctionDefinition(null, "foo", new List<TKOM.Node.Parameter> { },
                 new Block(new List<IStatement>()));
-            FunctionDefinition funDefInt = new FunctionDefinition(Type.IntType, "foo", new List<TKOM.Node.Parameter> { },
+            FunctionDefinition funDefInt = new FunctionDefinition(Type.Int, "foo", new List<TKOM.Node.Parameter> { },
                 new Block(new List<IStatement>()));
             FunctionDefinition main = new FunctionDefinition(null, "main", new List<TKOM.Node.Parameter> { },
                 new Block(new List<IStatement>()));
@@ -41,7 +41,7 @@ namespace TKOMTest.InterpreterTests
         {
             FunctionDefinition main1 = new FunctionDefinition(null, "main", new List<TKOM.Node.Parameter> { },
                 new Block(new List<IStatement>()));
-            FunctionDefinition main2 = new FunctionDefinition(Type.IntType, "main", new List<TKOM.Node.Parameter> { },
+            FunctionDefinition main2 = new FunctionDefinition(Type.Int, "main", new List<TKOM.Node.Parameter> { },
                 new Block(new List<IStatement>()));
             Program program = new Program(new List<FunctionDefinition>
             {

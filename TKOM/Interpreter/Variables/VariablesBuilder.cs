@@ -9,7 +9,7 @@ namespace TKOM.Interpreter
         {
             return type switch
             {
-                Type.IntType => new IntVariable(name),
+                Type.Int => new IntVariable(name),
                 _ => throw new ArgumentException("Invalid variable type.", nameof(type)),
             };
         }

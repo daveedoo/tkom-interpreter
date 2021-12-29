@@ -14,7 +14,7 @@ namespace TKOMTest.ParserTests
             string program = "int main() {}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>()))
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>()))
                 });
             IParser parser = buildParser(program);
 
@@ -58,8 +58,8 @@ namespace TKOMTest.ParserTests
                              "int main() {}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "foo", new List<Parameter>(), new Block(new List<IStatement>())),
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>()))
+                    new FunctionDefinition(Type.Int, "foo", new List<Parameter>(), new Block(new List<IStatement>())),
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>()))
                 });
             IParser parser = buildParser(program);
 
@@ -75,9 +75,9 @@ namespace TKOMTest.ParserTests
             string program = "int main(int a) {}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>
                     {
-                        new Parameter(Type.IntType, "a")
+                        new Parameter(Type.Int, "a")
                     }, new Block(new List<IStatement>()))
                 });
             IParser parser = buildParser(program);
@@ -94,10 +94,10 @@ namespace TKOMTest.ParserTests
             string program = "int main(int a, int b) {}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>
                     {
-                        new Parameter(Type.IntType, "a"),
-                        new Parameter(Type.IntType, "b")
+                        new Parameter(Type.Int, "a"),
+                        new Parameter(Type.Int, "b")
                     }, new Block(new List<IStatement>()))
                 });
             IParser parser = buildParser(program);
@@ -117,9 +117,9 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
-                        new Declaration(Type.IntType, "a")
+                        new Declaration(Type.Int, "a")
                     }))
                 });
             IParser parser = buildParser(program);
@@ -140,10 +140,10 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
-                        new Declaration(Type.IntType, "a"),
-                        new Declaration(Type.IntType, "b")
+                        new Declaration(Type.Int, "a"),
+                        new Declaration(Type.Int, "b")
                     }))
                 });
             IParser parser = buildParser(program);
@@ -163,7 +163,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a", new IntConst(7))
                     }))
@@ -185,7 +185,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new ReturnStatement(new IntConst(10))
                     }))
@@ -207,7 +207,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new ReturnStatement()
                     }))
@@ -229,7 +229,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new FunctionCall("foo", new List<IExpression>())
                     }))
@@ -251,7 +251,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new FunctionCall("foo", new List<IExpression>{ new Variable("a") })
                     }))
@@ -273,7 +273,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new FunctionCall("foo", new List<IExpression>{ new Variable("a"), new Variable("b") })
                     }))
@@ -295,7 +295,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new ThrowStatement(new IntConst(10))
                     }))
@@ -318,7 +318,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new IfStatement(new IntConst(1), new Assignment("a", new IntConst(0)))
                     }))
@@ -343,7 +343,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new IfStatement(new IntConst(1), new Block(new List<IStatement>{
                             new Assignment("a", new IntConst(0))
@@ -370,7 +370,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new IfStatement(new IntConst(1),
                             new Assignment("a", new IntConst(1)),
@@ -396,7 +396,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new WhileStatement(new IntConst(1), new ReturnStatement())
                     }))
@@ -421,13 +421,13 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new TryCatchFinally(new Block(new List<IStatement>{
                             new Assignment("a", new IntConst(10)) }), 
                         new List<Catch>
                             {
-                                new Catch("e", new Declaration(Type.IntType, "x"))
+                                new Catch("e", new Declaration(Type.Int, "x"))
                             })
                     }))
                 });
@@ -457,18 +457,18 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new TryCatchFinally(new Block(new List<IStatement>{
                             new Assignment("a", new IntConst(10)) }),
                         new List<Catch>
                         {
-                            new Catch("e", new Declaration(Type.IntType, "x"), new IntConst(1)),
+                            new Catch("e", new Declaration(Type.Int, "x"), new IntConst(1)),
                             new Catch("f", new Block(new List<IStatement>()))
                         },
                         new Block(new List<IStatement>
                         {
-                            new Declaration(Type.IntType, "k"),
+                            new Declaration(Type.Int, "k"),
                             new FunctionCall("foo", new List<IExpression>{ new Variable("k") })
                         }))
                     }))
@@ -492,7 +492,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a", new LogicalOr(new IntConst(1), new IntConst(2)))
                     }))
@@ -514,7 +514,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a", new LogicalOr(new Variable("b"), new Variable("c")))
                     }))
@@ -536,7 +536,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                             new LogicalOr(
@@ -562,7 +562,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                             new LogicalOr(
@@ -588,7 +588,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a", new LogicalAnd(new IntConst(1), new IntConst(2)))
                     }))
@@ -610,7 +610,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                             new LogicalAnd(
@@ -635,7 +635,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a", new EqualityOperator(new IntConst(1), EqualityOperatorType.Equality, new IntConst(2)))
                     }))
@@ -657,7 +657,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                             new EqualityOperator(new IntConst(2), EqualityOperatorType.Inequality, new IntConst(3)))
@@ -680,7 +680,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                             new RelationOperator(
@@ -704,7 +704,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                             new RelationOperator(
@@ -728,7 +728,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                             new RelationOperator(
@@ -752,7 +752,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                             new RelationOperator(
@@ -776,7 +776,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                             new AdditiveOperator(
@@ -800,7 +800,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                             new AdditiveOperator(
@@ -824,7 +824,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                             new MultiplicativeOperator(
@@ -848,7 +848,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                             new MultiplicativeOperator(
@@ -872,7 +872,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                             new UnaryOperator(
@@ -896,7 +896,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                             new UnaryOperator(
@@ -920,7 +920,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                                 new Variable("b"))
@@ -943,7 +943,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                                 new FunctionCall("foo", new List<IExpression>()))
