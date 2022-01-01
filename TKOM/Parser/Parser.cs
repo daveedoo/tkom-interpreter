@@ -160,7 +160,7 @@ namespace TKOM.Parser
                 return true;
             if (TryParseToken(Token.Void, false))
             {
-                type = null;
+                type = Type.Void;
                 return true;
             }
             if (errorMsg)

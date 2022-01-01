@@ -5,12 +5,12 @@ namespace TKOM.Node
 {
     public class FunctionDefinition : INode
     {
-        public Type? ReturnType { get; }        // null == void
+        public Type ReturnType { get; }
         public string Name { get; }
         public IList<Parameter> Parameters { get; }
         public Block Body { get; }
 
-        public FunctionDefinition(Type? returnType, string name, IList<Parameter> parameters, Block body)
+        public FunctionDefinition(Type returnType, string name, IList<Parameter> parameters, Block body)
         {
             ReturnType = returnType;
             Name = name;

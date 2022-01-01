@@ -4,6 +4,7 @@ namespace TKOM.Node
 {
     public class FunctionCall : IStatement, IExpression
     {
+        public Type Type { get; }
         public string Identifier { get; set; }
         public IList<IExpression> Arguments { get; }
 

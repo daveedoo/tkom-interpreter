@@ -2,6 +2,6 @@
 {
     public enum Type
     {
-        Int
+        Void, Int
     }
 }

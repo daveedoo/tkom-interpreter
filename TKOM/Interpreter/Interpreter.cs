@@ -222,7 +222,13 @@ namespace TKOM.Interpreter
 
         public void Visit(FunctionCall functionCall)
         {
-            //if (FunctionSignatures.Single(f =>
+            //var funs = from f in FunctionSignatures
+            //           where f.Name == functionCall.Identifier
+            //           && f.Parameters.Count == functionCall.Arguments.Count
+            //var functions = FunctionSignatures.Join()
+
+
+            //FunctionSignatures.Single(f =>
             //{
             //    if (f.Name != functionCall.Identifier)
             //        return false;
@@ -231,11 +237,13 @@ namespace TKOM.Interpreter
 
             //    for (int i = 0; i < f.Parameters.Count; i++)
             //    {
-            //        if (f.Parameters[i].Type != functionCall.Arguments[i].Type)
-            //            return false;
+            //        //if (f.Parameters[i].Type != functionCall.Arguments[i].Type)   // TODO: trzeba dodać atrybuty
+            //            //return false;
+            //        if (functionCall.Arguments[i].)
             //    }
-            //}))
-            throw new NotImplementedException();
+            //    return true;
+            //});
+            //throw new NotImplementedException();
         }
 
         public void Visit(ReturnStatement returnStatement)
