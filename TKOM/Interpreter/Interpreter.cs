@@ -7,80 +7,39 @@ using Type = TKOM.Node.Type;
 
 namespace TKOM.Interpreter
 {
-    public class FunctionSignature
-    {
-        public Type? ReturnType { get; }    // null == void
-        public string Name { get; }
-        public IList<Parameter> Parameters { get; }
-
-        public FunctionSignature(Type? type, string name, IList<Parameter> parameters)
-        {
-            ReturnType = type;
-            Name = name;
-            Parameters = parameters;
-        }
-
-        public override string ToString()
-        {
-            string parametersStr = "";
-            if (Parameters.Count > 0)
-                parametersStr = $"{Parameters[0]}";
-            for (int i = 1; i < Parameters.Count; i++)
-                parametersStr = $"{parametersStr}, {Parameters[i]}";
-
-            return $"{ReturnType} {Name}({parametersStr})";
-        }
-
-
-    }
-    public class Parameter
-    {
-        public Type Type { get; }
-        public string Name { get; }
-
-        public Parameter(Type type, string name)
-        {
-            Type = type;
-            Name = name;
-        }
-
-        public override string ToString()
-        {
-            return $"{Type} {Name}";
-        }
-    }
-
-    public static class TypeExtensions
-    {
-        //public static IntVariable CreateVariable(this Type type, string name)
-        //{
-        //    return type switch
-        //    {
-        //        Type.IntType => new IntVariable(name, new IntValue(0)),
-        //        _ => throw new ArgumentException("Invalid variable type.", nameof(type)),
-        //    };
-        //}
-    }
-
     /// <summary>
     /// When visiting the tree, <see cref="Interpreter"/> assumes its syntactic correctness (e.g. required tree subnodes cannot be <c>null</c>).
     /// </summary>
     public class Interpreter : INodeVisitor
     {
         private Stack<FunctionCallContext> CallStack { get; }
-        private IList<FunctionSignature> FunctionSignatures { get; }
+        private IList<FunctionDefinition> Functions { get; }
         private IErrorHandler ErrorHandler { get; }
 
         private bool error;
         private IValue lastExpressionValue;
-
+        private IValue lastReturnedValue;
 
         public Interpreter(IErrorHandler errorHandler)
         {
             CallStack = new Stack<FunctionCallContext>();
-            FunctionSignatures = new List<FunctionSignature>();
+            Functions = new List<FunctionDefinition>();
             ErrorHandler = errorHandler;
+
             error = false;
+            lastExpressionValue = null;
+        }
+        public bool ConsumeLastReturnedValue(out IValue value)
+        {
+            value = lastReturnedValue;
+            lastReturnedValue = null;
+            return lastReturnedValue is not null;
+        }
+        public bool ConsumeLastExpressionValue(out IValue value)
+        {
+            value = lastExpressionValue;
+            lastExpressionValue = null;
+            return lastExpressionValue is not null;
         }
 
         private void Error(string message)
@@ -91,50 +50,28 @@ namespace TKOM.Interpreter
 
         public void Visit(Program program)
         {
-            if (!SemanticCheck(program, out FunctionDefinition main))
-                return;
-
             foreach (FunctionDefinition funDef in program.functions)
-                FunctionSignatures.Add(new FunctionSignature(funDef.ReturnType, funDef.Name, funDef.Parameters.Select(param => new Parameter(param.Type, param.Name)).ToList()));
+                Functions.Add(funDef);
 
-            main.Accept(this);
-        }
-        private bool SemanticCheck(Program program, out FunctionDefinition main)
-        {
-            main = null;
-            IList<FunctionDefinition> functions = program.functions;
-
-            // functions ambiguations
-            for (int i = 0; i < functions.Count - 1; i++)
+            if (!TryFindMain(out FunctionDefinition main))
             {
-                for (int j = i + 1; j < functions.Count; j++)
-                {
-                    if (functions[j].Parameters.Count != functions[i].Parameters.Count)
-                        continue;
-                    bool paramsSame = true;
-                    for (int p = 0; p < functions[i].Parameters.Count; p++)
-                        if (functions[i].Parameters[p].Type != functions[j].Parameters[p].Type)
-                        {
-                            paramsSame = false;
-                            break;
-                        }
-                    if (paramsSame && functions[i].Name == functions[j].Name)
-                    {
-                        Error($"Program already defines function called '{functions[j].Name}' with the same parameter types.");
-                        return false;
-                    }
-                }
+                Error("Program should contain an entry point (\"main()\" function).");
+                return;
             }
 
-            // correct main
+            var mainCall = new FunctionCall(main.Name, new List<IExpression>());
+            mainCall.Accept(this);
+        }
+        private bool TryFindMain(out FunctionDefinition main)
+        {
+            main = null;
+
             try
             {
-                main = functions.Single(f => f.Name == "main" && f.Parameters.Count == 0);
+                main = Functions.Single(f => f.Name == "main" && f.Parameters.Count == 0);
             }
             catch (InvalidOperationException)
             {
-
-                Error("Program should contain an entry point (\"main()\" function).");
                 return false;
             }
             return true;
@@ -142,23 +79,7 @@ namespace TKOM.Interpreter
 
         public void Visit(FunctionDefinition funDef)
         {
-            if (!SemanticCheck(funDef))
-                return;
-            CallStack.Push(new FunctionCallContext());
-
             funDef.Body.Accept(this);
-
-            CallStack.Pop();
-        }
-        private bool SemanticCheck(FunctionDefinition funDef)
-        {
-            if (funDef.ReturnType is not null &&
-                !funDef.Body.Statements.Any(s => s is ReturnStatement))
-            {
-                Error($"Function {funDef.Name} should return a value.");
-                return false;
-            }
-            return true;
         }
 
         public void Visit(Block block)
@@ -192,7 +113,7 @@ namespace TKOM.Interpreter
 
         public void Visit(Assignment assignment)
         {
-            if (!CallStack.Peek().TryFindVariable(assignment.VariableName, out IVariable variable))
+            if (!CallStack.Peek().TryFindVariable(assignment.VariableName, out IValue value))
             {
                 Error($"The variable {assignment.VariableName} does not exist in the current context.");
                 return;
@@ -202,48 +123,94 @@ namespace TKOM.Interpreter
             if (error)
                 return;
 
-            string expType = lastExpressionValue is null ? "void" : lastExpressionValue.Type.ToString();
-            if (lastExpressionValue is null || !lastExpressionValue.TryAssignTo(variable))
-                Error($"Cannot assign value of type {expType} to variable '{variable.Name}' of type {variable.Type}.");
+            if (!ConsumeLastExpressionValue(out IValue varValue) || varValue.Type != value.Type)
+            {
+                string expType = varValue is null ? "void" : varValue.Type.ToString();
+                Error($"Cannot assign value of type {expType} to variable '{assignment.VariableName}' of type {value.Type}.");
+                return;
+            }
+
+            CallStack.Peek().SetVariable(assignment.VariableName, varValue);
         }
 
         public void Visit(Declaration declaration)
         {
             if (CallStack.Peek().TryFindVariable(declaration.Name, out _))
             {
-                Error($"Redeclaration of variable '{declaration.Name}'");
+                Error($"Redeclaration of variable '{declaration.Name}'.");
                 return;
             }
 
-            IVariable variable = VariablesBuilder.BuildVariable(declaration.Type, declaration.Name);
+            IValue value = ValuesCreator.CreateValue(declaration.Type);
 
-            CallStack.Peek().AddVariable(variable);
+            CallStack.Peek().AddVariable(declaration.Name, value);
         }
 
+        private bool canFunctionBeCalledLike(FunctionDefinition f, string name, IList<IValue> values)
+        {
+            if (f.Name != name ||
+                f.Parameters.Count != values.Count)
+                return false;
+
+            for (int i = 0; i < f.Parameters.Count; i++)
+            {
+                if (f.Parameters[i].Type != values[i].Type)
+                    return false;
+            }
+            return true;
+        }
+        private IList<IValue> evaluateExpressions(IList<IExpression> expressions)
+        {
+            var values = new List<IValue>();
+
+            foreach (IExpression expression in expressions)
+            {
+                expression.Accept(this);
+                ConsumeLastReturnedValue(out IValue value);
+                values.Add(value);
+            }
+            return values;
+        }
+        private string createCallSignature(string identifier, IList<IValue> values)
+        {
+            string args = "";
+            if (values.Count > 0)
+            {
+                args = values[0].Type.ToString();
+                for (int i = 1; i < values.Count; i++)
+                    args = $"{args}, {values[i].Type}";
+            }
+            return args;
+        }
         public void Visit(FunctionCall functionCall)
         {
-            //var funs = from f in FunctionSignatures
-            //           where f.Name == functionCall.Identifier
-            //           && f.Parameters.Count == functionCall.Arguments.Count
-            //var functions = FunctionSignatures.Join()
+            IList<IValue> argsValues = evaluateExpressions(functionCall.Arguments);
 
+            var funs = Functions.ToList().FindAll(f =>
+                canFunctionBeCalledLike(f, functionCall.Identifier, argsValues));
 
-            //FunctionSignatures.Single(f =>
-            //{
-            //    if (f.Name != functionCall.Identifier)
-            //        return false;
-            //    if (f.Parameters.Count != functionCall.Arguments.Count)
-            //        return false;
+            if (!funs.Any())
+            {
+                Error($"No function with signature {createCallSignature(functionCall.Identifier, argsValues)}.");
+                return;
+            }
+            if (funs.Count > 0)
+            {
+                Error($"Function call ambiguous.");
+                return;
+            }
 
-            //    for (int i = 0; i < f.Parameters.Count; i++)
-            //    {
-            //        //if (f.Parameters[i].Type != functionCall.Arguments[i].Type)   // TODO: trzeba dodać atrybuty
-            //            //return false;
-            //        if (functionCall.Arguments[i].)
-            //    }
-            //    return true;
-            //});
-            //throw new NotImplementedException();
+            FunctionDefinition function = funs.Single();
+
+            IDictionary<string, IValue> arguments = new Dictionary<string, IValue>();
+            for (int i = 0; i < argsValues.Count; i++)
+                arguments.Add(function.Parameters[i].Name, argsValues[i]);
+
+            CallStack.Push(new FunctionCallContext(arguments));
+
+            function.Accept(this);
+
+            CallStack.Pop();
         }
 
         public void Visit(ReturnStatement returnStatement)

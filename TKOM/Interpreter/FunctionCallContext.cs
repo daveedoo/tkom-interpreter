@@ -1,73 +1,78 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace TKOM.Interpreter
 {
     internal class Scope
     {
-        public IList<IVariable> Variables { get; }
+        private IDictionary<string, IValue> Variables { get; }
 
         public Scope()
         {
-            Variables = new List<IVariable>();
+            Variables = new Dictionary<string, IValue>();
+        }
+        public Scope(IDictionary<string, IValue> initialVariables)
+        {
+            Variables = initialVariables;
         }
 
-        public void AddVariable(IVariable variable)
+        public void AddVariable(string name, IValue value)
         {
-            Variables.Add(variable);
+            Variables.Add(name, value);
         }
 
-        public bool TryFindVariable(string name, out IVariable variable)
+        public bool TryFindVariable(string name, out IValue value)
         {
-            for (int i = 0; i < Variables.Count; i++)
-                if (Variables[i].Name == name)
-                {
-                    variable = Variables[i];
-                    return true;
-                }
+            return Variables.TryGetValue(name, out value);
+        }
 
-            variable = null;
-            return false;
+        public void SetVariable(string name, IValue value)
+        {
+            Variables[name] = value;
         }
     }
 
     internal class FunctionCallContext
     {
-        private Stack<Scope> Scopes { get; }
+        private IList<Scope> Scopes { get; }
 
-        public FunctionCallContext()
+        public FunctionCallContext(IDictionary<string, IValue> initialVariables)
         {
-            Scopes = new Stack<Scope>();
+            Scopes = new List<Scope>
+            {
+                new Scope(initialVariables)
+            };
         }
 
         public void CreateNewScope()
         {
-            Scopes.Push(new Scope());
+            Scopes.Add(new Scope());
         }
         public void DeleteScope()
         {
-            Scopes.Pop();
+            Scopes.RemoveAt(Scopes.Count - 1);
         }
 
-        public void AddVariable(IVariable variable)
+        public void AddVariable(string name, IValue value)
         {
-            Scopes.Peek().AddVariable(variable);
+            Scopes.Last().AddVariable(name, value);
         }
 
-        public bool TryFindVariable(string name, out IVariable variable)
+        public bool TryFindVariable(string name, out IValue variable)
         {
             variable = null;
-            Stack<Scope> stack = new Stack<Scope>();
-
-            while (variable is null && Scopes.TryPop(out Scope scope))
+            foreach (Scope scope in Scopes)
             {
-                scope.TryFindVariable(name, out variable);
-                stack.Push(scope);
+                if (scope.TryFindVariable(name, out variable))
+                    return true;
             }
+            return false;
+        }
 
-            while (stack.TryPop(out Scope scope))
-                Scopes.Push(scope);
-
-            return variable is not null;
+        public void SetVariable(string name, IValue value)
+        {
+            Scope scope = Scopes.Single(s => s.TryFindVariable(name, out _));
+            scope.SetVariable(name, value);
         }
     }
 }

@@ -141,7 +141,7 @@ namespace TKOM.Parser
                 while (TryParseToken(Token.Comma, false))
                 {
                     TryParseTypeToken(out Type? type2);
-                    TryParseToken(Token.Identifier, out string paramName);
+                    TryParseToken(Token.Identifier, out string paramName);  // TODO: tryparse parameter
                     Parameter p = type2.HasValue ? new Parameter(type2.Value, paramName) : null;
                     parameters.Add(p);
                 }
@@ -151,7 +151,7 @@ namespace TKOM.Parser
             if (!TryParseBlock(out Block block))
                 errorHandler.Error("Syntax error, function body expected.");
 
-            funDef = new FunctionDefinition(type, functionName, parameters, block);
+            funDef = new FunctionDefinition(type.Value, functionName, parameters, block);
             return true;
         }
         private bool TryParseFunctionReturnType(out Type? type, bool errorMsg = true)       // ( "void" | type )
@@ -193,9 +193,9 @@ namespace TKOM.Parser
         {
             if (TryParseDeclarationsWithOptionalAssignments(out Declaration declaration))   // simple_statement    : declaration
                 statement = declaration;
-            else if (TryParseReturnStatement(out ReturnStatement returnStatement))                   //                     | return
+            else if (TryParseReturnStatement(out ReturnStatement returnStatement))          //                     | return
                 statement = returnStatement;
-            else if (TryParseThrowStatement(out ThrowStatement throwStatement))                      //                     | throw
+            else if (TryParseThrowStatement(out ThrowStatement throwStatement))             //                     | throw
                 statement = throwStatement;
             else if (!TryParse_Assignment_FunctionCall(out statement))                      //                     | assignment | function_call
                 return false;
@@ -207,9 +207,9 @@ namespace TKOM.Parser
         private bool TryParseBlockStatement(out IStatement statement)                       // statement           : block_statement
         {
             statement = null;
-            if (TryParseIfStatement(out IfStatement ifStatement))                                    // block_statement     : if
+            if (TryParseIfStatement(out IfStatement ifStatement))                           // block_statement     : if
                 statement = ifStatement;
-            else if (TryParseWhileStatement(out WhileStatement whileStatement))                      // block_statement     : while
+            else if (TryParseWhileStatement(out WhileStatement whileStatement))             // block_statement     : while
                 statement = whileStatement;
             else if (TryParseTryCatchFinallyStatement(out TryCatchFinally tcfStatement))    // block_statement     : try_catch_finally
                 statement = tcfStatement;
@@ -230,9 +230,10 @@ namespace TKOM.Parser
             TryParseToken(Token.Identifier, out string identifier);
             
             statement = new Declaration(type.Value, identifier);
+
             return true;
         }
-        private bool TryParseReturnStatement(out ReturnStatement statement)                          // return              : "return" [ expression ]
+        private bool TryParseReturnStatement(out ReturnStatement statement)                 // return              : "return" [ expression ]
         {
             statement = null;
             if (!TryParseToken(Token.Return, false))
