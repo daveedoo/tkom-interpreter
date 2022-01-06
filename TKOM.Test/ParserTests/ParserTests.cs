@@ -6,11 +6,11 @@ namespace TKOMTest.ParserTests
 {
     public abstract class ParserTests
     {
-        protected ErrorCollecter errorHandler;
+        protected ErrorCollector errorHandler;
 
         protected IParser buildParser(string program)
         {
-            errorHandler = new ErrorCollecter();
+            errorHandler = new ErrorCollector();
             TextReader reader = new StringReader(program);
             IScanner scanner = new Scanner(reader, errorHandler);
             return new Parser(scanner, errorHandler);

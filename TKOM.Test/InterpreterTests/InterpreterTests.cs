@@ -9,72 +9,110 @@ namespace TKOMTest.InterpreterTests
 {
     public class InterpreterTests
     {
-        private readonly ErrorCollecter errorHandler;
+        private readonly ErrorCollector errorHandler;
+        private readonly OutputCollector outputCollector;
         private readonly Interpreter sut;
 
         public InterpreterTests()
         {
-            errorHandler = new ErrorCollecter();
-            sut = new Interpreter(errorHandler);
+            errorHandler = new ErrorCollector();
+            outputCollector = new OutputCollector();
+            sut = new Interpreter(errorHandler, outputCollector);
         }
 
         [Fact]
         public void WhenProgramHasAmbigousFunctionDefinitions_ThrowsAnError()
         {
-            FunctionDefinition funDefVoid = new FunctionDefinition(Type.Void, "foo", new List<TKOM.Node.Parameter> { },
+            FunctionDefinition funDefVoid = new(Type.Void, "foo", new List<Parameter> { },
                 new Block(new List<IStatement>()));
-            FunctionDefinition funDefInt = new FunctionDefinition(Type.Int, "foo", new List<TKOM.Node.Parameter> { },
+            FunctionDefinition funDefInt = new(Type.Int, "foo", new List<Parameter> { },
                 new Block(new List<IStatement>
                 {
                     new ReturnStatement(new IntConst(0))
                 }));
-            FunctionDefinition main = new FunctionDefinition(Type.Void, "main", new List<TKOM.Node.Parameter> { },
-                new Block(new List<IStatement>()));
-            Program program = new Program(new List<FunctionDefinition>
+            FunctionDefinition main = new(Type.Void, "main", new List<Parameter> { },
+                new Block(new List<IStatement>
+                {
+                    new FunctionCall("foo", new List<IExpression>())
+                }));
+            Program program = new(new List<FunctionDefinition>
             {
                 funDefVoid, funDefInt, main
             });
 
-            sut.Visit(program);
+            program.Accept(sut);
 
             errorHandler.errorCount.ShouldBe(1);
         }
         [Fact]
-        public void WhenProgramHasMultipleEntryPoints_ThrowsAnError()
+        public void FunctionWithNotVoidReturnType_WithoutReturnStatement()
         {
-            FunctionDefinition main1 = new FunctionDefinition(Type.Void, "main", new List<TKOM.Node.Parameter> { },
-                new Block(new List<IStatement>
-                {
-                    new ReturnStatement()
-                }));
-            FunctionDefinition main2 = new FunctionDefinition(Type.Int, "main", new List<TKOM.Node.Parameter> { },
-                new Block(new List<IStatement>
-                {
-                    new ReturnStatement(new IntConst(0))
-                }));
-            Program program = new Program(new List<FunctionDefinition>
+            Program program = new(new List<FunctionDefinition>
             {
-                main1, main2
-            });
-
-            sut.Visit(program);
-
-            errorHandler.errorCount.ShouldBe(1);
-        }
-        [Fact]
-        public void FunctionWithNotnullReturnType_WithoutReturnStatement()
-        {
-            Program program = new Program(new List<FunctionDefinition>
-            {
-                new FunctionDefinition(Type.Int, "main", new List<TKOM.Node.Parameter>(), new Block(new List<IStatement>
+                new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                 {
 
                 }))
             });
 
-            sut.Visit(program);
+            program.Accept(sut);
 
             errorHandler.errorCount.ShouldBe(1);
+        }
+        [Fact]
+        public void FunctionWithNotVoidReturnType_WithEmptyReturnStatement()
+        {
+            Program program = new(new List<FunctionDefinition>
+            {
+                new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
+                {
+                    new ReturnStatement()
+                }))
+            });
+
+            program.Accept(sut);
+
+            errorHandler.errorCount.ShouldBe(1);
+        }
+        [Fact]
+        public void WhenCallingErroneousFunction_ThrowsOneErrorOnly()
+        {
+            FunctionDefinition foo = new(Type.Int, "foo", new List<Parameter>(),
+                new Block(new List<IStatement>
+                {
+                    new FunctionCall("bar", new List<IExpression>())
+                }));
+            FunctionDefinition main = new(Type.Void, "main", new List<Parameter>(),
+                new Block(new List<IStatement>
+                {
+                    new FunctionCall("foo", new List<IExpression>())
+                }));
+            Program program = new(new List<FunctionDefinition>
+            {
+                foo, main
+            });
+
+            program.Accept(sut);
+
+            errorHandler.errorCount.ShouldBe(1);
+        }
+        [Fact]
+        public void PrintIntValue()
+        {
+            Program program = new Program(new List<FunctionDefinition>
+            {
+                new FunctionDefinition(Type.Void, "main", new List<Parameter>(),
+                    new Block(new List<IStatement>
+                    {
+                        new FunctionCall("print", new List<IExpression> { new IntConst(10) })
+                    }))
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorCount.ShouldBe(0);
+            output.ShouldBe("10");
         }
     }
 }

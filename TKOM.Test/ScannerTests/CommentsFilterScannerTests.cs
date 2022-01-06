@@ -13,7 +13,7 @@ namespace TKOMTest.ScannerTests
         public void SkipsComment(string program)
         {
             StringReader reader = new StringReader(program);
-            IErrorHandler errorHandler = new ErrorCollecter();
+            IErrorHandler errorHandler = new ErrorCollector();
             Scanner baseScanner = new(reader, errorHandler);
             IScanner scanner = new TKOM.Scanner.CommentsFilterScanner(baseScanner);
 
