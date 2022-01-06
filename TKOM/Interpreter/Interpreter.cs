@@ -8,7 +8,6 @@ using Type = TKOM.Node.Type;
 
 namespace TKOM.Interpreter
 {
-
     /// <summary>
     /// When visiting the tree, <see cref="Interpreter"/> assumes its syntactic correctness (e.g. required tree subnodes cannot be <c>null</c>).
     /// </summary>
@@ -17,7 +16,7 @@ namespace TKOM.Interpreter
         private TextWriter StdOut { get; }
         private IErrorHandler ErrorHandler { get; }
         private Stack<FunctionCallContext> CallStack { get; }
-        private IList<Function> Functions { get; }
+        private FunctionsCollection Functions { get; }
 
         private bool error;
         private bool returned;              // set by ReturnStatement only
@@ -29,61 +28,38 @@ namespace TKOM.Interpreter
             return lastExpressionValue is not null;
         }
 
+
         public Interpreter(IErrorHandler errorHandler, TextWriter stdOut)
         {
-            CallStack = new Stack<FunctionCallContext>();
-            ErrorHandler = errorHandler;
             StdOut = stdOut;
-            Functions = new List<Function>
-            {
-                new PrintFunction()
-            };
+            ErrorHandler = errorHandler;
+            CallStack = new Stack<FunctionCallContext>();
+            Functions = new FunctionsCollection();
+            if (!Functions.TryAdd(new PrintFunction()))
+                throw new Exception($"{nameof(Functions)} already contains a function ambiguous with {nameof(PrintFunction)}");
 
             error = false;
             lastExpressionValue = null;
         }
-        //private void ValidateBuiltinFunctions()
-        //{
-        //    var funs = BuiltinFunctions.ToList();
-        //    for (int i = 0; i < BuiltinFunctions.Count; i++)
-        //    {
-        //        var paramTypes = funs[i].Parameters.Select(p => p.Type).ToList();
-        //        for (int j = i + 1; j < BuiltinFunctions.Count; j++)
-        //        {
-        //            if (funs[j].CanBeCalledLike(funs[i].Name, paramTypes))
-        //                throw new Exception($"{nameof(BuiltinFunctions)} contain functions of types {funs[i].GetType()}, {funs[j].GetType()}" +
-        //                    "that can be called in the same way");
-        //        }
-        //    }
-        //}
-
         private void Error(string message)
         {
             ErrorHandler.Error(message);
             error = true;
         }
 
-
-        private bool TryFindMain(out Function main)
-        {
-            main = null;
-
-            try
-            {
-                main = Functions.Single(f => f.Name == "main" && f.Parameters.Count == 0);
-            }
-            catch (InvalidOperationException)
-            {
-                return false;
-            }
-            return true;
-        }
         public void Visit(Program program)
         {
             foreach (FunctionDefinition funDef in program.functions)
-                Functions.Add(new UserFunction(funDef));
-
-            if (!TryFindMain(out Function main))
+            {
+                var function = new UserFunction(funDef);
+                if (!Functions.TryAdd(function))
+                {
+                    Error($"Program already contains a function ambiguous with {function}");
+                    return;
+                }
+            }
+            
+            if (!Functions.TryGet("main", new List<Type>(), out Function main))
             {
                 Error("Program should contain an entry point (\"main()\" function).");
                 return;
@@ -92,12 +68,10 @@ namespace TKOM.Interpreter
             var mainCall = new FunctionCall(main.Name, new List<IExpression>());
             mainCall.Accept(this);
         }
-
         public void Visit(FunctionDefinition funDef)
         {
             funDef.Body.Accept(this);
         }
-
         public void Visit(Block block)
         {
             CallStack.Peek().CreateNewScope();
@@ -114,7 +88,7 @@ namespace TKOM.Interpreter
             CallStack.Peek().DeleteScope();
         }
 
-        #region simple statements
+        #region block statements
         public void Visit(IfStatement ifStatement)
         {
             throw new NotImplementedException();
@@ -127,6 +101,22 @@ namespace TKOM.Interpreter
         {
             throw new NotImplementedException();
         }
+        #endregion
+        
+        #region Functions
+        public void Visit(Function function)
+        {
+            function.Accept(this);
+        }
+        public void Visit(PrintFunction _)
+        {
+            CallStack.Peek().TryFindVariable(PrintFunction.paramName, out IValue value);
+            int? val = (value as IntValue?).Value.Value;
+            StdOut.Write(val.Value);
+        }
+        #endregion
+
+        #region Simple statements
         public void Visit(Assignment assignment)
         {
             if (!CallStack.Peek().TryFindVariable(assignment.VariableName, out IValue value))
@@ -160,8 +150,6 @@ namespace TKOM.Interpreter
 
             CallStack.Peek().AddVariable(declaration.Name, value);
         }
-        #endregion
-
         private IList<IValue> evaluateExpressions(IList<IExpression> expressions)
         {
             var values = new List<IValue>();
@@ -185,39 +173,16 @@ namespace TKOM.Interpreter
             }
             return $"{identifier}({args})";
         }
-
-        #region Builtin functions
-        public void Visit(Function function)
-        {
-            function.Accept(this);
-        }
-        public void Visit(PrintFunction printFunction)
-        {
-            CallStack.Peek().TryFindVariable(PrintFunction.paramName, out IValue value);
-            int? val = (value as IntValue?).Value.Value;
-            StdOut.Write(val.Value);
-        }
-        #endregion
-
         public void Visit(FunctionCall functionCall)
         {
             IList<IValue> argsValues = evaluateExpressions(functionCall.Arguments);
             IList<Type> argsTypes = argsValues.Select(t => t.Type).ToList();
 
-            var funs = Functions.ToList().FindAll(f => f.CanBeCalledLike(functionCall.Identifier, argsTypes));
-
-            if (!funs.Any())
+            if (!Functions.TryGet(functionCall.Identifier, argsTypes, out Function function))
             {
                 Error($"No function with signature {createCallSignature(functionCall.Identifier, argsValues)}.");
                 return;
             }
-            if (funs.Count > 1)
-            {
-                Error($"Function call ambiguous between {funs[0]} and {funs[1]}.");
-                return;
-            }
-
-            Function function = funs.Single();
 
             IDictionary<string, IValue> arguments = new Dictionary<string, IValue>();
             for (int i = 0; i < argsValues.Count; i++)
@@ -237,33 +202,29 @@ namespace TKOM.Interpreter
 
             CallStack.Pop();
         }
-
         public void Visit(ReturnStatement returnStatement)
         {
             returnStatement.Expression?.Accept(this);
             returned = true;
         }
-
         public void Visit(ThrowStatement throwStatement)
         {
             throw new NotImplementedException();
         }
+        #endregion
 
         public void Visit(Variable variable)
         {
             throw new NotImplementedException();
         }
-
         public void Visit(IntConst intConst)
         {
             lastExpressionValue = new IntValue(intConst.Value);
         }
-
         public void Visit(BinaryOperator binaryOperator)
         {
             throw new NotImplementedException();
         }
-
         public void Visit(UnaryOperator binaryOperator)
         {
             throw new NotImplementedException();

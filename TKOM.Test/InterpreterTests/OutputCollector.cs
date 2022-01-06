@@ -8,6 +8,9 @@ namespace TKOMTest.InterpreterTests
         public override Encoding Encoding => Encoding.Default;
         private readonly StringBuilder stringBuilder = new();
 
+        public OutputCollector() : base()
+        { }
+
         public override void Write(char value)
         {
             stringBuilder.Append(value);
