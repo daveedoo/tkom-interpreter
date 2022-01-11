@@ -57,7 +57,7 @@ namespace TKOMTest.InterpreterTests
             output.ShouldBe("123");
         }
         [Fact]
-        public void LogicalOr_1_WhenLeftIsGreaterThanZero()
+        public void LogicalOr_1_WhenLeftOrRightIsDifferentThanZero()
         {
             var program = BuildMainOnlyProgram(new List<IStatement>
             {
@@ -72,6 +72,23 @@ namespace TKOMTest.InterpreterTests
 
             errorHandler.errorsCount.ShouldBe(0);
             output.ShouldBe("1");
+        }
+        [Fact]
+        public void LogicalOr_0_WhenLeftAndRightEqualZero()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new Declaration(Type.Int, "a"),
+                new Assignment("a",
+                    new LogicalOr(new IntConst(0), new IntConst(0))),
+                new FunctionCall("print", new List<IExpression>{ new Variable("a") })
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("0");
         }
     }
 }

@@ -231,12 +231,26 @@ namespace TKOM.Interpreter
         public void Visit(LogicalOr logicalOr)
         {
             logicalOr.Left.Accept(this);
+            if (error)
+                return;
             ConsumeLastExpressionValue(out IValue leftValue);
 
             logicalOr.Right.Accept(this);
+            if (error)
+                return;
             ConsumeLastExpressionValue(out IValue rightValue);
 
-            lastExpressionValue = new IntValue(1);
+            if (leftValue is not IntValue || rightValue is not IntValue)
+            {
+                Error($"Both sides of logical OR operator must be of {Type.Int} type.");
+                return;
+            }
+            int leftResult = (leftValue as IntValue).Value;
+            int rightResult = (rightValue as IntValue).Value;
+            if (leftResult == 0 && rightResult == 0)
+                lastExpressionValue = new IntValue(0);
+            else
+                lastExpressionValue = new IntValue(1);
         }
         public void Visit(LogicalAnd logicalAnd)
         {
