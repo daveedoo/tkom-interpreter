@@ -192,18 +192,13 @@ namespace TKOMTest.InterpreterTests
         [Fact]
         public void LogicalOr_LeftIsNotIntType()
         {
-            var foo = new FunctionDefinition(Type.Void, "foo", new List<Parameter>(), new Block(new List<IStatement>()));
-            var main = new FunctionDefinition(Type.Void, "main", new List<Parameter>(), new Block(new List<IStatement>
+            var program = BuildMainOnlyProgram(new List<IStatement>
             {
                 new Declaration(Type.Int, "a"),
                 new Assignment("a",
                     new LogicalOr(
-                        new FunctionCall("foo", new List<IExpression>()),
+                        new StringConst("xyz"),
                         new IntConst(1)))
-            }));
-            var program = new Program(new List<FunctionDefinition>
-            {
-                foo, main
             });
 
             program.Accept(sut);
@@ -213,18 +208,13 @@ namespace TKOMTest.InterpreterTests
         [Fact]
         public void LogicalOr_RightIsNotIntType()
         {
-            var foo = new FunctionDefinition(Type.Void, "foo", new List<Parameter>(), new Block(new List<IStatement>()));
-            var main = new FunctionDefinition(Type.Void, "main", new List<Parameter>(), new Block(new List<IStatement>
+            var program = BuildMainOnlyProgram(new List<IStatement>
             {
                 new Declaration(Type.Int, "a"),
                 new Assignment("a",
                     new LogicalOr(
                         new IntConst(1),
-                        new FunctionCall("foo", new List<IExpression>())))
-            }));
-            var program = new Program(new List<FunctionDefinition>
-            {
-                foo, main
+                        new StringConst("xyz")))
             });
 
             program.Accept(sut);
