@@ -102,6 +102,23 @@ namespace TKOMTest.InterpreterTests
 
             errorHandler.errorsCount.ShouldBe(1);
         }
+        [Fact]
+        public void FunctionCallWithInvalidParameter_OneErrorOnly()
+        {
+            var foo = new FunctionDefinition(Type.Void, "foo", new List<Parameter> { new Parameter(Type.Int, "param") }, new Block(new List<IStatement>()));
+            var main = new FunctionDefinition(Type.Void, "main", new List<Parameter>(), new Block(new List<IStatement>
+            {
+                new FunctionCall("foo", new List<IExpression>{ new Variable("a")})
+            }));
+            var program = new Program(new List<FunctionDefinition>
+            {
+                foo, main
+            });
+
+            program.Accept(sut);
+
+            errorHandler.errorsCount.ShouldBe(1);
+        }
 
         [Fact]
         public void Redeclaration()
@@ -213,6 +230,53 @@ namespace TKOMTest.InterpreterTests
                 new Declaration(Type.Int, "a"),
                 new Assignment("a",
                     new LogicalOr(
+                        new IntConst(1),
+                        new StringConst("xyz")))
+            });
+
+            program.Accept(sut);
+
+            errorHandler.errorsCount.ShouldBe(1);
+        }
+
+        [Fact]
+        public void LogicalAnd_LeftInvalid_OneErrorOnly()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new Declaration(Type.Int, "a"),
+                new Assignment("a",
+                    new LogicalAnd(new Variable("b"), new IntConst(1)))
+            });
+
+            program.Accept(sut);
+
+            errorHandler.errorsCount.ShouldBe(1);
+        }
+        [Fact]
+        public void LogicalAnd_LeftIsNotIntType()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new Declaration(Type.Int, "a"),
+                new Assignment("a",
+                    new LogicalAnd(
+                        new StringConst("xyz"),
+                        new IntConst(1)))
+            });
+
+            program.Accept(sut);
+
+            errorHandler.errorsCount.ShouldBe(1);
+        }
+        [Fact]
+        public void LogicalAnd_RightIsNotIntType()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new Declaration(Type.Int, "a"),
+                new Assignment("a",
+                    new LogicalAnd(
                         new IntConst(1),
                         new StringConst("xyz")))
             });

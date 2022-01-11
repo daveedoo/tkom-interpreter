@@ -156,13 +156,15 @@ namespace TKOM.Interpreter
 
             CallStack.Peek().AddVariable(declaration.Name, value);
         }
-        private IList<IValue> evaluateExpressions(IList<IExpression> expressions)
+        private IList<IValue> EvaluateExpressions(params IExpression[] expressions)
         {
             var values = new List<IValue>();
 
             foreach (IExpression expression in expressions)
             {
                 expression.Accept(this);
+                if (error)
+                    return null;
                 ConsumeLastExpressionValue(out IValue value);
                 values.Add(value);
             }
@@ -181,7 +183,9 @@ namespace TKOM.Interpreter
         }
         public void Visit(FunctionCall functionCall)
         {
-            IList<IValue> argsValues = evaluateExpressions(functionCall.Arguments);
+            IList<IValue> argsValues = EvaluateExpressions(functionCall.Arguments.ToArray()); // TODO: on error
+            if (error)
+                return;
             IList<Type> argsTypes = argsValues.Select(t => t.Type).ToList();
 
             if (!Functions.TryGet(functionCall.Identifier, argsTypes, out Function function))
@@ -238,21 +242,24 @@ namespace TKOM.Interpreter
             lastExpressionValue = new StringValue(stringConst.Value);
         }
 
+        public bool EvaluateBinaryOperator(BinaryOperator binaryOperator, out IValue left, out IValue right)
+        {
+            left = right = null;
+            IList<IValue> values = EvaluateExpressions(binaryOperator.Left, binaryOperator.Right);
+            if (error)
+                return false;
+            left = values[0];
+            right = values[1];
+            return true;
+        }
         public void Visit(LogicalOr logicalOr)
         {
-            logicalOr.Left.Accept(this);
-            if (error)
+            if (!EvaluateBinaryOperator(logicalOr, out IValue leftValue, out IValue rightValue))
                 return;
-            ConsumeLastExpressionValue(out IValue leftValue);
-
-            logicalOr.Right.Accept(this);
-            if (error)
-                return;
-            ConsumeLastExpressionValue(out IValue rightValue);
 
             if (leftValue is not IntValue || rightValue is not IntValue)
             {
-                Error($"Both sides of logical OR operator must be of {Type.Int} type.");
+                Error($"Both sides of logical OR expression must be of {Type.Int} type.");
                 return;
             }
 
@@ -263,7 +270,19 @@ namespace TKOM.Interpreter
         }
         public void Visit(LogicalAnd logicalAnd)
         {
-            throw new NotImplementedException();
+            if (!EvaluateBinaryOperator(logicalAnd, out IValue leftValue, out IValue rightValue))
+                return;
+
+            if (leftValue is not IntValue || rightValue is not IntValue)
+            {
+                Error($"Both sides of logical AND expression must be of {Type.Int} type.");
+                return;
+            }
+
+            if (leftValue.IsEqualTo(0) || rightValue.IsEqualTo(0))
+                lastExpressionValue = new IntValue(0);
+            else
+                lastExpressionValue = new IntValue(1);
         }
         public void Visit(EqualityOperator equalityOperator)
         {
