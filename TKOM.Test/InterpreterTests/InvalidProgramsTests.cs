@@ -12,7 +12,7 @@ namespace TKOMTest.InterpreterTests
         { }
 
         [Fact]
-        public void WhenProgramHasAmbigousFunctionDefinitions_ThrowsAnError()
+        public void AmbigousFunctionDefinitions()
         {
             FunctionDefinition funDefVoid = new(Type.Void, "foo", new List<Parameter> { },
                 new Block(new List<IStatement>()));
@@ -81,7 +81,7 @@ namespace TKOMTest.InterpreterTests
             errorHandler.errorsCount.ShouldBe(1);
         }
         [Fact]
-        public void WhenCallingErroneousFunction_ThrowsOneErrorOnly()
+        public void CallingErroneousFunction_ThrowsOneErrorOnly()
         {
             FunctionDefinition foo = new(Type.Int, "foo", new List<Parameter>(),
                 new Block(new List<IStatement>
@@ -116,7 +116,18 @@ namespace TKOMTest.InterpreterTests
 
             errorHandler.errorsCount.ShouldBe(1);
         }
+        [Fact]
+        public void AssignmentToNonexistingVariable()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new Assignment("a", new IntConst(5))
+            });
 
+            program.Accept(sut);
+
+            errorHandler.errorsCount.ShouldBe(1);
+        }
         [Fact]
         public void AssignmentOfNonexistingVariable()
         {
@@ -130,19 +141,6 @@ namespace TKOMTest.InterpreterTests
 
             errorHandler.errorsCount.ShouldBe(1);
         }
-        [Fact]
-        public void AssignmentToNonexistingVariable()
-        {
-            var program = BuildMainOnlyProgram(new List<IStatement>
-            {
-                new Assignment("a", new IntConst(5))
-            });
-
-            program.Accept(sut);
-
-            errorHandler.errorsCount.ShouldBe(1);
-        }
-
         [Fact]
         public void AssignmentOfVoidFunctionCall()
         {
