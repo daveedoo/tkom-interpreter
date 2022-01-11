@@ -1,24 +1,15 @@
 ﻿using Shouldly;
 using System.Collections.Generic;
-using TKOM.Interpreter;
 using TKOM.Node;
 using Xunit;
 using Type = TKOM.Node.Type;
 
 namespace TKOMTest.InterpreterTests
 {
-    public class InterpreterTests
+    public class InvalidProgramsTests : InterpreterTestsBase
     {
-        private readonly ErrorCollector errorHandler;
-        private readonly OutputCollector outputCollector;
-        private readonly Interpreter sut;
-
-        public InterpreterTests()
-        {
-            errorHandler = new ErrorCollector();
-            outputCollector = new OutputCollector();
-            sut = new Interpreter(errorHandler, outputCollector);
-        }
+        public InvalidProgramsTests() : base()
+        { }
 
         [Fact]
         public void WhenProgramHasAmbigousFunctionDefinitions_ThrowsAnError()
@@ -38,6 +29,21 @@ namespace TKOMTest.InterpreterTests
             Program program = new(new List<FunctionDefinition>
             {
                 funDefVoid, funDefInt, main
+            });
+
+            program.Accept(sut);
+
+            errorHandler.errorCount.ShouldBe(1);
+        }
+        [Fact]
+        public void ProgramWithoutEntryPoint()
+        {
+            var program = new Program(new List<FunctionDefinition>
+            {
+                new FunctionDefinition(Type.Void, "foo", new List<Parameter>(), new Block(new List<IStatement>
+                {
+
+                }))
             });
 
             program.Accept(sut);
@@ -95,24 +101,6 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
 
             errorHandler.errorCount.ShouldBe(1);
-        }
-        [Fact]
-        public void PrintIntValue()
-        {
-            Program program = new Program(new List<FunctionDefinition>
-            {
-                new FunctionDefinition(Type.Void, "main", new List<Parameter>(),
-                    new Block(new List<IStatement>
-                    {
-                        new FunctionCall("print", new List<IExpression> { new IntConst(10) })
-                    }))
-            });
-
-            program.Accept(sut);
-            string output = outputCollector.GetOutput();
-
-            errorHandler.errorCount.ShouldBe(0);
-            output.ShouldBe("10");
         }
     }
 }

@@ -1,28 +1,38 @@
-﻿int fun(int x)
+﻿
+void foo()
 {
-    try {
-        int A = x / 0;
-    } catch Exception ex when (x > 7) {     // abcde
-        int B = 57;
-    } catch Exception ex when (5 == 5) {
-        print "\tup\xs!\\\n" + 10;
-    } finally {
-        return x + 1;
-    }
+	print(2);
 }
 
-void main()
-{
-    int a, b = 17;
-    a = 10;
-    int i, j = -89, k;
-    j = j + b*2/a - 3;
 
-    read(i);
-    if (i < j + !~a && 1 == 1)
-        print(fun(3));
-    else
-        print(":)");
+//int fun(int x)
+//{
+//    try
+//    {
+//        int A = x / 0;
+//    }
+//    catch Exception ex when(x > 7) {     // abcde
+//        int B = 57;
+//    } catch Exception ex when(5 == 5) {
+//        print "\tup\xs!\\\n" + 10;
+//    } finally
+//    {
+//        return x + 1;
+//    }
+//}
 
-    return;
-}
+//void main()
+//{
+//    int a, b = 17;
+//    a = 10;
+//    int i, j = -89, k;
+//    j = j + b * 2 / a - 3;
+
+//    read(i);
+//    if (i < j + !~a && 1 == 1)
+//        print(fun(3));
+//    else
+//        print(":)");
+
+//    return;
+//}

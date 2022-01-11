@@ -38,7 +38,7 @@ namespace TKOM.Parser
                     while (scanner.Current != Token.Int && scanner.Current != Token.Void && scanner.Current != Token.EOF)   // functionDef's firsts (+ EOF)
                         Move();
                     errorHandler.Error(new LexLocation(errStartPos, scanner.Position), "Expected proper function definition.");
-                }
+                }   // TODO: else { }
                 functions.Add(function);
             }
 
