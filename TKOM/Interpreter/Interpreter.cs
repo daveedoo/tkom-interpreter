@@ -162,14 +162,14 @@ namespace TKOM.Interpreter
             }
             return values;
         }
-        private string createCallSignature(string identifier, IList<IValue> values)
+        private string createCallSignature(string identifier, IList<Type> types)
         {
             string args = "";
-            if (values.Count > 0)
+            if (types.Count > 0)
             {
-                args = values[0].Type.ToString();
-                for (int i = 1; i < values.Count; i++)
-                    args = $"{args}, {values[i].Type}";
+                args = types[0].ToString();
+                for (int i = 1; i < types.Count; i++)
+                    args = $"{args}, {types[i]}";
             }
             return $"{identifier}({args})";
         }
@@ -180,7 +180,7 @@ namespace TKOM.Interpreter
 
             if (!Functions.TryGet(functionCall.Identifier, argsTypes, out Function function))
             {
-                Error($"No function with signature {createCallSignature(functionCall.Identifier, argsValues)}.");
+                Error($"No function with signature {createCallSignature(functionCall.Identifier, argsTypes)}.");
                 return;
             }
 
