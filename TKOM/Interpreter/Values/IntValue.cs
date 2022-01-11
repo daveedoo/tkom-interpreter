@@ -16,5 +16,10 @@ namespace TKOM.Interpreter
         {
             return val.Equals(Value);
         }
+
+        public int GetIntValue()
+        {
+            return (Value as int?).Value;
+        }
     }
 }

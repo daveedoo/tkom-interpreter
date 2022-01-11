@@ -286,23 +286,132 @@ namespace TKOM.Interpreter
         }
         public void Visit(EqualityOperator equalityOperator)
         {
-            throw new NotImplementedException();
+            if (!EvaluateBinaryOperator(equalityOperator, out IValue leftValue, out IValue rightValue))
+                return;
+
+            if (leftValue is not IntValue || rightValue is not IntValue)
+            {
+                Error($"Both sides of equality expression must be of {Type.Int} type.");
+                return;
+            }
+
+            int value = equalityOperator.OperatorType switch
+            {
+                EqualityOperatorType.Equality =>
+                    leftValue.IsEqualTo(rightValue.Value) ? 1 : 0,
+                EqualityOperatorType.Inequality =>
+                    leftValue.IsEqualTo(rightValue.Value) ? 0 : 1,
+                _ => throw new ArgumentException("Invalid equality operator type.", nameof(equalityOperator))
+            };
+            lastExpressionValue = new IntValue(value);
         }
         public void Visit(RelationOperator relationOperator)
         {
-            throw new NotImplementedException();
+            if (!EvaluateBinaryOperator(relationOperator, out IValue leftValue, out IValue rightValue))
+                return;
+
+            if (leftValue is not IntValue || rightValue is not IntValue)
+            {
+                Error($"Both sides of relation expression must be of {Type.Int} type.");
+                return;
+            }
+
+            int left = (leftValue as IntValue).GetIntValue();
+            int right = (rightValue as IntValue).GetIntValue();
+            int value = relationOperator.OperatorType switch
+            {
+                RelationOperatorType.LessEqual => left <= right ? 1 : 0,
+                RelationOperatorType.GreaterEqual => left >= right ? 1 : 0,
+                RelationOperatorType.LessThan => left < right ? 1 : 0,
+                RelationOperatorType.GreaterThan => left < right ? 1 : 0,
+                _ => throw new ArgumentException("Invalid relation operator type.", nameof(relationOperator))
+            };
+            lastExpressionValue = new IntValue(value);
         }
         public void Visit(AdditiveOperator additiveOperator)
         {
-            throw new NotImplementedException();
+            if (!EvaluateBinaryOperator(additiveOperator, out IValue leftValue, out IValue rightValue))
+                return;
+
+            if (leftValue is not IntValue || rightValue is not IntValue)
+            {
+                Error($"Both sides of additive expression must be of {Type.Int} type.");
+                return;
+            }
+
+            int left = (leftValue as IntValue).GetIntValue();
+            int right = (rightValue as IntValue).GetIntValue();
+            int value;
+            try
+            {
+                value = additiveOperator.OperatorType switch
+                {
+                    AdditiveOperatorType.Add => checked(left + right),
+                    AdditiveOperatorType.Subtract => checked(left - right),
+                    _ => throw new ArgumentException("Invalid additive operator type.", nameof(additiveOperator))
+                };
+            }
+            catch (OverflowException)
+            {
+                Error($"int overflow.");
+                return;
+            }
+
+            lastExpressionValue = new IntValue(value);
         }
         public void Visit(MultiplicativeOperator multiplicativeOperator)
         {
-            throw new NotImplementedException();
+            if (!EvaluateBinaryOperator(multiplicativeOperator, out IValue leftValue, out IValue rightValue))
+                return;
+
+            if (leftValue is not IntValue || rightValue is not IntValue)
+            {
+                Error($"Both sides of multiplicative expression must be of {Type.Int} type.");
+                return;
+            }
+
+            int left = (leftValue as IntValue).GetIntValue();
+            int right = (rightValue as IntValue).GetIntValue();
+            int value;
+            try
+            {
+                value = multiplicativeOperator.OperatorType switch
+                {
+                    MultiplicativeOperatorType.Multiply => checked(left * right),
+                    MultiplicativeOperatorType.Divide => checked(left / right),
+                    _ => throw new ArgumentException("Invalid multiplicative operator type.", nameof(multiplicativeOperator))
+                };
+            }
+            catch (OverflowException)
+            {
+                Error($"int overflow.");
+                return;
+            }
+
+            lastExpressionValue = new IntValue(value);
         }
-        public void Visit(UnaryOperator binaryOperator)
+        public void Visit(UnaryOperator unaryOperator)
         {
-            throw new NotImplementedException();
+            unaryOperator.Expression.Accept(this);
+            if (error)
+                return;
+
+            ConsumeLastExpressionValue(out IValue value);
+
+            if (value is not IntValue)
+            {
+                Error($"Unary minus expression must be of {Type.Int} type.");
+                return;
+            }
+            int intVal = (value as IntValue).GetIntValue();
+            int val = unaryOperator.OperatorType switch
+            {
+                UnaryOperatorType.Uminus => -intVal,
+                UnaryOperatorType.LogicalNegation => intVal == 0 ? 1 : 0,
+                _ => throw new ArgumentException("Invalid unary operator type.", nameof(unaryOperator))
+            };
+
+            lastExpressionValue = new IntValue(val);
         }
     }
 }

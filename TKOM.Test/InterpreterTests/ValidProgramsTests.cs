@@ -121,6 +121,7 @@ namespace TKOMTest.InterpreterTests
             errorHandler.errorsCount.ShouldBe(0);
             output.ShouldBe("0");
         }
+
         [Fact]
         public void LogicalAnd_1_WhenLeftAndRightIsDifferentThanZero()
         {
@@ -163,6 +164,215 @@ namespace TKOMTest.InterpreterTests
                 new Declaration(Type.Int, "a"),
                 new Assignment("a",
                     new LogicalAnd(new IntConst(1), new IntConst(0))),
+                new FunctionCall("print", new List<IExpression>{ new Variable("a") })
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("0");
+        }
+
+        [Fact]
+        public void EqualityOperator_Equality()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new Declaration(Type.Int, "a"),
+                new Assignment("a",
+                    new EqualityOperator(new IntConst(1), EqualityOperatorType.Equality, new IntConst(1))),
+                new FunctionCall("print", new List<IExpression>{ new Variable("a") })
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("1");
+        }
+        [Fact]
+        public void EqualityOperator_Inequality()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new Declaration(Type.Int, "a"),
+                new Assignment("a",
+                    new EqualityOperator(new IntConst(1), EqualityOperatorType.Inequality, new IntConst(2))),
+                new FunctionCall("print", new List<IExpression>{ new Variable("a") })
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("1");
+        }
+
+        [Fact]
+        public void RelationOperator_LessEqual()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new Declaration(Type.Int, "a"),
+                new Assignment("a",
+                    new RelationOperator(new IntConst(1), RelationOperatorType.LessEqual, new IntConst(1))),
+                new FunctionCall("print", new List<IExpression>{ new Variable("a") })
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("1");
+        }
+        [Fact]
+        public void RelationOperator_GreaterEqual()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new Declaration(Type.Int, "a"),
+                new Assignment("a",
+                    new RelationOperator(new IntConst(1), RelationOperatorType.GreaterEqual, new IntConst(1))),
+                new FunctionCall("print", new List<IExpression>{ new Variable("a") })
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("1");
+        }
+        [Fact]
+        public void RelationOperator_LessThan()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new Declaration(Type.Int, "a"),
+                new Assignment("a",
+                    new RelationOperator(new IntConst(1), RelationOperatorType.LessThan, new IntConst(2))),
+                new FunctionCall("print", new List<IExpression>{ new Variable("a") })
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("1");
+        }
+        [Fact]
+        public void RelationOperator_GreaterThan()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new Declaration(Type.Int, "a"),
+                new Assignment("a",
+                    new RelationOperator(new IntConst(1), RelationOperatorType.GreaterThan, new IntConst(2))),
+                new FunctionCall("print", new List<IExpression>{ new Variable("a") })
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("1");
+        }
+
+        [Fact]
+        public void AdditiveOperator_Add()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new Declaration(Type.Int, "a"),
+                new Assignment("a",
+                    new AdditiveOperator(new IntConst(1), AdditiveOperatorType.Add, new IntConst(1))),
+                new FunctionCall("print", new List<IExpression>{ new Variable("a") })
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("2");
+        }
+        [Fact]
+        public void AdditiveOperator_Subtract()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new Declaration(Type.Int, "a"),
+                new Assignment("a",
+                    new AdditiveOperator(new IntConst(1), AdditiveOperatorType.Subtract, new IntConst(1))),
+                new FunctionCall("print", new List<IExpression>{ new Variable("a") })
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("0");
+        }
+
+        [Fact]
+        public void MultiplicativeOperator_Multiply()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new Declaration(Type.Int, "a"),
+                new Assignment("a",
+                    new MultiplicativeOperator(new IntConst(5), MultiplicativeOperatorType.Multiply, new IntConst(7))),
+                new FunctionCall("print", new List<IExpression>{ new Variable("a") })
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("35");
+        }
+        [Fact]
+        public void MultiplicativeOperator_Divide()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new Declaration(Type.Int, "a"),
+                new Assignment("a",
+                    new MultiplicativeOperator(new IntConst(40), MultiplicativeOperatorType.Divide, new IntConst(8))),
+                new FunctionCall("print", new List<IExpression>{ new Variable("a") })
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("5");
+        }
+
+        [Fact]
+        public void UnaryOperator_Uminus()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new Declaration(Type.Int, "a"),
+                new Assignment("a",
+                    new UnaryOperator(UnaryOperatorType.Uminus, new IntConst(5))),
+                new FunctionCall("print", new List<IExpression>{ new Variable("a") })
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("-5");
+        }
+        [Fact]
+        public void UnaryOperator_LogicalNot()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new Declaration(Type.Int, "a"),
+                new Assignment("a",
+                    new UnaryOperator(UnaryOperatorType.LogicalNegation, new IntConst(1))),
                 new FunctionCall("print", new List<IExpression>{ new Variable("a") })
             });
 

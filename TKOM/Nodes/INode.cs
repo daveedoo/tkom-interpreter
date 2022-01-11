@@ -27,7 +27,7 @@
         public void Visit(RelationOperator relationOperator);
         public void Visit(AdditiveOperator additiveOperator);
         public void Visit(MultiplicativeOperator multiplicativeOperator);
-        public void Visit(UnaryOperator binaryOperator);
+        public void Visit(UnaryOperator unaryOperator);
     }
 
     public interface INode
