@@ -19,6 +19,8 @@
         // expressions
         public void Visit(Variable variable);
         public void Visit(IntConst intConst);
+        public void Visit(StringConst stringConst);
+
         public void Visit(LogicalOr logicalOr);
         public void Visit(LogicalAnd logicalAnd);
         public void Visit(EqualityOperator equalityOperator);

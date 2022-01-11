@@ -23,6 +23,20 @@ namespace TKOMTest.InterpreterTests
             output.ShouldBe("10");
         }
         [Fact]
+        public void PrintStringValue()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new FunctionCall("print", new List<IExpression> { new StringConst("abcd") })
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("abcd");
+        }
+        [Fact]
         public void AssignmentOfConstValue()
         {
             var program = BuildMainOnlyProgram(new List<IStatement>

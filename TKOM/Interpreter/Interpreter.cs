@@ -35,11 +35,17 @@ namespace TKOM.Interpreter
             ErrorHandler = errorHandler;
             CallStack = new Stack<FunctionCallContext>();
             Functions = new FunctionsCollection();
-            if (!Functions.TryAdd(new PrintFunction()))
-                throw new Exception($"{nameof(Functions)} already contains a function ambiguous with {nameof(PrintFunction)}");
 
             error = false;
             lastExpressionValue = null;
+
+            SetupBuiltinFunctions();
+        }
+        private void SetupBuiltinFunctions()
+        {
+            if (!Functions.TryAdd(new PrintFunction(Type.Int)) ||
+                !Functions.TryAdd(new PrintFunction(Type.String)))
+                throw new Exception($"{nameof(Functions)} already contains a function ambiguous with {nameof(PrintFunction)}");
         }
         private void Error(string message)
         {
@@ -111,8 +117,8 @@ namespace TKOM.Interpreter
         public void Visit(PrintFunction _)
         {
             CallStack.Peek().TryFindVariable(PrintFunction.paramName, out IValue value);
-            int val = (value as IntValue).Value;        // TODO: change
-            StdOut.Write(val);
+
+            StdOut.Write(value.Value);
         }
         #endregion
 
@@ -227,6 +233,10 @@ namespace TKOM.Interpreter
         {
             lastExpressionValue = new IntValue(intConst.Value);
         }
+        public void Visit(StringConst stringConst)
+        {
+            lastExpressionValue = new StringValue(stringConst.Value);
+        }
 
         public void Visit(LogicalOr logicalOr)
         {
@@ -245,9 +255,8 @@ namespace TKOM.Interpreter
                 Error($"Both sides of logical OR operator must be of {Type.Int} type.");
                 return;
             }
-            int leftResult = (leftValue as IntValue).Value;
-            int rightResult = (rightValue as IntValue).Value;
-            if (leftResult == 0 && rightResult == 0)
+
+            if (leftValue.IsEqualTo(0) && rightValue.IsEqualTo(0))
                 lastExpressionValue = new IntValue(0);
             else
                 lastExpressionValue = new IntValue(1);

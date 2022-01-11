@@ -2,12 +2,12 @@
 
 namespace TKOM.Interpreter
 {
-    public class IntValue : IValue
+    internal class StringValue : IValue
     {
-        public Type Type { get; } = Type.Int;
+        public Type Type { get; } = Type.String;
         public object Value { get; }
 
-        public IntValue(int value = 0)
+        public StringValue(string value = "")
         {
             Value = value;
         }

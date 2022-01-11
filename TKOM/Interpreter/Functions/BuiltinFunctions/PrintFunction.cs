@@ -6,11 +6,11 @@ namespace TKOM.Interpreter
 {
     public class PrintFunction : Function
     {
-        public const string paramName = "intVal";
+        public const string paramName = "printVal";
 
-        public PrintFunction() : base( Type.Void, "print", new List<Parameter>
+        public PrintFunction(Type valueToPrintType) : base( Type.Void, "print", new List<Parameter>
             {
-                new Parameter(Type.Int, paramName)
+                new Parameter(valueToPrintType, paramName)
             })
         { }
 

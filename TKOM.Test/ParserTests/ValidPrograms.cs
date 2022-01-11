@@ -957,5 +957,27 @@ namespace TKOMTest.ParserTests
             actualTree.ShouldBeEquivalentTo(ast);
             errorHandler.errorsCount.ShouldBe(0);
         }
+        [Fact]
+        public void StringConstRecognition()
+        {
+            string program = "void main()" +
+                "{" +
+                "   print(\"abcd\");" +
+                "}";
+            var ast = new Program(new List<FunctionDefinition>
+            {
+                new FunctionDefinition(Type.Void, "main", new List<Parameter>(), new Block(new List<IStatement>
+                {
+                    new FunctionCall("print", new List<IExpression> { new StringConst("abcd") })
+                }))
+            });
+            var parser = buildParser(program);
+
+            bool parsed = parser.TryParse(out Program actualTree);
+
+            parsed.ShouldBeTrue();
+            actualTree.ShouldBeEquivalentTo(ast);
+            errorHandler.errorsCount.ShouldBe(0);
+        }
     }
 }

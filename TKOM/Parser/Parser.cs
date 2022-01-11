@@ -470,6 +470,7 @@ namespace TKOM.Parser
                 unary = new UnaryOperator(unaryOperator.Value, unary);
             return true;
         }
+        // TODO: why errorMsg here?
         private bool TryParseAtomic(out IExpression expression, bool errorMsg = true)       // atomic              : const | IDENTIFIER | function_call | string
         {
             expression = null;
@@ -482,6 +483,8 @@ namespace TKOM.Parser
                 else
                     expression = new Variable(identifier);
             }
+            else if (TryParseToken(Token.String, out string value, false))
+                expression = new StringConst(value);
             else
                 return false;
             return true;
