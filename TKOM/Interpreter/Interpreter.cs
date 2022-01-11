@@ -227,7 +227,34 @@ namespace TKOM.Interpreter
         {
             lastExpressionValue = new IntValue(intConst.Value);
         }
-        public void Visit(BinaryOperator binaryOperator)
+
+        public void Visit(LogicalOr logicalOr)
+        {
+            logicalOr.Left.Accept(this);
+            ConsumeLastExpressionValue(out IValue leftValue);
+
+            logicalOr.Right.Accept(this);
+            ConsumeLastExpressionValue(out IValue rightValue);
+
+            lastExpressionValue = new IntValue(1);
+        }
+        public void Visit(LogicalAnd logicalAnd)
+        {
+            throw new NotImplementedException();
+        }
+        public void Visit(EqualityOperator equalityOperator)
+        {
+            throw new NotImplementedException();
+        }
+        public void Visit(RelationOperator relationOperator)
+        {
+            throw new NotImplementedException();
+        }
+        public void Visit(AdditiveOperator additiveOperator)
+        {
+            throw new NotImplementedException();
+        }
+        public void Visit(MultiplicativeOperator multiplicativeOperator)
         {
             throw new NotImplementedException();
         }

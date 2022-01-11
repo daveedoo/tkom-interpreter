@@ -56,5 +56,22 @@ namespace TKOMTest.InterpreterTests
             errorHandler.errorsCount.ShouldBe(0);
             output.ShouldBe("123");
         }
+        [Fact]
+        public void LogicalOr_1_WhenLeftIsGreaterThanZero()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new Declaration(Type.Int, "a"),
+                new Assignment("a",
+                    new LogicalOr(new IntConst(1), new IntConst(1))),
+                new FunctionCall("print", new List<IExpression>{ new Variable("a") })
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("1");
+        }
     }
 }

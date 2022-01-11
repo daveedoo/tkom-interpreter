@@ -14,5 +14,11 @@
         {
             OperatorType = operatorType;
         }
+
+        public override void Accept(INodeVisitor visitor)
+        {
+            visitor.Visit(this);
+            throw new System.NotImplementedException();
+        }
     }
 }

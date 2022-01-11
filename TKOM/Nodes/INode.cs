@@ -19,7 +19,12 @@
         // expressions
         public void Visit(Variable variable);
         public void Visit(IntConst intConst);
-        public void Visit(BinaryOperator binaryOperator);
+        public void Visit(LogicalOr logicalOr);
+        public void Visit(LogicalAnd logicalAnd);
+        public void Visit(EqualityOperator equalityOperator);
+        public void Visit(RelationOperator relationOperator);
+        public void Visit(AdditiveOperator additiveOperator);
+        public void Visit(MultiplicativeOperator multiplicativeOperator);
         public void Visit(UnaryOperator binaryOperator);
     }
 

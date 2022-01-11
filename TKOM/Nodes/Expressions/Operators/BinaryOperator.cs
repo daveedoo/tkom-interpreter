@@ -11,9 +11,6 @@
             Right = right;
         }
 
-        public void Accept(INodeVisitor visitor)
-        {
-            visitor.Visit(this);
-        }
+        public abstract void Accept(INodeVisitor visitor);
     }
 }
