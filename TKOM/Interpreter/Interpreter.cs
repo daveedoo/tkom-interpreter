@@ -25,7 +25,7 @@ namespace TKOM.Interpreter
         {
             value = lastExpressionValue;
             lastExpressionValue = null;
-            return lastExpressionValue is not null;
+            return value is not null;
         }
 
 
@@ -111,8 +111,8 @@ namespace TKOM.Interpreter
         public void Visit(PrintFunction _)
         {
             CallStack.Peek().TryFindVariable(PrintFunction.paramName, out IValue value);
-            int? val = (value as IntValue?).Value.Value;
-            StdOut.Write(val.Value);
+            int val = (value as IntValue).Value;        // TODO: change
+            StdOut.Write(val);
         }
         #endregion
 
@@ -215,7 +215,13 @@ namespace TKOM.Interpreter
 
         public void Visit(Variable variable)
         {
-            throw new NotImplementedException();
+            if (!CallStack.Peek().TryFindVariable(variable.Identifier, out IValue value))
+            {
+                Error($"The variable {variable.Identifier} does not exist in the current context.");
+                return;
+            }
+
+            lastExpressionValue = value;
         }
         public void Visit(IntConst intConst)
         {

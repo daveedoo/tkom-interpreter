@@ -33,7 +33,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorCount.ShouldBe(1);
+            errorHandler.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void ProgramWithoutEntryPoint()
@@ -48,7 +48,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorCount.ShouldBe(1);
+            errorHandler.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void FunctionWithNotVoidReturnType_WithoutReturnStatement()
@@ -63,7 +63,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorCount.ShouldBe(1);
+            errorHandler.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void FunctionWithNotVoidReturnType_WithEmptyReturnStatement()
@@ -78,7 +78,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorCount.ShouldBe(1);
+            errorHandler.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void WhenCallingErroneousFunction_ThrowsOneErrorOnly()
@@ -100,7 +100,67 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorCount.ShouldBe(1);
+            errorHandler.errorsCount.ShouldBe(1);
+        }
+
+        [Fact]
+        public void Redeclaration()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new Declaration(Type.Int, "a"),
+                new Declaration(Type.Int, "a")
+            });
+
+            program.Accept(sut);
+
+            errorHandler.errorsCount.ShouldBe(1);
+        }
+
+        [Fact]
+        public void AssignmentOfNonexistingVariable()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new Declaration(Type.Int, "a"),
+                new Assignment("a", new Variable("b"))
+            });
+
+            program.Accept(sut);
+
+            errorHandler.errorsCount.ShouldBe(1);
+        }
+        [Fact]
+        public void AssignmentToNonexistingVariable()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new Assignment("a", new IntConst(5))
+            });
+
+            program.Accept(sut);
+
+            errorHandler.errorsCount.ShouldBe(1);
+        }
+
+        [Fact]
+        public void AssignmentOfVoidFunctionCall()
+        {
+            var emptyFoo = new FunctionDefinition(Type.Void, "foo", new List<Parameter>(), new Block(new List<IStatement>()));
+            var main = new FunctionDefinition(Type.Void, "main", new List<Parameter>(), new Block(new List<IStatement>
+            {
+                new Declaration(Type.Int, "a"),
+                new Assignment("a", new FunctionCall("foo", new List<IExpression>()))
+            }));
+            var program = new Program(new List<FunctionDefinition>
+            {
+                emptyFoo,
+                main
+            });
+
+            program.Accept(sut);
+
+            errorHandler.errorsCount.ShouldBe(1);
         }
     }
 }

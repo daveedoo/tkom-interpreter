@@ -22,7 +22,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void ConsecutiveTryParseCall_ReturnsFalse()
@@ -49,7 +49,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void MultipleFunctions()
@@ -67,7 +67,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void FunctionWithSingleParam()
@@ -86,7 +86,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void FunctionWithMultipleParameters()
@@ -106,7 +106,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void Declaration()
@@ -128,7 +128,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void MultipleInstructionsInBlock()
@@ -152,7 +152,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void Assignment()
@@ -174,7 +174,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void ReturnStatement()
@@ -196,7 +196,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void ReturnVoid()
@@ -218,7 +218,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void BasicFunctionCall()
@@ -240,7 +240,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void FunctionCallWithParameter()
@@ -262,7 +262,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void FunctionCallWithMultipleParameters()
@@ -284,7 +284,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void ThrowStatement()
@@ -306,7 +306,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void IfStatementBasic()
@@ -329,7 +329,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void IfStatementWithBlockStatement()
@@ -356,7 +356,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void IfStatementWithElse()
@@ -384,7 +384,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void WhileStatement()
@@ -407,7 +407,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void TryCatchStatement()
@@ -437,7 +437,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void TryCatchFinallyMoreComplex()
@@ -479,7 +479,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
 
         // OPERATORS
@@ -503,7 +503,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void LogicalOrWithIdentifiers()
@@ -525,7 +525,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void MultipleLogicalOr()
@@ -551,7 +551,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void MultipleLogicalOrWithIdentifiers()
@@ -577,7 +577,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void LogicalAnd()
@@ -599,7 +599,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void MultipleLogicalAnd()
@@ -624,7 +624,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void EqualityOperator()
@@ -646,7 +646,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void InequalityOperator()
@@ -669,7 +669,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void RelationLessEqual()
@@ -693,7 +693,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void RelationGreaterEqual()
@@ -717,7 +717,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void RelationLessThan()
@@ -741,7 +741,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void RelationGreaterThan()
@@ -765,7 +765,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void Add()
@@ -789,7 +789,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void Subtract()
@@ -813,7 +813,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void Multiply()
@@ -837,7 +837,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void Divide()
@@ -861,7 +861,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void Unary_Minus()
@@ -885,7 +885,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void Unary_Negation()
@@ -909,7 +909,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void Brackets()
@@ -932,7 +932,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void Atomic_FunctionCall()
@@ -955,7 +955,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
         }
     }
 }

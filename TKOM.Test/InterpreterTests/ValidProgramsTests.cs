@@ -11,20 +11,50 @@ namespace TKOMTest.InterpreterTests
         [Fact]
         public void PrintIntValue()
         {
-            Program program = new Program(new List<FunctionDefinition>
+            var program = BuildMainOnlyProgram(new List<IStatement>
             {
-                new FunctionDefinition(Type.Void, "main", new List<Parameter>(),
-                    new Block(new List<IStatement>
-                    {
-                        new FunctionCall("print", new List<IExpression> { new IntConst(10) })
-                    }))
+                new FunctionCall("print", new List<IExpression> { new IntConst(10) })
             });
 
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorCount.ShouldBe(0);
+            errorHandler.errorsCount.ShouldBe(0);
             output.ShouldBe("10");
+        }
+        [Fact]
+        public void AssignmentOfConstValue()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new Declaration(Type.Int, "a"),
+                new Assignment("a", new IntConst(7)),
+                new FunctionCall("print", new List<IExpression>{ new Variable("a") })
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("7");
+        }
+        [Fact]
+        public void AssignmentOfVariable()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new Declaration(Type.Int, "a"),
+                new Declaration(Type.Int, "b"),
+                new Assignment("b", new IntConst(123)),
+                new Assignment("a", new Variable("b")),
+                new FunctionCall("print", new List<IExpression>{ new Variable("a") })
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("123");
         }
     }
 }

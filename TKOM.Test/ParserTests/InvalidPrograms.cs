@@ -69,8 +69,8 @@ namespace TKOMTest.ParserTests
 
             parser.TryParse(out Program _);
 
-            System.Console.WriteLine(errorHandler.errorCount);
-            errorHandler.errorCount.ShouldBeGreaterThan(0);
+            System.Console.WriteLine(errorHandler.errorsCount);
+            errorHandler.errorsCount.ShouldBeGreaterThan(0);
         }
     }
 }

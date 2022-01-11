@@ -18,7 +18,7 @@ namespace TKOMTest.InterpreterTests
             sut = new Interpreter(errorHandler, outputCollector);
         }
 
-        public static Program BuildMain(List<IStatement> statements)
+        public static Program BuildMainOnlyProgram(List<IStatement> statements)
         {
             return new Program(new List<FunctionDefinition>
             {
