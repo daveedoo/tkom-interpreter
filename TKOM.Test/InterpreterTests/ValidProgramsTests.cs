@@ -382,5 +382,222 @@ namespace TKOMTest.InterpreterTests
             errorHandler.errorsCount.ShouldBe(0);
             output.ShouldBe("0");
         }
+
+        [Fact]
+        public void IfStatement_ConditionTrue()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new IfStatement(new EqualityOperator(new IntConst(1), EqualityOperatorType.Equality, new IntConst(1)),
+                    new FunctionCall("print", new List<IExpression> { new StringConst("success") }))
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("success");
+        }
+        [Fact]
+        public void IfStatement_ConditionFalse()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new IfStatement(new EqualityOperator(new IntConst(1), EqualityOperatorType.Inequality, new IntConst(1)),
+                    new FunctionCall("print", new List<IExpression> { new StringConst("success") }),
+                    new FunctionCall("print", new List<IExpression> { new StringConst("failure") }))
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("failure");
+        }
+        [Fact]
+        public void IfStatement_Return()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new IfStatement(new IntConst(1), new Block(new List<IStatement> {                       // if(1) {
+                        new ReturnStatement(),                                                          //      return;
+                        new FunctionCall("print", new List<IExpression> { new StringConst("a") })       //      print("a");
+                }))                                                                                     // }
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe(string.Empty);
+        }
+
+        [Fact]
+        public void WhileStatement_ConditionFalse_DoesNothing()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new WhileStatement(new IntConst(0),
+                    new FunctionCall("print", new List<IExpression> { new StringConst("true") }))
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe(string.Empty);
+        }
+        [Fact]
+        public void WhileStatement_ConditionTrue()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new Declaration(Type.Int, "a"),                                                                                     // int a;
+                new Assignment("a", new IntConst(2)),                                                                               // a = 2;
+                new WhileStatement(new Variable("a"), new Block(new List<IStatement>                                                // while (a)
+                {                                                                                                                   // {
+                    new FunctionCall("print", new List<IExpression> { new Variable("a") }),                                         //  print(a);
+                    new Assignment("a", new AdditiveOperator(new Variable("a"), AdditiveOperatorType.Subtract, new IntConst(1)))    //  a = a - 1;
+                }))                                                                                                                 // }
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("21");
+        }
+        [Fact]
+        public void WhileStatement_Return()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new WhileStatement(new IntConst(1), new Block(new List<IStatement>                                                  // while (1)
+                {                                                                                                                   // {
+                    new ReturnStatement(),                                                                                          //  return;
+                    new FunctionCall("print", new List<IExpression> { new StringConst("a") })                                       //  print("a");
+                }))                                                                                                                 // }
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe(string.Empty);
+        }
+
+        [Fact]
+        public void FunctionCall_ReturnStatement_ReturnFromOneFunctionOnly()
+        {
+            var foo = new FunctionDefinition(Type.Void, "foo", new List<Parameter>(), new Block(new List<IStatement>
+            {
+                new ReturnStatement()
+            }));
+            var main = new FunctionDefinition(Type.Void, "main", new List<Parameter>(), new Block(new List<IStatement>
+            {
+                new FunctionCall("foo", new List<IExpression>()),
+                new FunctionCall("print", new List<IExpression> { new StringConst("a") })
+            }));
+            Program program = new Program(new List<FunctionDefinition>
+            {
+                foo, main
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("a");
+        }
+
+        [Fact]
+        public void ThrowStatement_InsideIfStatement()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new IfStatement(new IntConst(1), new Block(new List<IStatement>                                                     // if (1)
+                {                                                                                                                   // {
+                    new ThrowStatement(new IntConst(1)),                                                                            //  throw 1;
+                    new FunctionCall("print", new List<IExpression> { new StringConst("a") })                                       //  print("a");
+                }))                                                                                                                 // }
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe(string.Empty);
+        }
+        [Fact]
+        public void ThrowStatement_InsideWhileStatement()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new WhileStatement(new IntConst(1), new Block(new List<IStatement>                                                  // while (1)
+                {                                                                                                                   // {
+                    new ThrowStatement(new IntConst(1)),                                                                            //  throw 1;
+                    new FunctionCall("print", new List<IExpression> { new StringConst("a") })                                       //  print("a");
+                }))                                                                                                                 // }
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe(string.Empty);
+        }
+        [Fact]
+        public void ThrowStatement_FromNotVoidFunctionCall()
+        {
+            var foo = new FunctionDefinition(Type.Int, "foo", new List<Parameter>(), new Block(new List<IStatement>
+            {
+                new ThrowStatement(new IntConst(1)),
+                new ReturnStatement(new IntConst(2))
+            }));
+            var main = new FunctionDefinition(Type.Void, "main", new List<Parameter>(), new Block(new List<IStatement>
+            {
+                new FunctionCall("foo", new List<IExpression>()),
+                new FunctionCall("print", new List<IExpression> { new StringConst("a") })
+            }));
+            var program = new Program(new List<FunctionDefinition>
+            {
+                foo, main
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe(string.Empty);
+        }
+        [Fact]
+        public void ThrowStatement_FromFunctionCallArgument()
+        {
+            var foo = new FunctionDefinition(Type.Int, "foo", new List<Parameter>(), new Block(new List<IStatement>
+            {
+                new ThrowStatement(new IntConst(1)),
+                new ReturnStatement(new IntConst(2))
+            }));
+            var main = new FunctionDefinition(Type.Void, "main", new List<Parameter>(), new Block(new List<IStatement>
+            {
+                new FunctionCall("print", new List<IExpression> { new FunctionCall("foo", new List<IExpression>()) })
+            }));
+            var program = new Program(new List<FunctionDefinition>
+            {
+                foo, main
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe(string.Empty);
+        }
+
+        [Fact]
+        public void TCFStatement()
+        {
+
+        }
     }
 }

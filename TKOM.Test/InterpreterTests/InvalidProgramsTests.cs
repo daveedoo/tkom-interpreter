@@ -580,5 +580,121 @@ namespace TKOMTest.InterpreterTests
 
             errorHandler.errorsCount.ShouldBe(1);
         }
+
+        [Fact]
+        public void IfStatement_ConditionInvalid_OneErrorOnly()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new IfStatement(new EqualityOperator(new StringConst("1"), EqualityOperatorType.Inequality, new IntConst(1)),
+                    new FunctionCall("print", new List<IExpression> { new StringConst("success") }))
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(1);
+            output.ShouldBe(string.Empty);
+        }
+        [Fact]
+        public void IfStatement_ConditionIsNotIntType()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new IfStatement(new StringConst("1"),
+                    new FunctionCall("print", new List<IExpression> { new StringConst("success") }))
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(1);
+            output.ShouldBe(string.Empty);
+        }
+        [Fact]
+        public void IfStatement_EmbeddedStatementIsDeclaration()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new IfStatement(new IntConst(1),
+                    new Declaration(Type.Int, "a"))
+            });
+
+            program.Accept(sut);
+
+            errorHandler.errorsCount.ShouldBe(1);
+        }
+        [Fact]
+        public void IfStatement_ElseStatementIsDeclaration()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new IfStatement(new IntConst(0),
+                    new FunctionCall("print", new List<IExpression> { new StringConst("success") }),
+                    new Declaration(Type.Int, "a"))
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(1);
+        }
+
+        [Fact]
+        public void WhileStatement_ConditionInvalid_OneErrorOnly()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new WhileStatement(new EqualityOperator(new StringConst("1"), EqualityOperatorType.Inequality, new IntConst(1)),
+                    new FunctionCall("print", new List<IExpression> { new StringConst("success") }))
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(1);
+            output.ShouldBe(string.Empty);
+        }
+        [Fact]
+        public void WhileStatement_ConditionIsNotIntType()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new WhileStatement(new StringConst("1"),
+                    new FunctionCall("print", new List<IExpression> { new StringConst("true") }))
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(1);
+            output.ShouldBe(string.Empty);
+        }
+        [Fact]
+        public void WhileStatement_EmbeddedStatementIsDeclaration()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new WhileStatement(new IntConst(1),
+                    new Declaration(Type.Int, "a"))
+            });
+
+            program.Accept(sut);
+
+            errorHandler.errorsCount.ShouldBe(1);
+        }
+        [Fact]
+        public void WhileStatement_InvalidEmbeddedStatement_OneErrorOnly()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new WhileStatement(new IntConst(1),
+                    new Assignment("a", new IntConst(1)))
+            });
+
+            program.Accept(sut);
+
+            errorHandler.errorsCount.ShouldBe(1);
+        }
     }
 }

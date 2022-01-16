@@ -272,7 +272,7 @@ namespace TKOM.Parser
         #endregion
 
         #region block statements
-        private bool TryParseIfStatement(out IfStatement ifStatement)                                // if                  : "if" "(" expression ")" statement [ "else" statement ]
+        private bool TryParseIfStatement(out IfStatement ifStatement)                       // if                  : "if" "(" expression ")" statement [ "else" statement ]
         {
             ifStatement = null;
             if (!TryParseToken(Token.If, false))
@@ -292,7 +292,7 @@ namespace TKOM.Parser
             ifStatement = new IfStatement(condition, stmt);
             return true;
         }
-        private bool TryParseWhileStatement(out WhileStatement whileStatement)                       // while               : "while" "(" expression ")" statement
+        private bool TryParseWhileStatement(out WhileStatement whileStatement)              // while               : "while" "(" expression ")" statement
         {
             whileStatement = null;
             if (!TryParseToken(Token.While, false))
@@ -306,12 +306,12 @@ namespace TKOM.Parser
             return true;
         }
         
-        private bool TryParseThrowStatement(out ThrowStatement statement)                            // throw               : "throw" "Exception" "(" expression ")"
+        private bool TryParseThrowStatement(out ThrowStatement statement)                   // throw               : "throw" "Exception" "(" expression ")"
         {
             statement = null;
             if (!TryParseToken(Token.Throw, false))
                 return false;
-            TryParseToken(Token.Exception);
+            TryParseToken(Token.Exception);     // TODO: remove this part
             TryParseToken(Token.RoundBracketOpen);
             TryParseExpression(out IExpression expression);
             TryParseToken(Token.RoundBracketClose);

@@ -2,12 +2,12 @@
 {
     public class WhileStatement : IStatement
     {
-        public IExpression condition { get; }
+        public IExpression Condition { get; }
         public IStatement Statement { get; }
 
         public WhileStatement(IExpression condition, IStatement statement)
         {
-            this.condition = condition;
+            this.Condition = condition;
             Statement = statement;
         }
 

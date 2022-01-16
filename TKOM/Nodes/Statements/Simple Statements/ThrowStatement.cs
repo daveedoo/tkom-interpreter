@@ -2,7 +2,7 @@
 {
     public class ThrowStatement : IStatement
     {
-        IExpression Expression { get; }
+        public IExpression Expression { get; }
 
         public ThrowStatement(IExpression expression)
         {

@@ -20,6 +20,7 @@ namespace TKOM.Interpreter
 
         private bool error;
         private bool returned;              // set by ReturnStatement only
+        private bool thrown;                // set by ThrownStatement only
         private IValue lastExpressionValue; // set by all Expressions, only
         public bool ConsumeLastExpressionValue(out IValue value)
         {
@@ -37,6 +38,8 @@ namespace TKOM.Interpreter
             Functions = new FunctionsCollection();
 
             error = false;
+            returned = false;
+            thrown = false;
             lastExpressionValue = null;
 
             SetupBuiltinFunctions();
@@ -87,7 +90,7 @@ namespace TKOM.Interpreter
                 statement.Accept(this);
                 if (returned)
                     break;
-                if (error)
+                if (thrown || error)
                     return;
             }
 
@@ -97,24 +100,83 @@ namespace TKOM.Interpreter
         #region block statements
         public void Visit(IfStatement ifStatement)
         {
+            if (!EvaluateCondition(ifStatement.Condition, out int conditionValue))
+                return;
+
+            if (conditionValue != 0)
+            {
+                if (ifStatement.TrueStatement is Declaration)
+                {
+                    Error($"Embedded statement cannot be a declaration.");
+                    return;
+                }
+                ifStatement.TrueStatement.Accept(this);
+            }
+            else if (ifStatement.ElseStatement is not null)
+            {
+                if (ifStatement.ElseStatement is Declaration)
+                {
+                    Error($"Embedded statement cannot be a declaration.");
+                    return;
+                }
+                ifStatement.ElseStatement.Accept(this);
+            }
+        }
+        public void Visit(TryCatchFinally tcf)
+        {
+            //tcf.TryStatement.Accept(this);
+            //if (error)
+            //    return;
+            //foreach (var catchStmt in tcf.CatchStatements)
+            //{
+            //    catchStmt.WhenExpression?.Accept(this);
+            //}
             throw new NotImplementedException();
         }
-        public void Visit(TryCatchFinally tryCatchFinally)
+        private bool EvaluateCondition(IExpression condition, out int conditionValue)
         {
-            throw new NotImplementedException();
+            conditionValue = 0;
+
+            condition.Accept(this);
+            if (error)
+                return false;
+            ConsumeLastExpressionValue(out IValue val);
+            if (val is not IntValue)
+            {
+                Error($"Condition statement should be of {Type.Int} type.");
+                return false;
+            }
+            conditionValue = (val as IntValue).GetIntValue();
+            return true;
         }
         public void Visit(WhileStatement whileStatement)
         {
-            throw new NotImplementedException();
+            if (!EvaluateCondition(whileStatement.Condition, out int conditionValue))
+                return;
+
+            while (conditionValue != 0)
+            {
+                if (whileStatement.Statement is Declaration)
+                {
+                    Error($"Embedded statement cannot be a declaration.");
+                    return;
+                }
+                whileStatement.Statement.Accept(this);
+                if (thrown || error || returned)
+                    break;
+
+                if (!EvaluateCondition(whileStatement.Condition, out conditionValue))
+                    return;
+            }
         }
         #endregion
-        
+
         #region Functions
         public void Visit(Function function)
         {
             function.Accept(this);
         }
-        public void Visit(PrintFunction _)
+        public void Visit(PrintFunction _)  // TODO: change 'paramName' to something different
         {
             CallStack.Peek().TryFindVariable(PrintFunction.paramName, out IValue value);
 
@@ -163,6 +225,8 @@ namespace TKOM.Interpreter
             foreach (IExpression expression in expressions)
             {
                 expression.Accept(this);
+                if (thrown)
+                    return values;
                 if (error)
                     return null;
                 ConsumeLastExpressionValue(out IValue value);
@@ -183,8 +247,8 @@ namespace TKOM.Interpreter
         }
         public void Visit(FunctionCall functionCall)
         {
-            IList<IValue> argsValues = EvaluateExpressions(functionCall.Arguments.ToArray()); // TODO: on error
-            if (error)
+            IList<IValue> argsValues = EvaluateExpressions(functionCall.Arguments.ToArray());
+            if (thrown || error)
                 return;
             IList<Type> argsTypes = argsValues.Select(t => t.Type).ToList();
 
@@ -201,14 +265,16 @@ namespace TKOM.Interpreter
             CallStack.Push(new FunctionCallContext(arguments));
 
             function.Accept(this);
-            if (error)
+            if (thrown || error)
                 return;
-            if (function.ReturnType != Type.Void &&
+            
+            if ((function.ReturnType != Type.Void) &&
                 (!returned || lastExpressionValue is null))
             {
                 Error($"Function should return a value.");
                 return;
             }
+            returned = false;
 
             CallStack.Pop();
         }
@@ -219,7 +285,10 @@ namespace TKOM.Interpreter
         }
         public void Visit(ThrowStatement throwStatement)
         {
-            throw new NotImplementedException();
+            throwStatement.Expression.Accept(this);
+            if (thrown || error)
+                return;
+            thrown = true;
         }
         #endregion
 
@@ -378,7 +447,7 @@ namespace TKOM.Interpreter
                 value = multiplicativeOperator.OperatorType switch
                 {
                     MultiplicativeOperatorType.Multiply => checked(left * right),
-                    MultiplicativeOperatorType.Divide => checked(left / right),
+                    MultiplicativeOperatorType.Divide => checked(left / right), // TODO: dzielenie przez zero
                     _ => throw new ArgumentException("Invalid multiplicative operator type.", nameof(multiplicativeOperator))
                 };
             }
