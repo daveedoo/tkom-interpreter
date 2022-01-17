@@ -306,15 +306,12 @@ namespace TKOM.Parser
             return true;
         }
         
-        private bool TryParseThrowStatement(out ThrowStatement statement)                   // throw               : "throw" "Exception" "(" expression ")"
+        private bool TryParseThrowStatement(out ThrowStatement statement)                   // throw               : "throw" expression
         {
             statement = null;
             if (!TryParseToken(Token.Throw, false))
                 return false;
-            TryParseToken(Token.Exception);     // TODO: remove this part
-            TryParseToken(Token.RoundBracketOpen);
             TryParseExpression(out IExpression expression);
-            TryParseToken(Token.RoundBracketClose);
 
             statement = new ThrowStatement(expression);
             return true;
@@ -341,13 +338,15 @@ namespace TKOM.Parser
             tcfStatement = new TryCatchFinally(tryStatement, catches);
             return true;
         }
-        private bool TryParseCatch(out Catch catchBlock)                                    // catch               : "catch" "Exception" IDENTIFIER [ "when" expression ] statement
+        private bool TryParseCatch(out Catch catchBlock)                                    // catch               : "catch" [ Exception IDENTIFIER ] [ "when" expression ] statement
         {
             catchBlock = null;
             if (!TryParseToken(Token.Catch, false))
                 return false;
-            TryParseToken(Token.Exception);
-            TryParseToken(Token.Identifier, out string variable);
+
+            string variable = null;
+            if (TryParseToken(Token.Exception, false))
+                TryParseToken(Token.Identifier, out variable);
 
             IExpression expression = null;
             if (TryParseToken(Token.When, false))
@@ -451,7 +450,11 @@ namespace TKOM.Parser
 
             if (TryParseToken(Token.RoundBracketOpen, false))
             {
-                TryParseExpression(out unary);
+                
+                if (!TryParseExpression(out unary))
+                {
+                    errorHandler.Error(scanner.Position, "Syntax error, const value or identifier expected.");
+                }
                 TryParseToken(Token.RoundBracketClose);
                 return true;
             }

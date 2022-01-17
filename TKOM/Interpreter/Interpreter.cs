@@ -378,6 +378,7 @@ namespace TKOM.Interpreter
             lastExpressionValue = new StringValue(stringConst.Value);
         }
 
+        #region Operators
         public bool EvaluateBinaryOperator(BinaryOperator binaryOperator, out IValue left, out IValue right)
         {
             left = right = null;
@@ -549,5 +550,6 @@ namespace TKOM.Interpreter
 
             lastExpressionValue = new IntValue(val);
         }
+        #endregion
     }
 }

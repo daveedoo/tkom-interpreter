@@ -23,13 +23,13 @@ namespace TKOM.Node
 
     public class Catch
     {
-        public string Identifier { get; }
+        public string ExceptionVariableName { get; }
         public IStatement Statement { get; }
         public IExpression WhenExpression { get; }
 
-        public Catch(string identifier, IStatement statement, IExpression whenExpression = null)
+        public Catch(string exceptionVariableName, IStatement statement, IExpression whenExpression = null)
         {
-            Identifier = identifier;
+            ExceptionVariableName = exceptionVariableName;
             Statement = statement;
             WhenExpression = whenExpression;
         }

@@ -8,6 +8,7 @@ namespace TKOMTest.InterpreterTests
 {
     public class ValidProgramsTests : InterpreterTestsBase
     {
+        #region Builtin functions
         [Fact]
         public void PrintIntValue()
         {
@@ -36,6 +37,8 @@ namespace TKOMTest.InterpreterTests
             errorHandler.errorsCount.ShouldBe(0);
             output.ShouldBe("abcd");
         }
+        #endregion
+
         [Fact]
         public void AssignmentOfConstValue()
         {
@@ -70,6 +73,8 @@ namespace TKOMTest.InterpreterTests
             errorHandler.errorsCount.ShouldBe(0);
             output.ShouldBe("123");
         }
+
+        #region operators
         [Fact]
         public void LogicalOr_1_WhenLeftIsDifferentThanZero()
         {
@@ -382,7 +387,9 @@ namespace TKOMTest.InterpreterTests
             errorHandler.errorsCount.ShouldBe(0);
             output.ShouldBe("0");
         }
+        #endregion
 
+        #region IfStatement
         [Fact]
         public void IfStatement_ConditionTrue()
         {
@@ -431,7 +438,9 @@ namespace TKOMTest.InterpreterTests
             errorHandler.errorsCount.ShouldBe(0);
             output.ShouldBe(string.Empty);
         }
+        #endregion
 
+        #region WhileStatement
         [Fact]
         public void WhileStatement_ConditionFalse_DoesNothing()
         {
@@ -485,6 +494,7 @@ namespace TKOMTest.InterpreterTests
             errorHandler.errorsCount.ShouldBe(0);
             output.ShouldBe(string.Empty);
         }
+        #endregion
 
         [Fact]
         public void FunctionCall_ReturnStatement_ReturnFromOneFunctionOnly()
@@ -510,6 +520,7 @@ namespace TKOMTest.InterpreterTests
             output.ShouldBe("a");
         }
 
+        #region ThrowStatement
         [Fact]
         public void ThrowStatement_InsideIfStatement()
         {
@@ -593,6 +604,7 @@ namespace TKOMTest.InterpreterTests
             errorHandler.errorsCount.ShouldBe(0);
             output.ShouldBe(string.Empty);
         }
+        #endregion
 
         #region TryCatchFinally statement
         [Fact]

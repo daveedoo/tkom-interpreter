@@ -25,9 +25,7 @@ namespace TKOMTest.ParserTests
             "int main() { foo(; }",             // incomplete function call
             "int main() { foo; }",              // incomplete function call
             "int main() { foo(int); }",         // function call with incorrect argument
-            "int main() { throw (); }",         // incomplete throw - no "Exception"
-            "int main() { throw Exception); }", // incomplete throw - no "("
-            "int main() { throw Exception(; }", // incomplete throw - no ")"
+            "int main() { throw (); }",         // incomplete throw - no expression
             "int main() { a = b || ; }",        // incomplete logical or
             "int main() { a = b && ; }",        // incomplete logical and
             "int main() { a = b == ; }",        // incomplete equality operator

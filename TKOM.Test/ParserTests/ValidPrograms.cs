@@ -291,7 +291,7 @@ namespace TKOMTest.ParserTests
         {
             string program = "int main()" +
                 "{" +
-                "   throw Exception(10);" +
+                "   throw 10;" +
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
@@ -416,8 +416,9 @@ namespace TKOMTest.ParserTests
                 "{" +
                 "   try {" +
                 "       a = 10;" +
-                "   } catch Exception e" +
+                "   } catch Exception e {" +
                 "       int x;" +
+                "   }" +
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
@@ -427,7 +428,10 @@ namespace TKOMTest.ParserTests
                             new Assignment("a", new IntConst(10)) }), 
                         new List<Catch>
                             {
-                                new Catch("e", new Declaration(Type.Int, "x"))
+                                new Catch("e", new Block(new List<IStatement>
+                                {
+                                    new Declaration(Type.Int, "x")
+                                }))
                             })
                     }))
                 });
