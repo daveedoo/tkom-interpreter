@@ -122,16 +122,79 @@ namespace TKOM.Interpreter
                 ifStatement.ElseStatement.Accept(this);
             }
         }
+        /// <summary>
+        /// Tries to visit catch block.
+        /// </summary>
+        /// <param name="catchBlock"></param>
+        /// <returns>Information, if the exception was caught by this <paramref name="catchBlock"/>.</returns>
+        /// <remarks>Can set <see cref="thrown"/> or <see cref="error"/> flags. </remarks>
+        private bool TryVisitCatchBlock(Catch catchBlock)
+        {
+            if (catchBlock.WhenExpression is null)
+            {
+                if (catchBlock.Statement is Declaration)
+                {
+                    Error($"Embedded statement cannot be a declaration.");
+                    return false;
+                }
+                catchBlock.Statement.Accept(this);
+                return true;
+            }
+
+            catchBlock.WhenExpression.Accept(this);
+            if (thrown || error)
+            {
+                thrown = false; // ignore the exception thrown during "when" evaluation
+                return false;
+            }
+
+            ConsumeLastExpressionValue(out IValue value);
+            if (value is not IntValue)
+            {
+                Error($"Expression of invalid type, needs to be {Type.Int}.");
+                return false;
+            }
+
+            int conditionValue = (value as IntValue).GetIntValue();
+            if (conditionValue != 0)
+            {
+                if (catchBlock.Statement is Declaration)
+                {
+                    Error($"Embedded statement cannot be a declaration.");
+                    return false;
+                }
+                catchBlock.Statement.Accept(this);
+                return true;
+            }
+            return false;
+        }
         public void Visit(TryCatchFinally tcf)
         {
-            //tcf.TryStatement.Accept(this);
-            //if (error)
-            //    return;
-            //foreach (var catchStmt in tcf.CatchStatements)
-            //{
-            //    catchStmt.WhenExpression?.Accept(this);
-            //}
-            throw new NotImplementedException();
+            if (tcf.TryStatement is Declaration)
+            {
+                Error($"Embedded statement cannot be a declaration.");
+                return;
+            }
+            tcf.TryStatement.Accept(this);
+            if (error)
+                return;
+
+            if (thrown)
+            {
+                thrown = false;
+                bool caught = false;
+                foreach (var catchStmt in tcf.CatchStatements)
+                {
+                    caught = TryVisitCatchBlock(catchStmt);
+                    if (error)
+                        return;
+                    if (caught)
+                        break;
+                }
+                if (!caught)
+                    thrown = true;
+            }
+            tcf.FinallyStatement?.Accept(this);
         }
         private bool EvaluateCondition(IExpression condition, out int conditionValue)
         {
@@ -283,6 +346,10 @@ namespace TKOM.Interpreter
             returnStatement.Expression?.Accept(this);
             returned = true;
         }
+        /// <summary>
+        /// If error is encountered during visiting <paramref name="throwStatement"/>, exception is not thrown.<br></br>
+        /// If exception is thrown during visiting <paramref name="throwStatement"/>'s expression, only "inner" exception is thrown.
+        /// </summary>
         public void Visit(ThrowStatement throwStatement)
         {
             throwStatement.Expression.Accept(this);

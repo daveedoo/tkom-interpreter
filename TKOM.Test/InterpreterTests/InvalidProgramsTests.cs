@@ -581,6 +581,7 @@ namespace TKOMTest.InterpreterTests
             errorHandler.errorsCount.ShouldBe(1);
         }
 
+        #region IfStatement
         [Fact]
         public void IfStatement_ConditionInvalid_OneErrorOnly()
         {
@@ -639,7 +640,9 @@ namespace TKOMTest.InterpreterTests
 
             errorHandler.errorsCount.ShouldBe(1);
         }
+        #endregion
 
+        #region WhileStatement
         [Fact]
         public void WhileStatement_ConditionInvalid_OneErrorOnly()
         {
@@ -696,5 +699,140 @@ namespace TKOMTest.InterpreterTests
 
             errorHandler.errorsCount.ShouldBe(1);
         }
+        #endregion
+
+        #region TryCatchFinally statement
+        [Fact]
+        public void TryCatchStatement_TryStatementInvalid_OneErrorOnly()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new TryCatchFinally(
+                    new ThrowStatement(new Variable("a")),
+                    new List<Catch>
+                    {
+                        new Catch("e",
+                            new FunctionCall("foo", new List<IExpression>()))
+                    })
+            });
+
+            program.Accept(sut);
+
+            errorHandler.errorsCount.ShouldBe(1);
+        }
+        [Fact]
+        public void TryCatchStatement_WhenExpressionIsNotIntType()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new TryCatchFinally(
+                    new ThrowStatement(new IntConst(1)),
+                    new List<Catch>
+                    {
+                        new Catch("e",
+                            new FunctionCall("print", new List<IExpression> { new StringConst("A") }), new StringConst("xyz"))
+                    })
+            });
+
+            program.Accept(sut);
+
+            errorHandler.errorsCount.ShouldBe(1);
+        }
+        [Fact]
+        public void TryCatchStatement_WhenWhenStatementBlockHasError_OneErrorOnly()
+        {
+            //  try
+            //  {
+            //      throw 1;
+            //  }
+            //  catch e when a
+            //  {
+            //  }
+            //  print(b);
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new TryCatchFinally(
+                    new ThrowStatement(new IntConst(1)),
+                    new List<Catch>
+                    {
+                        new Catch("e",
+                            new Block(new List<IStatement>()),
+                            new Variable("a"))
+                    }),
+                    new FunctionCall("print", new List<IExpression> { new StringConst("B") })
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(1);
+            output.ShouldBe(string.Empty);
+        }
+        [Fact]
+        public void TryCatchStatement_TryEmbeddedStatementIsDeclaration()
+        {
+            // try
+            //     int a;
+            // catch e {}
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new TryCatchFinally(
+                    new Declaration(Type.Int, "a"),
+                    new List<Catch>
+                    {
+                        new Catch("e", new Block(new List<IStatement>()))
+                    })
+            });
+
+            program.Accept(sut);
+
+            errorHandler.errorsCount.ShouldBe(1);
+        }
+        [Fact]
+        public void TryCatchStatement_CatchWithoutWhen_EmbeddedStatementIsDeclaration()
+        {
+            // try
+            //     throw 1;
+            // catch e
+            //     int a;
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new TryCatchFinally(
+                    new ThrowStatement(new IntConst(1)),
+                    new List<Catch>
+                    {
+                        new Catch("e",
+                            new Declaration(Type.Int, "a"))
+                    })
+            });
+
+            program.Accept(sut);
+
+            errorHandler.errorsCount.ShouldBe(1);
+        }
+        [Fact]
+        public void TryCatchStatement_CatchWithWhen_EmbeddedStatementIsDeclaration()
+        {
+            // try
+            //     throw 1;
+            // catch e when 1
+            //     int a;
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new TryCatchFinally(
+                    new ThrowStatement(new IntConst(1)),
+                    new List<Catch>
+                    {
+                        new Catch("e",
+                            new Declaration(Type.Int, "a"),
+                            new IntConst(1))
+                    })
+            });
+
+            program.Accept(sut);
+
+            errorHandler.errorsCount.ShouldBe(1);
+        }
+        #endregion
     }
 }

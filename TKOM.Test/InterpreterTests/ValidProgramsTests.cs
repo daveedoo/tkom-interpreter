@@ -594,10 +594,328 @@ namespace TKOMTest.InterpreterTests
             output.ShouldBe(string.Empty);
         }
 
+        #region TryCatchFinally statement
         [Fact]
-        public void TCFStatement()
+        public void TryCatchStatement_WhenCatchWithoutCondition_AlwaysCatches()
         {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new TryCatchFinally(
+                    new ThrowStatement(new IntConst(1)), new List<Catch>
+                {
+                    new Catch("e",
+                        new FunctionCall("print", new List<IExpression> { new StringConst("a") }))
+                })
+            });
 
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("a");
         }
+        [Fact]
+        public void TryCatchStatement_WhenManyCatchesWithoutCondition_OnlyFirstCatches()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new TryCatchFinally(
+                    new ThrowStatement(new IntConst(1)), new List<Catch>
+                {
+                    new Catch("e",
+                        new FunctionCall("print", new List<IExpression> { new StringConst("a") })),
+                    new Catch("e",
+                        new FunctionCall("print", new List<IExpression> { new StringConst("b") }))
+
+                })
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("a");
+        }
+        [Fact]
+        public void TryCatchStatement_WhenTryBlockDoesNotThrow_CatchIsNotEvaluated()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new TryCatchFinally(
+                    new FunctionCall("print", new List<IExpression> { new StringConst("A") }),
+                    new List<Catch>
+                    {
+                        new Catch("e",
+                            new FunctionCall("print", new List<IExpression> { new StringConst("B") }))
+                    })
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("A");
+        }
+        [Fact]
+        public void TryCatchStatement_WhenCatchThrowsAnotherException_ItIsThrownFurther()
+        {
+            //  try
+            //  {
+            //      try
+            //      {
+            //          throw 1;
+            //      }
+            //      catch
+            //      {
+            //          throw 2;
+            //          print("A");
+            //      }
+            //  }
+            //  catch
+            //  {
+            //      print("B");
+            //  }
+            var innerTryCatch = new TryCatchFinally(
+                        new ThrowStatement(new IntConst(1)),
+                        new List<Catch>
+                        {
+                            new Catch("e",
+                            new Block(new List<IStatement>
+                            {
+                                new ThrowStatement(new IntConst(2)),
+                                new FunctionCall("print", new List<IExpression> { new StringConst("A") })
+                            }))
+                        });
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new TryCatchFinally(
+                    innerTryCatch,
+                    new List<Catch>
+                    {
+                        new Catch("e",
+                        new Block(new List<IStatement>
+                        {
+                            new FunctionCall("print", new List<IExpression> { new StringConst("B") })
+                        }))
+                    })
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("B");
+        }
+        [Fact]
+        public void TryCatchStatement_WhenWhenStatementEvaluatedToFalse_CatchIsNotEvaluated()
+        {
+            //  try
+            //  {
+            //      throw 1;
+            //  }
+            //  catch e when 0
+            //  {
+            //      print("A");
+            //  }
+            //  catch e
+            //  {
+            //      print("B");
+            //  }
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new TryCatchFinally(new ThrowStatement(new IntConst(1)),
+                    new List<Catch>
+                    {
+                        new Catch("e",
+                            new FunctionCall("print", new List<IExpression> { new StringConst("A") }),
+                            new IntConst(0)),
+                        new Catch("e",
+                            new FunctionCall("print", new List<IExpression> { new StringConst("B") }))
+                    })
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("B");
+        }
+        [Fact]
+        public void TryCatchStatement_WhenWhenStatementEvaluatedToTrue_CatchIsNotEvaluated()
+        {
+            //  try
+            //  {
+            //      throw 1;
+            //  }
+            //  catch e when 1
+            //  {
+            //      print("A");
+            //  }
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new TryCatchFinally(new ThrowStatement(new IntConst(1)),
+                    new List<Catch>
+                    {
+                        new Catch("e",
+                            new FunctionCall("print", new List<IExpression> { new StringConst("A") }),
+                            new IntConst(1))
+                    })
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("A");
+        }
+        [Fact]
+        public void TryCatchStatement_WhenExceptionUncaught_ItIsThrownFurther()
+        {
+            //  try
+            //  {
+            //      throw 1;
+            //  }
+            //  catch e when 0
+            //  {
+            //  }
+            //  print("B");
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new TryCatchFinally(new ThrowStatement(new IntConst(1)),
+                    new List<Catch>
+                    {
+                        new Catch("e",
+                            new Block(new List<IStatement>()),
+                            new IntConst(0))
+                    }),
+                new FunctionCall("print", new List<IExpression> { new StringConst("B") })
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe(string.Empty);
+        }
+        [Fact]
+        public void TryCatchStatement_WhenWhenStatementThrowsException_CatchIsNotEvaluated()
+        {
+            //  int foo()
+            //  {
+            //      throw 1;
+            //      return 2;
+            //  }
+            //  void main()
+            //  {
+            //      try
+            //      {
+            //          throw 3;
+            //      }
+            //      catch e when foo()
+            //      {
+            //          print("A");
+            //      }
+            //      catch e
+            //      {
+            //          print("B");
+            //      }
+            //      print("C");
+            //  }
+            var foo = new FunctionDefinition(Type.Int, "foo", new List<Parameter>(), new Block(new List<IStatement>
+            {
+                new ThrowStatement(new IntConst(1)),
+                new ReturnStatement(new IntConst(2))
+            }));
+            var main = new FunctionDefinition(Type.Void, "main", new List<Parameter>(), new Block(new List<IStatement>
+            {
+                new TryCatchFinally(
+                    new ThrowStatement(new IntConst(3)),
+                    new List<Catch>
+                    {
+                        new Catch("e",
+                            new Block(new List<IStatement>
+                            {
+                                new FunctionCall("print", new List<IExpression> { new StringConst("A") })
+                            }),
+                            new FunctionCall("foo", new List<IExpression>())),
+                        new Catch("e",
+                            new Block(new List<IStatement>
+                            {
+                                new FunctionCall("print", new List<IExpression> { new StringConst("B") })
+                            }))
+                    }),
+                    new FunctionCall("print", new List<IExpression> { new StringConst("C") })
+            }));
+            var program = new Program(new List<FunctionDefinition>
+            {
+                foo, main
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("BC");
+        }
+
+        [Fact]
+        public void FinallyStatement_WhenTryThrows_FinallyIsEvaluated()
+        {
+            // try
+            // {
+            //     throw 1;
+            // }
+            // catch e
+            // {}
+            // finally
+            // {
+            //     print("A");
+            // }
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new TryCatchFinally(
+                    new ThrowStatement(new IntConst(1)),
+                    new List<Catch>
+                    {
+                        new Catch("e", new Block(new List<IStatement>()))
+                    },
+                    new FunctionCall("print", new List<IExpression> { new StringConst("A") }))
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("A");
+        }
+        [Fact]
+        public void FinallyStatement_WhenTryDoesNotThrow_FinallyIsEvaluated()
+        {
+            // try
+            // {}
+            // catch e
+            // {}
+            // finally
+            // {
+            //     print("A");
+            // }
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new TryCatchFinally(
+                    new Block(new List<IStatement>()),
+                    new List<Catch>
+                    {
+                        new Catch("e", new Block(new List<IStatement>()))
+                    },
+                    new FunctionCall("print", new List<IExpression> { new StringConst("A") }))
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("A");
+        }
+        #endregion
     }
 }
