@@ -33,5 +33,11 @@ namespace TKOM.Node
             Statement = statement;
             WhenExpression = whenExpression;
         }
+        public Catch(IStatement statement, IExpression whenExpression = null)
+        {
+            ExceptionVariableName = null;
+            Statement = statement;
+            WhenExpression = whenExpression;
+        }
     }
 }

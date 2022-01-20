@@ -615,7 +615,7 @@ namespace TKOMTest.InterpreterTests
                 new TryCatchFinally(
                     new ThrowStatement(new IntConst(1)), new List<Catch>
                 {
-                    new Catch("e",
+                    new Catch(
                         new FunctionCall("print", new List<IExpression> { new StringConst("a") }))
                 })
             });
@@ -634,9 +634,9 @@ namespace TKOMTest.InterpreterTests
                 new TryCatchFinally(
                     new ThrowStatement(new IntConst(1)), new List<Catch>
                 {
-                    new Catch("e",
+                    new Catch(
                         new FunctionCall("print", new List<IExpression> { new StringConst("a") })),
-                    new Catch("e",
+                    new Catch(
                         new FunctionCall("print", new List<IExpression> { new StringConst("b") }))
 
                 })
@@ -657,7 +657,7 @@ namespace TKOMTest.InterpreterTests
                     new FunctionCall("print", new List<IExpression> { new StringConst("A") }),
                     new List<Catch>
                     {
-                        new Catch("e",
+                        new Catch(
                             new FunctionCall("print", new List<IExpression> { new StringConst("B") }))
                     })
             });
@@ -691,7 +691,7 @@ namespace TKOMTest.InterpreterTests
                         new ThrowStatement(new IntConst(1)),
                         new List<Catch>
                         {
-                            new Catch("e",
+                            new Catch(
                             new Block(new List<IStatement>
                             {
                                 new ThrowStatement(new IntConst(2)),
@@ -704,7 +704,7 @@ namespace TKOMTest.InterpreterTests
                     innerTryCatch,
                     new List<Catch>
                     {
-                        new Catch("e",
+                        new Catch(
                         new Block(new List<IStatement>
                         {
                             new FunctionCall("print", new List<IExpression> { new StringConst("B") })
@@ -738,10 +738,10 @@ namespace TKOMTest.InterpreterTests
                 new TryCatchFinally(new ThrowStatement(new IntConst(1)),
                     new List<Catch>
                     {
-                        new Catch("e",
+                        new Catch(
                             new FunctionCall("print", new List<IExpression> { new StringConst("A") }),
                             new IntConst(0)),
-                        new Catch("e",
+                        new Catch(
                             new FunctionCall("print", new List<IExpression> { new StringConst("B") }))
                     })
             });
@@ -768,7 +768,7 @@ namespace TKOMTest.InterpreterTests
                 new TryCatchFinally(new ThrowStatement(new IntConst(1)),
                     new List<Catch>
                     {
-                        new Catch("e",
+                        new Catch(
                             new FunctionCall("print", new List<IExpression> { new StringConst("A") }),
                             new IntConst(1))
                     })
@@ -796,7 +796,7 @@ namespace TKOMTest.InterpreterTests
                 new TryCatchFinally(new ThrowStatement(new IntConst(1)),
                     new List<Catch>
                     {
-                        new Catch("e",
+                        new Catch(
                             new Block(new List<IStatement>()),
                             new IntConst(0))
                     }),
@@ -844,13 +844,13 @@ namespace TKOMTest.InterpreterTests
                     new ThrowStatement(new IntConst(3)),
                     new List<Catch>
                     {
-                        new Catch("e",
+                        new Catch(
                             new Block(new List<IStatement>
                             {
                                 new FunctionCall("print", new List<IExpression> { new StringConst("A") })
                             }),
                             new FunctionCall("foo", new List<IExpression>())),
-                        new Catch("e",
+                        new Catch(
                             new Block(new List<IStatement>
                             {
                                 new FunctionCall("print", new List<IExpression> { new StringConst("B") })
@@ -889,7 +889,7 @@ namespace TKOMTest.InterpreterTests
                     new ThrowStatement(new IntConst(1)),
                     new List<Catch>
                     {
-                        new Catch("e", new Block(new List<IStatement>()))
+                        new Catch(new Block(new List<IStatement>()))
                     },
                     new FunctionCall("print", new List<IExpression> { new StringConst("A") }))
             });
@@ -917,7 +917,7 @@ namespace TKOMTest.InterpreterTests
                     new Block(new List<IStatement>()),
                     new List<Catch>
                     {
-                        new Catch("e", new Block(new List<IStatement>()))
+                        new Catch(new Block(new List<IStatement>()))
                     },
                     new FunctionCall("print", new List<IExpression> { new StringConst("A") }))
             });
@@ -927,6 +927,50 @@ namespace TKOMTest.InterpreterTests
 
             errorHandler.errorsCount.ShouldBe(0);
             output.ShouldBe("A");
+        }
+
+        [Fact]
+        public void TryCatchStatement_WithExceptionVariableDeclared_UsedInCatchBlock()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new TryCatchFinally(
+                    new ThrowStatement(new IntConst(-8)),
+                    new List<Catch>
+                    {
+                        new Catch("ex",
+                            new FunctionCall("print", new List<IExpression> { new Variable("ex") }))
+                    })
+            });
+
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("-8");
+        }
+        [Fact]
+        public void TryCatchStatement_WithExceptionVariableDeclared_UsedInWhenStatement()
+        {
+            //  try
+            //      throw -8;
+            //  catch Exception ex when ex
+            //  {}
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new TryCatchFinally(
+                    new ThrowStatement(new IntConst(-8)),
+                    new List<Catch>
+                    {
+                        new Catch("ex",
+                            new Block(new List<IStatement>()),
+                            new Variable("ex"))
+                    })
+            });
+
+            program.Accept(sut);
+
+            errorHandler.errorsCount.ShouldBe(0);
         }
         #endregion
     }

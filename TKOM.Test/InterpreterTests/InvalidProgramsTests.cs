@@ -178,6 +178,7 @@ namespace TKOMTest.InterpreterTests
             errorHandler.errorsCount.ShouldBe(1);
         }
 
+        #region operators
         [Fact]
         public void LogicalOr_LeftInvalid_OneErrorOnly()
         {
@@ -580,6 +581,7 @@ namespace TKOMTest.InterpreterTests
 
             errorHandler.errorsCount.ShouldBe(1);
         }
+        #endregion
 
         #region IfStatement
         [Fact]
@@ -700,6 +702,19 @@ namespace TKOMTest.InterpreterTests
             errorHandler.errorsCount.ShouldBe(1);
         }
         #endregion
+
+        [Fact]
+        public void ThrowStatement_ThrowingNotIntValue()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new ThrowStatement(new StringConst("C"))
+            });
+
+            program.Accept(sut);
+
+            errorHandler.errorsCount.ShouldBe(1);
+        }
 
         #region TryCatchFinally statement
         [Fact]
@@ -833,6 +848,31 @@ namespace TKOMTest.InterpreterTests
 
             errorHandler.errorsCount.ShouldBe(1);
         }
+        [Fact]
+        public void TryCatchStatement_FinallyEmbeddedStatementIsDeclaration()
+        {
+            // try
+            //     throw 1;
+            // catch {}
+            // finally
+            //     int a;
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new TryCatchFinally(
+                    new ThrowStatement(new IntConst(1)),
+                    new List<Catch>
+                    {
+                        new Catch(new Block(new List<IStatement>()),
+                            new IntConst(1))
+                    },
+                    new Declaration(Type.Int, "a"))
+            });
+
+            program.Accept(sut);
+
+            errorHandler.errorsCount.ShouldBe(1);
+        }
+
         #endregion
     }
 }

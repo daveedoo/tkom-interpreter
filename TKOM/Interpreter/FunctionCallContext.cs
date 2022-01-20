@@ -21,6 +21,11 @@ namespace TKOM.Interpreter
             Variables.Add(name, value);
         }
 
+        public bool RemoveVariable(string name)
+        {
+            return Variables.Remove(name);
+        }
+
         public bool TryFindVariable(string name, out IValue value)
         {
             return Variables.TryGetValue(name, out value);
@@ -35,13 +40,15 @@ namespace TKOM.Interpreter
     internal class FunctionCallContext
     {
         private IList<Scope> Scopes { get; }
+        public Function CalledFunction { get; }
 
-        public FunctionCallContext(IDictionary<string, IValue> initialVariables)
+        public FunctionCallContext(Function calledFunction, IDictionary<string, IValue> initialVariables)
         {
             Scopes = new List<Scope>
             {
                 new Scope(initialVariables)
             };
+            CalledFunction = calledFunction;
         }
 
         public void CreateNewScope()
@@ -56,6 +63,11 @@ namespace TKOM.Interpreter
         public void AddVariable(string name, IValue value)
         {
             Scopes.Last().AddVariable(name, value);
+        }
+
+        public bool RemoveVariable(string name)
+        {
+            return Scopes.Last().RemoveVariable(name);
         }
 
         public bool TryFindVariable(string name, out IValue variable)

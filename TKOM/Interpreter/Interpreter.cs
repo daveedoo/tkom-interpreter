@@ -22,6 +22,8 @@ namespace TKOM.Interpreter
         private bool returned;              // set by ReturnStatement only
         private bool thrown;                // set by ThrownStatement only
         private IValue lastExpressionValue; // set by all Expressions, only
+        private static readonly string exceptionVariableName = "$exception";
+        private static readonly string printVariableName = "$print";
         public bool ConsumeLastExpressionValue(out IValue value)
         {
             value = lastExpressionValue;
@@ -46,14 +48,28 @@ namespace TKOM.Interpreter
         }
         private void SetupBuiltinFunctions()
         {
-            if (!Functions.TryAdd(new PrintFunction(Type.Int)) ||
-                !Functions.TryAdd(new PrintFunction(Type.String)))
+            if (!Functions.TryAdd(new PrintFunction(Type.Int, printVariableName)) ||
+                !Functions.TryAdd(new PrintFunction(Type.String, printVariableName)))
                 throw new Exception($"{nameof(Functions)} already contains a function ambiguous with {nameof(PrintFunction)}");
         }
         private void Error(string message)
         {
             ErrorHandler.Error(message);
             error = true;
+        }
+        private void PrintCallStack()
+        {
+            Stack<FunctionCallContext> helpStack = new();
+            while (CallStack.Any())
+            {
+                FunctionCallContext fcc = CallStack.Pop();
+                Console.WriteLine($"{fcc.CalledFunction}");
+                helpStack.Push(fcc);
+            }
+            while (helpStack.Any())
+            {
+                CallStack.Push(helpStack.Pop());
+            }
         }
 
         public void Visit(Program program)
@@ -76,6 +92,9 @@ namespace TKOM.Interpreter
 
             var mainCall = new FunctionCall(main.Name, new List<IExpression>());
             mainCall.Accept(this);
+
+            if (error || thrown)
+                PrintCallStack();
         }
         public void Visit(FunctionDefinition funDef)
         {
@@ -130,6 +149,13 @@ namespace TKOM.Interpreter
         /// <remarks>Can set <see cref="thrown"/> or <see cref="error"/> flags. </remarks>
         private bool TryVisitCatchBlock(Catch catchBlock)
         {
+            if (catchBlock.ExceptionVariableName is not null)
+            {
+                CallStack.Peek().TryFindVariable(exceptionVariableName, out IValue exceptionValue);
+                CallStack.Peek().AddVariable(catchBlock.ExceptionVariableName, exceptionValue);
+                CallStack.Peek().RemoveVariable(exceptionVariableName);
+            }
+
             if (catchBlock.WhenExpression is null)
             {
                 if (catchBlock.Statement is Declaration)
@@ -194,6 +220,11 @@ namespace TKOM.Interpreter
                 if (!caught)
                     thrown = true;
             }
+            if (tcf.FinallyStatement is Declaration)
+            {
+                Error($"Embedded statement cannot be a declaration.");
+                return;
+            }
             tcf.FinallyStatement?.Accept(this);
         }
         private bool EvaluateCondition(IExpression condition, out int conditionValue)
@@ -239,9 +270,9 @@ namespace TKOM.Interpreter
         {
             function.Accept(this);
         }
-        public void Visit(PrintFunction _)  // TODO: change 'paramName' to something different
+        public void Visit(PrintFunction p)
         {
-            CallStack.Peek().TryFindVariable(PrintFunction.paramName, out IValue value);
+            CallStack.Peek().TryFindVariable(p.Parameters[0].Name, out IValue value);
 
             StdOut.Write(value.Value);
         }
@@ -325,7 +356,7 @@ namespace TKOM.Interpreter
             for (int i = 0; i < argsValues.Count; i++)
                 arguments.Add(function.Parameters[i].Name, argsValues[i]);
 
-            CallStack.Push(new FunctionCallContext(arguments));
+            CallStack.Push(new FunctionCallContext(function, arguments));
 
             function.Accept(this);
             if (thrown || error)
@@ -355,6 +386,13 @@ namespace TKOM.Interpreter
             throwStatement.Expression.Accept(this);
             if (thrown || error)
                 return;
+            ConsumeLastExpressionValue(out IValue value);
+            if (value is not IntValue)
+            {
+                Error($"Cannot throw value of type different than {Type.Int}.");
+                return;
+            }
+            CallStack.Peek().AddVariable(exceptionVariableName, value);
             thrown = true;
         }
         #endregion

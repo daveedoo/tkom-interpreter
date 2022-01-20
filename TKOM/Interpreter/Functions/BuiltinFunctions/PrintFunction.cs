@@ -6,9 +6,7 @@ namespace TKOM.Interpreter
 {
     public class PrintFunction : Function
     {
-        public const string paramName = "printVal";
-
-        public PrintFunction(Type valueToPrintType) : base( Type.Void, "print", new List<Parameter>
+        public PrintFunction(Type valueToPrintType, string paramName) : base( Type.Void, "print", new List<Parameter>
             {
                 new Parameter(valueToPrintType, paramName)
             })

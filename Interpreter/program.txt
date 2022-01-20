@@ -1,7 +1,12 @@
 ﻿
 void foo()
 {
-	print(2);
+	throw 4;
+}
+int main()
+{
+	print("2\n");
+	foo();
 }
 
 
