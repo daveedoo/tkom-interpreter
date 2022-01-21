@@ -280,24 +280,30 @@ namespace TKOM.Interpreter
 
             StdOut.Write(variable.ValueReference.Value);
         }
+
         public void Visit(ReadFunction readFunction)
         {
             CallStack.Peek().TryFindVariable(readFunction.Parameters[0].Name, out Variable variable);
             if (variable.Type != Type.Int)
             {
-                Error($"");
+                Error($"Cannot read variable of type different than {Type.Int.ToString().ToLower()}");
                 return;
             }
 
             StringBuilder readNumber = new();
             int readChar = StdIn.Read();
-            while (readChar != -1 && char.IsDigit((char)readChar))
+            while (char.IsWhiteSpace((char)readChar))
+                readChar = StdIn.Read();
+            while (char.IsDigit((char)readChar))
             {
                 readNumber.Append((char)readChar);
                 readChar = StdIn.Read();
             }
-
-            int readValue = int.Parse(readNumber.ToString());
+            if (!int.TryParse(readNumber.ToString(), out int readValue))
+            {
+                Error("Invalid input. Onli digit characters are accepted.");
+                return;
+            }
             (variable.ValueReference as IntValueReference).Value = readValue;
         }
         #endregion

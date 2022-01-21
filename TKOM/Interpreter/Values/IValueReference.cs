@@ -1,5 +1,4 @@
-﻿using System;
-using Type = TKOM.Node.Type;
+﻿using Type = TKOM.Node.Type;
 
 namespace TKOM.Interpreter
 {
