@@ -23,11 +23,11 @@ namespace TKOM.Interpreter
         private bool error;
         private bool returned;              // set by ReturnStatement only
         private bool thrown;                // set by ThrownStatement only
-        private IValue lastExpressionValue; // set by all Expressions, only
+        private IValueReference lastExpressionValue; // set by all Expressions, only
         private static readonly string exceptionVariableName = "$exception";
         private static readonly string printVariableName = "$print";
         private static readonly string readVariableName = "$read";
-        public bool ConsumeLastExpressionValue(out IValue value)
+        public bool ConsumeLastExpressionValue(out IValueReference value)
         {
             value = lastExpressionValue;
             lastExpressionValue = null;
@@ -156,7 +156,7 @@ namespace TKOM.Interpreter
             if (catchBlock.ExceptionVariableName is not null)
             {
                 CallStack.Peek().TryFindVariable(exceptionVariableName, out Variable exceptionVariable);
-                CallStack.Peek().AddVariable(new Variable(catchBlock.ExceptionVariableName, exceptionVariable.Value));
+                CallStack.Peek().AddVariable(new Variable(catchBlock.ExceptionVariableName, exceptionVariable.ValueReference));
                 CallStack.Peek().RemoveVariable(exceptionVariableName);
             }
 
@@ -174,18 +174,18 @@ namespace TKOM.Interpreter
             catchBlock.WhenExpression.Accept(this);
             if (thrown || error)
             {
-                thrown = false; // ignore the exception thrown during "when" evaluation
+                thrown = false; // ignores the exception thrown during "when" evaluation
                 return false;
             }
 
-            ConsumeLastExpressionValue(out IValue value);
-            if (value is not IntValue)
+            ConsumeLastExpressionValue(out IValueReference value);
+            if (value.Type != Type.Int)
             {
                 Error($"Expression of invalid type, needs to be {Type.Int}.");
                 return false;
             }
 
-            int conditionValue = (value as IntValue).GetIntValue();
+            int conditionValue = (value as IntValueReference).Value;
             if (conditionValue != 0)
             {
                 if (catchBlock.Statement is Declaration)
@@ -238,13 +238,13 @@ namespace TKOM.Interpreter
             condition.Accept(this);
             if (error)
                 return false;
-            ConsumeLastExpressionValue(out IValue val);
-            if (val is not IntValue)
+            ConsumeLastExpressionValue(out IValueReference val);
+            if (val.Type != Type.Int)
             {
                 Error($"Condition statement should be of {Type.Int} type.");
                 return false;
             }
-            conditionValue = (val as IntValue).GetIntValue();
+            conditionValue = (val as IntValueReference).Value;
             return true;
         }
         public void Visit(WhileStatement whileStatement)
@@ -278,12 +278,12 @@ namespace TKOM.Interpreter
         {
             CallStack.Peek().TryFindVariable(p.Parameters[0].Name, out Variable variable);
 
-            StdOut.Write(variable.Value.Value);
+            StdOut.Write(variable.ValueReference.Value);
         }
         public void Visit(ReadFunction readFunction)
         {
             CallStack.Peek().TryFindVariable(readFunction.Parameters[0].Name, out Variable variable);
-            if (variable.Value.Type != Type.Int)
+            if (variable.Type != Type.Int)
             {
                 Error($"");
                 return;
@@ -297,8 +297,8 @@ namespace TKOM.Interpreter
                 readChar = StdIn.Read();
             }
 
-            int val = int.Parse(readNumber.ToString());
-            (variable.Value as IntValue).SetIntValue(val);
+            int readValue = int.Parse(readNumber.ToString());
+            (variable.ValueReference as IntValueReference).Value = readValue;
         }
         #endregion
 
@@ -315,21 +315,14 @@ namespace TKOM.Interpreter
             if (error)
                 return;
 
-            if (!ConsumeLastExpressionValue(out IValue varValue) || varValue.Type != variable.Value.Type)
+            if (!ConsumeLastExpressionValue(out IValueReference rhsValueRef) || rhsValueRef.Type != variable.Type)
             {
-                string expType = varValue is null ? "void" : varValue.Type.ToString();
-                Error($"Cannot assign value of type {expType} to variable '{assignment.VariableName}' of type {variable.Value.Type}.");
+                string expType = rhsValueRef is null ? "void" : rhsValueRef.Type.ToString();
+                Error($"Cannot assign value of type {expType} to variable '{assignment.VariableName}' of type {variable.Type}.");
                 return;
             }
 
-            switch (variable.Value.Type)
-            {
-                case Type.Int:
-                    (variable.Value as IntValue).SetIntValue((int)varValue.Value);
-                    break;
-                default:
-                    throw new Exception($"Invalid assignment. Trying to assign to illegal variable of type {variable.Value.Type.ToString().ToLower()}");
-            }
+            variable.ValueReference = rhsValueRef.Clone();
         }
         public void Visit(Declaration declaration)
         {
@@ -339,13 +332,13 @@ namespace TKOM.Interpreter
                 return;
             }
 
-            IValue value = ValuesCreator.CreateValue(declaration.Type);
+            IValueReference value = ValuesFactory.CreateDefaultValue(declaration.Type);
 
             CallStack.Peek().AddVariable(new Variable(declaration.Name, value));
         }
-        private IList<IValue> EvaluateExpressions(params IExpression[] expressions)
+        private IList<IValueReference> EvaluateExpressions(params IExpression[] expressions)
         {
-            var values = new List<IValue>();
+            var values = new List<IValueReference>();
 
             foreach (IExpression expression in expressions)
             {
@@ -354,7 +347,7 @@ namespace TKOM.Interpreter
                     return values;
                 if (error)
                     return null;
-                ConsumeLastExpressionValue(out IValue value);
+                ConsumeLastExpressionValue(out IValueReference value);
                 values.Add(value);
             }
             return values;
@@ -372,7 +365,7 @@ namespace TKOM.Interpreter
         }
         public void Visit(FunctionCall functionCall)
         {
-            IList<IValue> argsValues = EvaluateExpressions(functionCall.Arguments.ToArray());
+            IList<IValueReference> argsValues = EvaluateExpressions(functionCall.Arguments.ToArray());
             if (thrown || error)
                 return;
             IList<Type> argsTypes = argsValues.Select(t => t.Type).ToList();
@@ -417,8 +410,8 @@ namespace TKOM.Interpreter
             throwStatement.Expression.Accept(this);
             if (thrown || error)
                 return;
-            ConsumeLastExpressionValue(out IValue value);
-            if (value is not IntValue)
+            ConsumeLastExpressionValue(out IValueReference value);
+            if (value.Type != Type.Int)
             {
                 Error($"Cannot throw value of type different than {Type.Int}.");
                 return;
@@ -436,22 +429,22 @@ namespace TKOM.Interpreter
                 return;
             }
 
-            lastExpressionValue = var.Value;
+            lastExpressionValue = var.ValueReference;
         }
         public void Visit(IntConst intConst)
         {
-            lastExpressionValue = new IntValue(intConst.Value);
+            lastExpressionValue = new IntValueReference(intConst.Value);
         }
         public void Visit(StringConst stringConst)
         {
-            lastExpressionValue = new StringValue(stringConst.Value);
+            lastExpressionValue = new StringValueReference(stringConst.Value);
         }
 
         #region Operators
-        public bool EvaluateBinaryOperator(BinaryOperator binaryOperator, out IValue left, out IValue right)
+        public bool EvaluateBinaryOperator(BinaryOperator binaryOperator, out IValueReference left, out IValueReference right)
         {
             left = right = null;
-            IList<IValue> values = EvaluateExpressions(binaryOperator.Left, binaryOperator.Right);
+            IList<IValueReference> values = EvaluateExpressions(binaryOperator.Left, binaryOperator.Right);
             if (error)
                 return false;
             left = values[0];
@@ -460,42 +453,42 @@ namespace TKOM.Interpreter
         }
         public void Visit(LogicalOr logicalOr)
         {
-            if (!EvaluateBinaryOperator(logicalOr, out IValue leftValue, out IValue rightValue))
+            if (!EvaluateBinaryOperator(logicalOr, out IValueReference leftValue, out IValueReference rightValue))
                 return;
 
-            if (leftValue is not IntValue || rightValue is not IntValue)
+            if (leftValue.Type != Type.Int || rightValue.Type != Type.Int)
             {
                 Error($"Both sides of logical OR expression must be of {Type.Int} type.");
                 return;
             }
 
             if (leftValue.IsEqualTo(0) && rightValue.IsEqualTo(0))
-                lastExpressionValue = new IntValue(0);
+                lastExpressionValue = ValuesFactory.CreateValue(0);
             else
-                lastExpressionValue = new IntValue(1);
+                lastExpressionValue = ValuesFactory.CreateValue(1);
         }
         public void Visit(LogicalAnd logicalAnd)
         {
-            if (!EvaluateBinaryOperator(logicalAnd, out IValue leftValue, out IValue rightValue))
+            if (!EvaluateBinaryOperator(logicalAnd, out IValueReference leftValue, out IValueReference rightValue))
                 return;
 
-            if (leftValue is not IntValue || rightValue is not IntValue)
+            if (leftValue.Type != Type.Int || rightValue.Type != Type.Int)
             {
                 Error($"Both sides of logical AND expression must be of {Type.Int} type.");
                 return;
             }
 
             if (leftValue.IsEqualTo(0) || rightValue.IsEqualTo(0))
-                lastExpressionValue = new IntValue(0);
+                lastExpressionValue = ValuesFactory.CreateValue(0);
             else
-                lastExpressionValue = new IntValue(1);
+                lastExpressionValue = ValuesFactory.CreateValue(1);
         }
         public void Visit(EqualityOperator equalityOperator)
         {
-            if (!EvaluateBinaryOperator(equalityOperator, out IValue leftValue, out IValue rightValue))
+            if (!EvaluateBinaryOperator(equalityOperator, out IValueReference leftValue, out IValueReference rightValue))
                 return;
 
-            if (leftValue is not IntValue || rightValue is not IntValue)
+            if (leftValue.Type != Type.Int || rightValue.Type != Type.Int)
             {
                 Error($"Both sides of equality expression must be of {Type.Int} type.");
                 return;
@@ -509,21 +502,21 @@ namespace TKOM.Interpreter
                     leftValue.IsEqualTo(rightValue.Value) ? 0 : 1,
                 _ => throw new ArgumentException("Invalid equality operator type.", nameof(equalityOperator))
             };
-            lastExpressionValue = new IntValue(value);
+            lastExpressionValue = ValuesFactory.CreateValue(value);
         }
         public void Visit(RelationOperator relationOperator)
         {
-            if (!EvaluateBinaryOperator(relationOperator, out IValue leftValue, out IValue rightValue))
+            if (!EvaluateBinaryOperator(relationOperator, out IValueReference leftValue, out IValueReference rightValue))
                 return;
 
-            if (leftValue is not IntValue || rightValue is not IntValue)
+            if (leftValue.Type != Type.Int || rightValue.Type != Type.Int)
             {
                 Error($"Both sides of relation expression must be of {Type.Int} type.");
                 return;
             }
 
-            int left = (leftValue as IntValue).GetIntValue();
-            int right = (rightValue as IntValue).GetIntValue();
+            int left = (leftValue as IntValueReference).Value;
+            int right = (rightValue as IntValueReference).Value;
             int value = relationOperator.OperatorType switch
             {
                 RelationOperatorType.LessEqual => left <= right ? 1 : 0,
@@ -532,21 +525,21 @@ namespace TKOM.Interpreter
                 RelationOperatorType.GreaterThan => left < right ? 1 : 0,
                 _ => throw new ArgumentException("Invalid relation operator type.", nameof(relationOperator))
             };
-            lastExpressionValue = new IntValue(value);
+            lastExpressionValue = ValuesFactory.CreateValue(value);
         }
         public void Visit(AdditiveOperator additiveOperator)
         {
-            if (!EvaluateBinaryOperator(additiveOperator, out IValue leftValue, out IValue rightValue))
+            if (!EvaluateBinaryOperator(additiveOperator, out IValueReference leftValue, out IValueReference rightValue))
                 return;
 
-            if (leftValue is not IntValue || rightValue is not IntValue)
+            if (leftValue.Type != Type.Int || rightValue.Type != Type.Int)
             {
                 Error($"Both sides of additive expression must be of {Type.Int} type.");
                 return;
             }
 
-            int left = (leftValue as IntValue).GetIntValue();
-            int right = (rightValue as IntValue).GetIntValue();
+            int left = (leftValue as IntValueReference).Value;
+            int right = (rightValue as IntValueReference).Value;
             int value;
             try
             {
@@ -563,28 +556,28 @@ namespace TKOM.Interpreter
                 return;
             }
 
-            lastExpressionValue = new IntValue(value);
+            lastExpressionValue = ValuesFactory.CreateValue(value);
         }
         public void Visit(MultiplicativeOperator multiplicativeOperator)
         {
-            if (!EvaluateBinaryOperator(multiplicativeOperator, out IValue leftValue, out IValue rightValue))
+            if (!EvaluateBinaryOperator(multiplicativeOperator, out IValueReference leftValue, out IValueReference rightValue))
                 return;
 
-            if (leftValue is not IntValue || rightValue is not IntValue)
+            if (leftValue.Type != Type.Int || rightValue.Type != Type.Int)
             {
                 Error($"Both sides of multiplicative expression must be of {Type.Int} type.");
                 return;
             }
 
-            int left = (leftValue as IntValue).GetIntValue();
-            int right = (rightValue as IntValue).GetIntValue();
+            int left = (leftValue as IntValueReference).Value;
+            int right = (rightValue as IntValueReference).Value;
             int value;
             try
             {
                 value = multiplicativeOperator.OperatorType switch
                 {
                     MultiplicativeOperatorType.Multiply => checked(left * right),
-                    MultiplicativeOperatorType.Divide => checked(left / right), // TODO: dzielenie przez zero
+                    MultiplicativeOperatorType.Divide => checked(left / right),
                     _ => throw new ArgumentException("Invalid multiplicative operator type.", nameof(multiplicativeOperator))
                 };
             }
@@ -594,7 +587,7 @@ namespace TKOM.Interpreter
                 return;
             }
 
-            lastExpressionValue = new IntValue(value);
+            lastExpressionValue = ValuesFactory.CreateValue(value);
         }
         public void Visit(UnaryOperator unaryOperator)
         {
@@ -602,14 +595,14 @@ namespace TKOM.Interpreter
             if (error)
                 return;
 
-            ConsumeLastExpressionValue(out IValue value);
+            ConsumeLastExpressionValue(out IValueReference value);
 
-            if (value is not IntValue)
+            if (value.Type != Type.Int)
             {
                 Error($"Unary minus expression must be of {Type.Int} type.");
                 return;
             }
-            int intVal = (value as IntValue).GetIntValue();
+            int intVal = (value as IntValueReference).Value;
             int val = unaryOperator.OperatorType switch
             {
                 UnaryOperatorType.Uminus => -intVal,
@@ -617,7 +610,7 @@ namespace TKOM.Interpreter
                 _ => throw new ArgumentException("Invalid unary operator type.", nameof(unaryOperator))
             };
 
-            lastExpressionValue = new IntValue(val);
+            lastExpressionValue = ValuesFactory.CreateValue(val);
         }
         #endregion
     }
