@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using TKOM.Parser;
 using TKOM.Scanner;
+using TKOMTest.Utils;
 
 namespace TKOMTest.ParserTests
 {

@@ -2,6 +2,7 @@
 using System.IO;
 using TKOM.Interpreter;
 using TKOM.Node;
+using TKOMTest.Utils;
 using Type = TKOM.Node.Type;
 
 namespace TKOMTest.InterpreterTests

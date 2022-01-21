@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using TKOM.ErrorHandler;
 
-namespace TKOMTest
+namespace TKOMTest.Utils
 {
     public class ErrorsCollector : IErrorHandler
     {

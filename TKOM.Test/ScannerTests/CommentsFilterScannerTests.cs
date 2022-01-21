@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using TKOM.ErrorHandler;
 using TKOM.Scanner;
+using TKOMTest.Utils;
 using Xunit;
 
 namespace TKOMTest.ScannerTests

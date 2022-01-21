@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Text;
 
-namespace TKOMTest
+namespace TKOMTest.Utils
 {
     public class OutputCollector : TextWriter
     {
