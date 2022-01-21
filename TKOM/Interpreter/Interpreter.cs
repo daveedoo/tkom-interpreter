@@ -546,7 +546,7 @@ namespace TKOM.Interpreter
                 RelationOperatorType.LessEqual => left <= right ? 1 : 0,
                 RelationOperatorType.GreaterEqual => left >= right ? 1 : 0,
                 RelationOperatorType.LessThan => left < right ? 1 : 0,
-                RelationOperatorType.GreaterThan => left < right ? 1 : 0,
+                RelationOperatorType.GreaterThan => left > right ? 1 : 0,
                 _ => throw new ArgumentException("Invalid relation operator type.", nameof(relationOperator))
             };
             lastExpressionValue = ValuesFactory.CreateValue(value);

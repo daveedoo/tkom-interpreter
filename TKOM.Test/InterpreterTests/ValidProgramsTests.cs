@@ -277,7 +277,7 @@ namespace TKOMTest.InterpreterTests
             {
                 new Declaration(Type.Int, "a"),
                 new Assignment("a",
-                    new RelationOperator(new IntConst(1), RelationOperatorType.GreaterThan, new IntConst(2))),
+                    new RelationOperator(new IntConst(2), RelationOperatorType.GreaterThan, new IntConst(1))),
                 new FunctionCall("print", new List<IExpression>{ new Variable("a") })
             });
 
