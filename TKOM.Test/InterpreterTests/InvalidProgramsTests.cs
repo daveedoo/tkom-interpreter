@@ -703,6 +703,38 @@ namespace TKOMTest.InterpreterTests
 
             errorHandler.errorsCount.ShouldBe(1);
         }
+        [Fact]
+        public void BreakStatement_OutsideOfWhileStatement()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new BreakStatement()
+            });
+            program.Accept(sut);
+
+            errorHandler.errorsCount.ShouldBe(1);
+        }
+        [Fact]
+        public void BreakStatement_InsideOfCalledFunction_AndOutsideOfWhileStatement()
+        {
+            var foo = new FunctionDefinition(Type.Void, "foo", new List<Parameter>(), new Block(new List<IStatement>
+            {
+                new BreakStatement()
+            }));
+            var main = new FunctionDefinition(Type.Void, "main", new List<Parameter>(), new Block(new List<IStatement>
+            {
+                new WhileStatement(new IntConst(1),
+                    new FunctionCall("foo", new List<IExpression>()))
+            }));
+            var program = new Program(new List<FunctionDefinition>
+            {
+                foo, main
+            });
+
+            program.Accept(sut);
+
+            errorHandler.errorsCount.ShouldBe(1);
+        }
         #endregion
 
         [Fact]

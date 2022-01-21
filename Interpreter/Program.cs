@@ -10,7 +10,7 @@ var scanner = new Scanner(reader, handler);
 var noCommentsFilter = new CommentsFilterScanner(scanner);
 
 var parser = new Parser(noCommentsFilter, handler);
-var interpreter = new Interpreter(handler, Console.Out);
+var interpreter = new Interpreter(handler, Console.Out, Console.In);
 
 bool programIsCorrect = parser.TryParse(out TKOM.Node.Program program);
 if (programIsCorrect)

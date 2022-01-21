@@ -10,6 +10,7 @@
         public void Visit(IfStatement ifStatement);
         public void Visit(TryCatchFinally tryCatchFinally);
         public void Visit(WhileStatement whileStatement);
+        public void Visit(BreakStatement breakStatement);
         public void Visit(Assignment assignment);
         public void Visit(Declaration declaration);
         public void Visit(FunctionCall functionCall);

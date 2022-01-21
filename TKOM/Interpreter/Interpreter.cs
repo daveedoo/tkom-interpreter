@@ -20,10 +20,12 @@ namespace TKOM.Interpreter
         private Stack<FunctionCallContext> CallStack { get; }
         private FunctionsCollection Functions { get; }
 
-        private bool error;
-        private bool returned;              // set by ReturnStatement only
-        private bool thrown;                // set by ThrownStatement only
-        private IValueReference lastExpressionValue; // set by all Expressions, only
+        private bool error = false;
+        private bool returned = false;          // set by ReturnStatement only
+        private bool thrown = false;            // set by ThrownStatement only
+        private bool looping = false;           // set by WhileStatement only
+        private bool loopBroken = false;        // set by BreakStatement only
+        private IValueReference lastExpressionValue = null; // set by all Expressions, only
         private static readonly string exceptionVariableName = "$exception";
         private static readonly string printVariableName = "$print";
         private static readonly string readVariableName = "$read";
@@ -42,11 +44,6 @@ namespace TKOM.Interpreter
             ErrorHandler = errorHandler;
             CallStack = new Stack<FunctionCallContext>();
             Functions = new FunctionsCollection();
-
-            error = false;
-            returned = false;
-            thrown = false;
-            lastExpressionValue = null;
 
             SetupBuiltinFunctions();
         }
@@ -111,7 +108,7 @@ namespace TKOM.Interpreter
             foreach (IStatement statement in block.Statements)
             {
                 statement.Accept(this);
-                if (returned)
+                if (returned || loopBroken)
                     break;
                 if (thrown || error)
                     return;
@@ -249,23 +246,41 @@ namespace TKOM.Interpreter
         }
         public void Visit(WhileStatement whileStatement)
         {
+            if (whileStatement.Statement is Declaration)
+            {
+                Error($"Embedded statement cannot be a declaration.");
+                return;
+            }
+
             if (!EvaluateCondition(whileStatement.Condition, out int conditionValue))
                 return;
 
+            if (conditionValue != 0)
+                looping = true;
             while (conditionValue != 0)
             {
-                if (whileStatement.Statement is Declaration)
-                {
-                    Error($"Embedded statement cannot be a declaration.");
-                    return;
-                }
                 whileStatement.Statement.Accept(this);
                 if (thrown || error || returned)
                     break;
+                if (loopBroken)
+                {
+                    loopBroken = false;
+                    break;
+                }
 
                 if (!EvaluateCondition(whileStatement.Condition, out conditionValue))
                     return;
             }
+            looping = false;
+        }
+        public void Visit(BreakStatement breakStatement)
+        {
+            if (!looping)
+            {
+                Error("No enclosing loop out of which to break.");
+                return;
+            }
+            loopBroken = true;
         }
         #endregion
 
@@ -386,6 +401,8 @@ namespace TKOM.Interpreter
             for (int i = 0; i < argsValues.Count; i++)
                 arguments.Add(new Variable(function.Parameters[i].Name, argsValues[i]));
 
+            bool returnLooping = looping;
+            looping = false;
             CallStack.Push(new FunctionCallContext(function, arguments.ToArray()));
 
             function.Accept(this);
@@ -399,6 +416,7 @@ namespace TKOM.Interpreter
                 return;
             }
             returned = false;
+            looping = returnLooping;
 
             CallStack.Pop();
         }

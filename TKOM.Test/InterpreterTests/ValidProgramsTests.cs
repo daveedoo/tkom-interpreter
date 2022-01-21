@@ -499,6 +499,73 @@ namespace TKOMTest.InterpreterTests
             errorHandler.errorsCount.ShouldBe(0);
             output.ShouldBe(string.Empty);
         }
+        [Fact]
+        public void BreakStatement()
+        {
+            // int a;
+            // a = 1;
+            // while (1)
+            // {
+            //     if (!a)
+            //         break;
+            //     a = a - 1;
+            // }
+            // print(a);
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new Declaration(Type.Int, "a"),
+                new Assignment("a", new IntConst(1)),
+                new WhileStatement(new IntConst(1), new Block(new List<IStatement>
+                {
+                    new IfStatement(new UnaryOperator(UnaryOperatorType.LogicalNegation, new Variable("a")),
+                        new BreakStatement()),
+                    new Assignment("a", new AdditiveOperator(new Variable("a"), AdditiveOperatorType.Subtract, new IntConst(1)))
+                })),
+                new FunctionCall("print", new List<IExpression>{ new Variable("a")})
+            });
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("0");
+        }
+        [Fact]
+        public void BreakStatement_InsideOfBlockStatement()
+        {
+            // int a;
+            // a = 1;
+            // while (1)
+            // {
+            //     if (!a)
+            //     {
+            //         break;
+            //         print("A");
+            //     }
+            //     a = a - 1;
+            // }
+            // print(a);
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new Declaration(Type.Int, "a"),
+                new Assignment("a", new IntConst(1)),
+                new WhileStatement(new IntConst(1), new Block(new List<IStatement>
+                {
+                    new IfStatement(new UnaryOperator(UnaryOperatorType.LogicalNegation, new Variable("a")),
+                        new Block(new List<IStatement>
+                        {
+                            new BreakStatement(),
+                            new FunctionCall("print", new List<IExpression>{ new StringConst("A")})
+                        }),
+                    new Assignment("a", new AdditiveOperator(new Variable("a"), AdditiveOperatorType.Subtract, new IntConst(1))))
+                })),
+                new FunctionCall("print", new List<IExpression>{ new Variable("a")})
+            });
+            program.Accept(sut);
+            string output = outputCollector.GetOutput();
+
+            errorHandler.errorsCount.ShouldBe(0);
+            output.ShouldBe("0");
+        }
         #endregion
 
         [Fact]

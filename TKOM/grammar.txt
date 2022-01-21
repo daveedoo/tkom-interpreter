@@ -18,6 +18,7 @@ statement           : simple_statement ";"
                     ;
 simple_statement    : declaration
                     | return
+                    | "break"
                     | throw
                     | assignment
                     | function_call

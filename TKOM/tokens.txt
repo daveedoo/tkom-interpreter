@@ -4,8 +4,7 @@ STRING          ".*"
 
 "void", "int", 
 "return",
-"if", "else", "while",
-"read", "print",
+"if", "else", "while", "break"
 "try", "catch", "finally", "throw", "when", "Exception",
 "(", ")",
 "{", "}",

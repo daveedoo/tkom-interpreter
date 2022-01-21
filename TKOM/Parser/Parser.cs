@@ -195,6 +195,8 @@ namespace TKOM.Parser
                 statement = declaration;
             else if (TryParseReturnStatement(out ReturnStatement returnStatement))          //                     | return
                 statement = returnStatement;
+            else if (TryParseToken(Token.Break, false))                                     //                     | break
+                statement = new BreakStatement();
             else if (TryParseThrowStatement(out ThrowStatement throwStatement))             //                     | throw
                 statement = throwStatement;
             else if (!TryParse_Assignment_FunctionCall(out statement))                      //                     | assignment | function_call
