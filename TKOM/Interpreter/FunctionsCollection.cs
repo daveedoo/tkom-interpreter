@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using TKOM.Node;
+using Type = TKOM.Node.Type;
 
 namespace TKOM.Interpreter
 {
@@ -15,18 +16,32 @@ namespace TKOM.Interpreter
         /// Adds the <paramref name="function"/> to the collection if its call will not be ambiguous between any other in the collection.
         /// </summary>
         /// <param name="function"></param>
-        /// <returns><c>true</c> on success, <c>false</c> else.</returns>
+        /// <exception cref="InvalidOperationException">Collection already contains a function ambiguous with <paramref name="function"/>.</exception>
+        public void Add(Function function)
+        {
+            var funs = functions.ToList();
+            for (int i = 0; i < functions.Count; i++)
+            {
+                var paramTypes = funs[i].Parameters.Select(p => p.Type).ToList();
+                if (function.CanBeCalledLike(funs[i].Name, paramTypes))
+                    throw new InvalidOperationException($"{nameof(FunctionsCollection)} already contains a function ambiguous with {function.Name}");
+            }
+
+            functions.Add(function);
+        }
+        /// <summary>
+        /// Adds the <paramref name="function"/> to the collection if its call will not be ambiguous between any other in the collection.
+        /// </summary>
+        /// <param name="function"></param>
+        /// <returns>Information of the <paramref name="function"/> was added successfully.</returns>
         public bool TryAdd(Function function)
         {
             var funs = functions.ToList();
             for (int i = 0; i < functions.Count; i++)
             {
                 var paramTypes = funs[i].Parameters.Select(p => p.Type).ToList();
-                for (int j = i + 1; j < functions.Count; j++)
-                {
-                    if (funs[j].CanBeCalledLike(funs[i].Name, paramTypes))
-                        return false;
-                }
+                if (function.CanBeCalledLike(funs[i].Name, paramTypes))
+                    return false;
             }
 
             functions.Add(function);

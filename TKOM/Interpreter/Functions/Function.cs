@@ -10,7 +10,7 @@ namespace TKOM.Interpreter
         public string Name { get; }
         public IList<Parameter> Parameters { get; }
 
-        public Function(Type returnType, string name, IList<Parameter> parameters)
+        public Function(Type returnType, string name, params Parameter[] parameters)
         {
             ReturnType = returnType;
             Name = name;

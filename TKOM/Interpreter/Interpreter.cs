@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using TKOM.ErrorHandler;
 using TKOM.Node;
 using Type = TKOM.Node.Type;
@@ -14,6 +15,7 @@ namespace TKOM.Interpreter
     public class Interpreter : INodeVisitor
     {
         private TextWriter StdOut { get; }
+        private TextReader StdIn { get; }
         private IErrorHandler ErrorHandler { get; }
         private Stack<FunctionCallContext> CallStack { get; }
         private FunctionsCollection Functions { get; }
@@ -24,6 +26,7 @@ namespace TKOM.Interpreter
         private IValue lastExpressionValue; // set by all Expressions, only
         private static readonly string exceptionVariableName = "$exception";
         private static readonly string printVariableName = "$print";
+        private static readonly string readVariableName = "$read";
         public bool ConsumeLastExpressionValue(out IValue value)
         {
             value = lastExpressionValue;
@@ -32,8 +35,9 @@ namespace TKOM.Interpreter
         }
 
 
-        public Interpreter(IErrorHandler errorHandler, TextWriter stdOut)
+        public Interpreter(IErrorHandler errorHandler, TextWriter stdOut, TextReader stdIn)
         {
+            StdIn = stdIn;
             StdOut = stdOut;
             ErrorHandler = errorHandler;
             CallStack = new Stack<FunctionCallContext>();
@@ -48,9 +52,9 @@ namespace TKOM.Interpreter
         }
         private void SetupBuiltinFunctions()
         {
-            if (!Functions.TryAdd(new PrintFunction(Type.Int, printVariableName)) ||
-                !Functions.TryAdd(new PrintFunction(Type.String, printVariableName)))
-                throw new Exception($"{nameof(Functions)} already contains a function ambiguous with {nameof(PrintFunction)}");
+            Functions.Add(new PrintFunction(Type.Int, printVariableName));
+            Functions.Add(new PrintFunction(Type.String, printVariableName));
+            Functions.Add(new ReadFunction(Type.Int, readVariableName));
         }
         private void Error(string message)
         {
@@ -151,8 +155,8 @@ namespace TKOM.Interpreter
         {
             if (catchBlock.ExceptionVariableName is not null)
             {
-                CallStack.Peek().TryFindVariable(exceptionVariableName, out IValue exceptionValue);
-                CallStack.Peek().AddVariable(catchBlock.ExceptionVariableName, exceptionValue);
+                CallStack.Peek().TryFindVariable(exceptionVariableName, out Variable exceptionVariable);
+                CallStack.Peek().AddVariable(new Variable(catchBlock.ExceptionVariableName, exceptionVariable.Value));
                 CallStack.Peek().RemoveVariable(exceptionVariableName);
             }
 
@@ -272,16 +276,36 @@ namespace TKOM.Interpreter
         }
         public void Visit(PrintFunction p)
         {
-            CallStack.Peek().TryFindVariable(p.Parameters[0].Name, out IValue value);
+            CallStack.Peek().TryFindVariable(p.Parameters[0].Name, out Variable variable);
 
-            StdOut.Write(value.Value);
+            StdOut.Write(variable.Value.Value);
+        }
+        public void Visit(ReadFunction readFunction)
+        {
+            CallStack.Peek().TryFindVariable(readFunction.Parameters[0].Name, out Variable variable);
+            if (variable.Value.Type != Type.Int)
+            {
+                Error($"");
+                return;
+            }
+
+            StringBuilder readNumber = new();
+            int readChar = StdIn.Read();
+            while (readChar != -1 && char.IsDigit((char)readChar))
+            {
+                readNumber.Append((char)readChar);
+                readChar = StdIn.Read();
+            }
+
+            int val = int.Parse(readNumber.ToString());
+            (variable.Value as IntValue).SetIntValue(val);
         }
         #endregion
 
         #region Simple statements
         public void Visit(Assignment assignment)
         {
-            if (!CallStack.Peek().TryFindVariable(assignment.VariableName, out IValue value))
+            if (!CallStack.Peek().TryFindVariable(assignment.VariableName, out Variable variable))
             {
                 Error($"The variable {assignment.VariableName} does not exist in the current context.");
                 return;
@@ -291,14 +315,21 @@ namespace TKOM.Interpreter
             if (error)
                 return;
 
-            if (!ConsumeLastExpressionValue(out IValue varValue) || varValue.Type != value.Type)
+            if (!ConsumeLastExpressionValue(out IValue varValue) || varValue.Type != variable.Value.Type)
             {
                 string expType = varValue is null ? "void" : varValue.Type.ToString();
-                Error($"Cannot assign value of type {expType} to variable '{assignment.VariableName}' of type {value.Type}.");
+                Error($"Cannot assign value of type {expType} to variable '{assignment.VariableName}' of type {variable.Value.Type}.");
                 return;
             }
 
-            CallStack.Peek().SetVariable(assignment.VariableName, varValue);
+            switch (variable.Value.Type)
+            {
+                case Type.Int:
+                    (variable.Value as IntValue).SetIntValue((int)varValue.Value);
+                    break;
+                default:
+                    throw new Exception($"Invalid assignment. Trying to assign to illegal variable of type {variable.Value.Type.ToString().ToLower()}");
+            }
         }
         public void Visit(Declaration declaration)
         {
@@ -310,7 +341,7 @@ namespace TKOM.Interpreter
 
             IValue value = ValuesCreator.CreateValue(declaration.Type);
 
-            CallStack.Peek().AddVariable(declaration.Name, value);
+            CallStack.Peek().AddVariable(new Variable(declaration.Name, value));
         }
         private IList<IValue> EvaluateExpressions(params IExpression[] expressions)
         {
@@ -352,11 +383,11 @@ namespace TKOM.Interpreter
                 return;
             }
 
-            IDictionary<string, IValue> arguments = new Dictionary<string, IValue>();
+            IList<Variable> arguments = new List<Variable>();
             for (int i = 0; i < argsValues.Count; i++)
-                arguments.Add(function.Parameters[i].Name, argsValues[i]);
+                arguments.Add(new Variable(function.Parameters[i].Name, argsValues[i]));
 
-            CallStack.Push(new FunctionCallContext(function, arguments));
+            CallStack.Push(new FunctionCallContext(function, arguments.ToArray()));
 
             function.Accept(this);
             if (thrown || error)
@@ -392,20 +423,20 @@ namespace TKOM.Interpreter
                 Error($"Cannot throw value of type different than {Type.Int}.");
                 return;
             }
-            CallStack.Peek().AddVariable(exceptionVariableName, value);
+            CallStack.Peek().AddVariable(new Variable(exceptionVariableName, value));
             thrown = true;
         }
         #endregion
 
-        public void Visit(Variable variable)
+        public void Visit(Node.Variable variable)
         {
-            if (!CallStack.Peek().TryFindVariable(variable.Identifier, out IValue value))
+            if (!CallStack.Peek().TryFindVariable(variable.Identifier, out Variable var))
             {
                 Error($"The variable {variable.Identifier} does not exist in the current context.");
                 return;
             }
 
-            lastExpressionValue = value;
+            lastExpressionValue = var.Value;
         }
         public void Visit(IntConst intConst)
         {

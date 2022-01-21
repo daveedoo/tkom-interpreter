@@ -5,7 +5,7 @@ namespace TKOM.Interpreter
     public class IntValue : IValue
     {
         public Type Type { get; } = Type.Int;
-        public object Value { get; }
+        public object Value { get; private set; }
 
         public IntValue(int value = 0)
         {
@@ -20,6 +20,11 @@ namespace TKOM.Interpreter
         public int GetIntValue()
         {
             return (Value as int?).Value;
+        }
+
+        public void SetIntValue(int newValue)
+        {
+            Value = newValue;
         }
     }
 }

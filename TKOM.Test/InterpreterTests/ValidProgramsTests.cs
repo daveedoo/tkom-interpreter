@@ -8,6 +8,11 @@ namespace TKOMTest.InterpreterTests
 {
     public class ValidProgramsTests : InterpreterTestsBase
     {
+        public ValidProgramsTests()
+        {
+            SetInterpreter();
+        }
+
         #region Builtin functions
         [Fact]
         public void PrintIntValue()

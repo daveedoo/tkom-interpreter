@@ -8,8 +8,10 @@ namespace TKOMTest.InterpreterTests
 {
     public class InvalidProgramsTests : InterpreterTestsBase
     {
-        public InvalidProgramsTests() : base()
-        { }
+        public InvalidProgramsTests()
+        {
+            SetInterpreter();
+        }
 
         [Fact]
         public void AmbigousFunctionDefinitions()

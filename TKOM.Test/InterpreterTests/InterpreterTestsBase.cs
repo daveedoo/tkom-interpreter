@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using TKOM.Interpreter;
 using TKOM.Node;
 using Type = TKOM.Node.Type;
@@ -7,15 +8,14 @@ namespace TKOMTest.InterpreterTests
 {
     public abstract class InterpreterTestsBase
     {
-        protected readonly ErrorCollector errorHandler;
-        protected readonly OutputCollector outputCollector;
-        protected readonly Interpreter sut;
+        protected readonly ErrorCollector errorHandler = new();
+        protected readonly OutputCollector outputCollector = new();
+        private Interpreter _sut;
+        protected Interpreter sut { get => _sut; }
 
-        public InterpreterTestsBase()
+        protected void SetInterpreter(string input = "")
         {
-            errorHandler = new ErrorCollector();
-            outputCollector = new OutputCollector();
-            sut = new Interpreter(errorHandler, outputCollector);
+            _sut = new Interpreter(errorHandler, outputCollector, new StringReader(input));
         }
 
         public static Program BuildMainOnlyProgram(List<IStatement> statements)

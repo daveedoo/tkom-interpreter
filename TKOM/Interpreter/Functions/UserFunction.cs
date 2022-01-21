@@ -1,4 +1,5 @@
-﻿using TKOM.Node;
+﻿using System.Linq;
+using TKOM.Node;
 
 namespace TKOM.Interpreter
 {
@@ -6,7 +7,7 @@ namespace TKOM.Interpreter
     {
         private FunctionDefinition FunctionDefinition { get; }
 
-        public UserFunction(FunctionDefinition function) : base(function.ReturnType, function.Name, function.Parameters)
+        public UserFunction(FunctionDefinition function) : base(function.ReturnType, function.Name, function.Parameters.ToArray())
         {
             FunctionDefinition = function;
         }

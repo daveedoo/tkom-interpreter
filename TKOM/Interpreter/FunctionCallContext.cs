@@ -3,37 +3,53 @@ using System.Linq;
 
 namespace TKOM.Interpreter
 {
+    internal class Variable
+    {
+        public string Name { get; }
+        public IValue Value { get; }
+
+        public Variable(string name, IValue value)
+        {
+            Name = name;
+            Value = value;
+        }
+
+        public void ChangeReferencedValue()
+        {
+
+        }
+    }
+
     internal class Scope
     {
-        private IDictionary<string, IValue> Variables { get; }
+        private HashSet<Variable> Variables { get; }
 
         public Scope()
         {
-            Variables = new Dictionary<string, IValue>();
+            Variables = new HashSet<Variable>();
         }
-        public Scope(IDictionary<string, IValue> initialVariables)
+        public Scope(params Variable[] initialVariables)
         {
-            Variables = initialVariables;
+            Variables = new HashSet<Variable>(initialVariables);
         }
 
-        public void AddVariable(string name, IValue value)
+        public void AddVariable(Variable variable)
         {
-            Variables.Add(name, value);
+            Variables.Add(variable);
         }
 
         public bool RemoveVariable(string name)
         {
-            return Variables.Remove(name);
+            return Variables.RemoveWhere(v => v.Name == name) > 0;
         }
 
-        public bool TryFindVariable(string name, out IValue value)
+        public bool TryFindVariable(string name, out Variable variable)
         {
-            return Variables.TryGetValue(name, out value);
-        }
-
-        public void SetVariable(string name, IValue value)
-        {
-            Variables[name] = value;
+            IEnumerable<Variable> vars = from v in Variables
+                                         where v.Name == name
+                                         select v;
+            variable = vars.SingleOrDefault();
+            return variable is not null;
         }
     }
 
@@ -42,7 +58,7 @@ namespace TKOM.Interpreter
         private IList<Scope> Scopes { get; }
         public Function CalledFunction { get; }
 
-        public FunctionCallContext(Function calledFunction, IDictionary<string, IValue> initialVariables)
+        public FunctionCallContext(Function calledFunction, params Variable[] initialVariables)
         {
             Scopes = new List<Scope>
             {
@@ -60,9 +76,9 @@ namespace TKOM.Interpreter
             Scopes.RemoveAt(Scopes.Count - 1);
         }
 
-        public void AddVariable(string name, IValue value)
+        public void AddVariable(Variable variable)
         {
-            Scopes.Last().AddVariable(name, value);
+            Scopes.Last().AddVariable(variable);
         }
 
         public bool RemoveVariable(string name)
@@ -70,7 +86,7 @@ namespace TKOM.Interpreter
             return Scopes.Last().RemoveVariable(name);
         }
 
-        public bool TryFindVariable(string name, out IValue variable)
+        public bool TryFindVariable(string name, out Variable variable)
         {
             variable = null;
             foreach (Scope scope in Scopes)
@@ -79,12 +95,6 @@ namespace TKOM.Interpreter
                     return true;
             }
             return false;
-        }
-
-        public void SetVariable(string name, IValue value)
-        {
-            Scope scope = Scopes.Single(s => s.TryFindVariable(name, out _));
-            scope.SetVariable(name, value);
         }
     }
 }

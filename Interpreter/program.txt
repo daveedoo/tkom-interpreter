@@ -1,12 +1,9 @@
 ﻿
-void foo()
-{
-	throw 4;
-}
 int main()
 {
-	print("2\n");
-	foo();
+	int a;
+	read(a);
+	print(a);
 }
 
 
