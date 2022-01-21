@@ -6,7 +6,7 @@ using Type = TKOM.Node.Type;
 namespace TKOM.Interpreter
 {
     /// <summary>
-    /// Keeps track of the functions so that the collection cannot contain two functions called in the same way.
+    /// Collection, that keeps track of the functions so that it cannot contain two functions called in the same way.
     /// </summary>
     internal class FunctionsCollection
     {
@@ -14,6 +14,7 @@ namespace TKOM.Interpreter
 
         /// <summary>
         /// Adds the <paramref name="function"/> to the collection if its call will not be ambiguous between any other in the collection.
+        /// Throws an exception if the the operation is not possible.
         /// </summary>
         /// <param name="function"></param>
         /// <exception cref="InvalidOperationException">Collection already contains a function ambiguous with <paramref name="function"/>.</exception>
@@ -49,7 +50,7 @@ namespace TKOM.Interpreter
         }
         /// <summary>
         /// Return <c>true</c> and sets <paramref name="function"/> accordingly if the collection contains
-        /// a function with given <paramref name="name"/> and <paramref name="types"/>.<br></br>
+        /// a function with given <paramref name="name"/> and parameters of types <paramref name="types"/>.<br></br>
         /// Return <c>false</c> and sets <paramref name="function"/> to <c>null</c> if the function was not found.
         /// </summary>
         public bool TryGet(string name, IList<Type> types, out Function function)
