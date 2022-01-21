@@ -3,7 +3,7 @@ using TKOM.ErrorHandler;
 
 namespace TKOMTest
 {
-    public class ErrorCollector : IErrorHandler
+    public class ErrorsCollector : IErrorHandler
     {
         private List<(LexLocation, string)> errorsList = new List<(LexLocation, string)>();
         private List<string> noLocationErrorsList = new List<string>();
@@ -13,7 +13,7 @@ namespace TKOMTest
         private List<string> noLocationWarningsList = new List<string>();
         public int warningsCount => warningsList.Count + noLocationWarningsList.Count;
 
-        public ErrorCollector() { }
+        public ErrorsCollector() { }
 
         public void Error(LexLocation location, string message)
         {

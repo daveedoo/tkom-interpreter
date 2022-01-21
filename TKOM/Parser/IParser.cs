@@ -1,5 +1,4 @@
 ﻿using TKOM.Node;
-using TKOM.Scanner;
 
 namespace TKOM.Parser
 {

@@ -21,7 +21,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("10");
         }
         [Fact]
@@ -38,7 +38,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("10");
         }
         [Fact]
@@ -54,7 +54,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
     }
 }

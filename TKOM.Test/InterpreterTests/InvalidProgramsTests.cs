@@ -35,7 +35,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void ProgramWithoutEntryPoint()
@@ -50,7 +50,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void FunctionWithNotVoidReturnType_WithoutReturnStatement()
@@ -65,7 +65,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void FunctionWithNotVoidReturnType_WithEmptyReturnStatement()
@@ -80,7 +80,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void CallingErroneousFunction_ThrowsOneErrorOnly()
@@ -102,7 +102,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void FunctionCallWithInvalidParameter_OneErrorOnly()
@@ -119,7 +119,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
 
         [Fact]
@@ -133,7 +133,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void AssignmentToNonexistingVariable()
@@ -145,7 +145,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void AssignmentOfNonexistingVariable()
@@ -158,7 +158,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void AssignmentOfVoidFunctionCall()
@@ -177,7 +177,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
 
         #region operators
@@ -193,7 +193,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void LogicalOr_RightInvalid_OneErrorOnly()
@@ -207,7 +207,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void LogicalOr_LeftIsNotIntType()
@@ -223,7 +223,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void LogicalOr_RightIsNotIntType()
@@ -239,7 +239,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
 
         [Fact]
@@ -254,7 +254,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void LogicalAnd_LeftIsNotIntType()
@@ -270,7 +270,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void LogicalAnd_RightIsNotIntType()
@@ -286,7 +286,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
 
         [Fact]
@@ -304,7 +304,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void EqualityOperator_RightIsNotIntType()
@@ -321,7 +321,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void EqualityOperator_LeftInvalid_OneErrorOnly()
@@ -335,7 +335,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
 
         [Fact]
@@ -353,7 +353,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void RelationOperator_RightIsNotIntType()
@@ -370,7 +370,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void RelationOperator_LeftInvalid_OneErrorOnly()
@@ -384,7 +384,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
 
         [Fact]
@@ -402,7 +402,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void AdditiveOperator_RightIsNotIntType()
@@ -419,7 +419,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void AdditiveOperator_LeftInvalid_OneErrorOnly()
@@ -433,7 +433,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void AdditiveOperator_Add_CheckedForIntOverflow()
@@ -450,7 +450,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void AdditiveOperator_Subtract_CheckedForIntOverflow()
@@ -467,7 +467,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
 
         [Fact]
@@ -485,7 +485,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void MultiplicativeOperator_RightIsNotIntType()
@@ -502,7 +502,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void MultiplicativeOperator_LeftInvalid_OneErrorOnly()
@@ -516,7 +516,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void MultiplicativeOperator_Multiply_CheckedForIntOverflow()
@@ -533,7 +533,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void MultiplicativeOperator_Divide_CheckedForIntOverflow()
@@ -550,7 +550,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
 
         [Fact]
@@ -567,7 +567,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void UnaryOperator_ExpressionInvalid_OneErrorOnly()
@@ -581,7 +581,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         #endregion
 
@@ -598,7 +598,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
             output.ShouldBe(string.Empty);
         }
         [Fact]
@@ -613,7 +613,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
             output.ShouldBe(string.Empty);
         }
         [Fact]
@@ -627,7 +627,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void IfStatement_ElseStatementIsDeclaration()
@@ -642,7 +642,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         #endregion
 
@@ -659,7 +659,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
             output.ShouldBe(string.Empty);
         }
         [Fact]
@@ -674,7 +674,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
             output.ShouldBe(string.Empty);
         }
         [Fact]
@@ -688,7 +688,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void WhileStatement_InvalidEmbeddedStatement_OneErrorOnly()
@@ -701,7 +701,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void BreakStatement_OutsideOfWhileStatement()
@@ -712,7 +712,7 @@ namespace TKOMTest.InterpreterTests
             });
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void BreakStatement_InsideOfCalledFunction_AndOutsideOfWhileStatement()
@@ -733,7 +733,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         #endregion
 
@@ -747,7 +747,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
 
         #region TryCatchFinally statement
@@ -767,7 +767,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void TryCatchStatement_WhenExpressionIsNotIntType()
@@ -785,7 +785,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void TryCatchStatement_WhenWhenStatementBlockHasError_OneErrorOnly()
@@ -814,7 +814,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
             output.ShouldBe(string.Empty);
         }
         [Fact]
@@ -835,7 +835,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void TryCatchStatement_CatchWithoutWhen_EmbeddedStatementIsDeclaration()
@@ -857,7 +857,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void TryCatchStatement_CatchWithWhen_EmbeddedStatementIsDeclaration()
@@ -880,7 +880,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
         [Fact]
         public void TryCatchStatement_FinallyEmbeddedStatementIsDeclaration()
@@ -904,7 +904,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(1);
+            errorsCollector.errorsCount.ShouldBe(1);
         }
 
         #endregion

@@ -5,7 +5,7 @@ using Xunit;
 
 namespace TKOMTest.ParserTests
 {
-    public class InvalidPrograms : ParserTests
+    public class InvalidPrograms : ParserTestsBase
     {
         public static TheoryData<string> invalidPrograms => new TheoryData<string>
         {
@@ -67,8 +67,8 @@ namespace TKOMTest.ParserTests
 
             parser.TryParse(out Program _);
 
-            System.Console.WriteLine(errorHandler.errorsCount);
-            errorHandler.errorsCount.ShouldBeGreaterThan(0);
+            System.Console.WriteLine(errorsCollector.errorsCount);
+            errorsCollector.errorsCount.ShouldBeGreaterThan(0);
         }
     }
 }

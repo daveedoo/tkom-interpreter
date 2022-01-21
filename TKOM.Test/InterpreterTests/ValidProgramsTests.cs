@@ -25,7 +25,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("10");
         }
         [Fact]
@@ -39,7 +39,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("abcd");
         }
         #endregion
@@ -57,7 +57,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("7");
         }
         [Fact]
@@ -75,7 +75,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("123");
         }
 
@@ -94,7 +94,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("1");
         }
         [Fact]
@@ -111,7 +111,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("1");
         }
         [Fact]
@@ -128,7 +128,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("0");
         }
 
@@ -146,7 +146,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("1");
         }
         [Fact]
@@ -163,7 +163,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("0");
         }
         [Fact]
@@ -180,7 +180,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("0");
         }
 
@@ -198,7 +198,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("1");
         }
         [Fact]
@@ -215,7 +215,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("1");
         }
 
@@ -233,7 +233,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("1");
         }
         [Fact]
@@ -250,7 +250,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("1");
         }
         [Fact]
@@ -267,7 +267,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("1");
         }
         [Fact]
@@ -284,7 +284,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("1");
         }
 
@@ -302,7 +302,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("2");
         }
         [Fact]
@@ -319,7 +319,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("0");
         }
 
@@ -337,7 +337,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("35");
         }
         [Fact]
@@ -354,7 +354,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("5");
         }
 
@@ -372,7 +372,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("-5");
         }
         [Fact]
@@ -389,7 +389,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("0");
         }
         #endregion
@@ -407,7 +407,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("success");
         }
         [Fact]
@@ -423,7 +423,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("failure");
         }
         [Fact]
@@ -440,7 +440,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe(string.Empty);
         }
         #endregion
@@ -458,7 +458,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe(string.Empty);
         }
         [Fact]
@@ -478,7 +478,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("21");
         }
         [Fact]
@@ -496,7 +496,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe(string.Empty);
         }
         [Fact]
@@ -526,7 +526,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("0");
         }
         [Fact]
@@ -563,7 +563,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("0");
         }
         #endregion
@@ -588,7 +588,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("a");
         }
 
@@ -608,7 +608,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe(string.Empty);
         }
         [Fact]
@@ -626,7 +626,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe(string.Empty);
         }
         [Fact]
@@ -650,7 +650,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe(string.Empty);
         }
         [Fact]
@@ -673,7 +673,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe(string.Empty);
         }
         #endregion
@@ -695,7 +695,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("a");
         }
         [Fact]
@@ -717,7 +717,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("a");
         }
         [Fact]
@@ -737,7 +737,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("A");
         }
         [Fact]
@@ -787,7 +787,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("B");
         }
         [Fact]
@@ -821,7 +821,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("B");
         }
         [Fact]
@@ -849,7 +849,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("A");
         }
         [Fact]
@@ -878,7 +878,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe(string.Empty);
         }
         [Fact]
@@ -938,7 +938,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("BC");
         }
 
@@ -969,7 +969,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("A");
         }
         [Fact]
@@ -997,7 +997,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("A");
         }
 
@@ -1018,7 +1018,7 @@ namespace TKOMTest.InterpreterTests
             program.Accept(sut);
             string output = outputCollector.GetOutput();
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("-8");
         }
         [Fact]
@@ -1042,7 +1042,7 @@ namespace TKOMTest.InterpreterTests
 
             program.Accept(sut);
 
-            errorHandler.errorsCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         #endregion
     }
