@@ -6,9 +6,13 @@ void main()
     // read(a);
     // print(fibb(a));
 
+// reads two numbers
     // numbers();
 
+// reads choinka's level
     // choinka();
+
+// reads 1 number
     foo();
 }
 
