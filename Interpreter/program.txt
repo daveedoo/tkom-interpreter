@@ -10,10 +10,10 @@ void main()
     // numbers();
 
 // reads choinka's level
-    // choinka();
+    choinka();
 
 // reads 1 number
-    foo();
+    // foo();
 }
 
 int fibb(int n)

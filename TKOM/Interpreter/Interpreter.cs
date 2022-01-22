@@ -581,14 +581,12 @@ namespace TKOM.Interpreter
             };
             lastExpressionValue = ValuesFactory.CreateValue(value);
         }
-        public void Visit(AdditiveOperator additiveOperator)
-        {
-            if (!EvaluateBinaryOperator(additiveOperator, out IValueReference leftValue, out IValueReference rightValue))
-                return;
 
+        public void VisitAdditiveOperator_OnIntegers(IValueReference leftValue, IValueReference rightValue, AdditiveOperatorType operatorType)
+        {
             if (leftValue.Type != Type.Int || rightValue.Type != Type.Int)
             {
-                Error($"Both sides of additive expression must be of {Type.Int} type.");
+                Error($"Both sides of additive expression must be of {Type.Int.ToString().ToLower()} or {Type.String.ToString().ToLower()} type.");
                 return;
             }
 
@@ -597,11 +595,11 @@ namespace TKOM.Interpreter
             int value;
             try
             {
-                value = additiveOperator.OperatorType switch
+                value = operatorType switch
                 {
                     AdditiveOperatorType.Add => checked(left + right),
                     AdditiveOperatorType.Subtract => checked(left - right),
-                    _ => throw new ArgumentException("Invalid additive operator type.", nameof(additiveOperator))
+                    _ => throw new ArgumentException("Invalid additive operator type.", nameof(operatorType))
                 };
             }
             catch (OverflowException)
@@ -612,12 +610,43 @@ namespace TKOM.Interpreter
 
             lastExpressionValue = ValuesFactory.CreateValue(value);
         }
+        public static bool TryStringConcatenation(IValueReference leftValue, IValueReference rightValue, out StringValueReference resultValue)
+        {
+            if (leftValue.Type == Type.String || rightValue.Type == Type.String)
+            {
+                resultValue = ValuesFactory.CreateValue($"{leftValue.Value}{rightValue.Value}");
+                return true;
+            }
+            resultValue = null;
+            return false;
+        }
+        public void Visit(AdditiveOperator additiveOperator)
+        {
+            if (!EvaluateBinaryOperator(additiveOperator, out IValueReference leftValue, out IValueReference rightValue))
+                return;
+
+            if (leftValue is null || rightValue is null)
+            {
+                Error($"Both sides of additive expression must be of {Type.Int.ToString().ToLower()} or {Type.String.ToString().ToLower()} type.");
+                return;
+            }
+
+            if (additiveOperator.OperatorType == AdditiveOperatorType.Add &&
+                TryStringConcatenation(leftValue, rightValue, out StringValueReference concatenatedValue))
+            {
+                lastExpressionValue = concatenatedValue;
+                return;
+            }
+
+            VisitAdditiveOperator_OnIntegers(leftValue, rightValue, additiveOperator.OperatorType);
+        }
         public void Visit(MultiplicativeOperator multiplicativeOperator)
         {
             if (!EvaluateBinaryOperator(multiplicativeOperator, out IValueReference leftValue, out IValueReference rightValue))
                 return;
 
-            if (leftValue.Type != Type.Int || rightValue.Type != Type.Int)
+            if (leftValue is null || rightValue is null ||
+                leftValue.Type != Type.Int || rightValue.Type != Type.Int)
             {
                 Error($"Both sides of multiplicative expression must be of {Type.Int} type.");
                 return;

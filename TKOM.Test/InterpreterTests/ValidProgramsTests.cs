@@ -392,6 +392,22 @@ namespace TKOMTest.InterpreterTests
             errorsCollector.errorsCount.ShouldBe(0);
             output.ShouldBe("0");
         }
+
+        [Fact]
+        public void AdditiveOperator_Add_OnString()
+        {
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new FunctionCall("print", new List<IExpression>{
+                    new AdditiveOperator(new StringConst("A"), AdditiveOperatorType.Add, new IntConst(2))})
+            });
+
+            sut.Interpret(program);
+            string output = outputCollector.GetOutput();
+
+            errorsCollector.errorsCount.ShouldBe(0);
+            output.ShouldBe("A2");
+        }
         #endregion
 
         #region IfStatement
