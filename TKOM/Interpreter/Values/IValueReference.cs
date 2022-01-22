@@ -5,7 +5,7 @@ namespace TKOM.Interpreter
     public interface IValueReference
     {
         public Type Type { get; }
-        public object Value { get; }
+        public object Value { get; set; }
         public bool IsEqualTo(object val);
         public IValueReference Clone();
     }

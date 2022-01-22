@@ -368,7 +368,7 @@ namespace TKOM.Interpreter
                 return;
             }
 
-            variable.ValueReference = rhsValueRef.Clone();
+            variable.ValueReference.Value = rhsValueRef.Value;
         }
         public void Visit(Declaration declaration)
         {
@@ -411,10 +411,10 @@ namespace TKOM.Interpreter
         }
         public void Visit(FunctionCall functionCall)
         {
-            IList<IValueReference> argsValues = EvaluateExpressions(functionCall.Arguments.ToArray());
+            IList<IValueReference> argsValueReferences = EvaluateExpressions(functionCall.Arguments.ToArray());
             if (thrown || error)
                 return;
-            IList<Type> argsTypes = argsValues.Select(t => t.Type).ToList();
+            IList<Type> argsTypes = argsValueReferences.Select(t => t.Type).ToList();
 
             if (!Functions.TryGet(functionCall.Identifier, argsTypes, out Function function))
             {
@@ -423,8 +423,8 @@ namespace TKOM.Interpreter
             }
 
             IList<Variable> arguments = new List<Variable>();
-            for (int i = 0; i < argsValues.Count; i++)
-                arguments.Add(new Variable(function.Parameters[i].Name, argsValues[i]));
+            for (int i = 0; i < argsValueReferences.Count; i++)
+                arguments.Add(new Variable(function.Parameters[i].Name, argsValueReferences[i]));
 
             bool returnLooping = looping;
             looping = false;

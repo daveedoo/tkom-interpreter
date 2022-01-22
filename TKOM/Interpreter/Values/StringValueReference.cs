@@ -5,8 +5,8 @@ namespace TKOM.Interpreter
     public class StringValueReference : IValueReference
     {
         public Type Type { get; } = Type.String;
-        public string Value { get; }
-        object IValueReference.Value => Value;
+        public string Value { get; set; }
+        object IValueReference.Value { get => Value; set { Value = (string)value; } }
 
         public StringValueReference(string value)
         {

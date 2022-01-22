@@ -1061,5 +1061,63 @@ namespace TKOMTest.InterpreterTests
             errorsCollector.errorsCount.ShouldBe(0);
         }
         #endregion
+
+        [Fact]
+        public void ReferenceSemantics_WhenPassingAsParameter()
+        {
+            // void foo(int a)
+            // { a = a + 1; }
+            // void main()
+            // {
+            //  int a;
+            //  a = 10;
+            //  foo(a);
+            //  print(a);
+            // }
+            var foo = new FunctionDefinition(Type.Void, "foo", new List<Parameter> { new Parameter(Type.Int, "a") },
+                new Block(new List<IStatement>
+            {
+                new Assignment("a", new AdditiveOperator(new Variable("a"), AdditiveOperatorType.Add, new IntConst(1)))
+            }));
+            var main = new FunctionDefinition(Type.Void, "main", new List<Parameter>(), new Block(new List<IStatement>
+            {
+                new Declaration(Type.Int, "a"),
+                new Assignment("a", new IntConst(10)),
+                new FunctionCall("foo", new List<IExpression>{ new Variable("a") }),
+                new FunctionCall("print", new List<IExpression> { new Variable("a") })
+            }));
+            var program = new Program(new List<FunctionDefinition> { foo, main });
+
+            sut.Interpret(program);
+            string output = outputCollector.GetOutput();
+
+            errorsCollector.errorsCount.ShouldBe(0);
+            output.ShouldBe("11");
+        }
+        [Fact]
+        public void ValueSemantics_WhenAssignment()
+        {
+            // int x;
+            // int y;
+            // x = 10;
+            // y = x;
+            // x = x + 1;
+            // print(y);
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new Declaration(Type.Int, "x"),
+                new Declaration(Type.Int, "y"),
+                new Assignment("x", new IntConst(10)),
+                new Assignment("y", new Variable("x")),
+                new Assignment("x", new AdditiveOperator(new Variable("x"), AdditiveOperatorType.Add, new IntConst(1))),
+                new FunctionCall("print", new List<IExpression> { new Variable("y") })
+            });
+
+            sut.Interpret(program);
+            string output = outputCollector.GetOutput();
+
+            errorsCollector.errorsCount.ShouldBe(0);
+            output.ShouldBe("10");
+        }
     }
 }

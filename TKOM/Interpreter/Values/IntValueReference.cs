@@ -6,7 +6,7 @@ namespace TKOM.Interpreter
     {
         public Type Type { get; } = Type.Int;
         public int Value { get; set; }
-        object IValueReference.Value => Value;
+        object IValueReference.Value { get => Value; set { Value = (int)value; } }
 
         public IntValueReference(int value)
         {
