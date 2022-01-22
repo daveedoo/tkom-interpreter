@@ -25,19 +25,19 @@ namespace TKOMTest.Utils
             warningsList.Add((location, message));
         }
 
-        public (LexLocation location, string message)? GetLastError()
-        {
-            if (errorsCount == 0)
-                return null;
-            return errorsList[errorsCount - 1];
-        }
+        //public (LexLocation location, string message)? GetLastError()
+        //{
+        //    if (errorsCount == 0)
+        //        return null;
+        //    return errorsList[errorsCount - 1];
+        //}
 
-        public (LexLocation location, string message)? GetLastWarning()
-        {
-            if (warningsCount == 0)
-                return null;
-            return warningsList[warningsCount - 1];
-        }
+        //public (LexLocation location, string message)? GetLastWarning()
+        //{
+        //    if (warningsCount == 0)
+        //        return null;
+        //    return warningsList[warningsCount - 1];
+        //}
 
         public void Error(string message)
         {

@@ -5,12 +5,12 @@ using TKOM.Scanner;
 
 
 var reader = new StreamReader(args[0]);
-var handler = new ErrorHandler();
-var scanner = new Scanner(reader, handler);
+var errHandler = new ErrorHandler();
+var scanner = new Scanner(reader, errHandler);
 var noCommentsFilter = new CommentsFilterScanner(scanner);
 
-var parser = new Parser(noCommentsFilter, handler);
-var interpreter = new Interpreter(handler, Console.Out, Console.In);
+var parser = new Parser(noCommentsFilter, errHandler);
+var interpreter = new Interpreter(errHandler, Console.Out, Console.In);
 
 bool programIsCorrect = parser.TryParse(out TKOM.Node.Program program);
 if (programIsCorrect)
