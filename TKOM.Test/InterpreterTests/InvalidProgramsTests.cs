@@ -906,7 +906,63 @@ namespace TKOMTest.InterpreterTests
 
             errorsCollector.errorsCount.ShouldBe(1);
         }
+        [Fact]
+        public void TryCatchStatement_CatchVariable_IsNotVisibleAfterCatchBlock()
+        {
+            // try { throw 1; }
+            // catch Exception ex { }
+            // ex = 2;
+            var program = BuildMainOnlyProgram(new List<IStatement>
+            {
+                new TryCatchFinally(new ThrowStatement(new IntConst(1)),
+                    new List<Catch>
+                    {
+                        new Catch("ex", new Block(new List<IStatement>()))
+                    }),
+                new Assignment("ex", new IntConst(2))
+            });
 
+            sut.Interpret(program);
+
+            errorsCollector.errorsCount.ShouldBe(1);
+        }
+        [Fact]
+        public void TryCatchStatement_VariableDefinedInThrownContext_ShouldNotBeVisible()
+        {
+            // void foo()
+            // {
+            //  int a;
+            //  a = 9;
+            //  throw 1;
+            // }
+            // void main()
+            // {
+            //  try { foo() }
+            //  catch {}
+            //  print(a);
+            // }
+            var foo = new FunctionDefinition(Type.Void, "foo", new List<Parameter>(), new Block(new List<IStatement>
+            {
+                new Declaration(Type.Int, "a"),
+                new Assignment("a", new IntConst(9)),
+                new ThrowStatement(new IntConst(1))
+            }));
+            var main = new FunctionDefinition(Type.Void, "main", new List<Parameter>(), new Block(new List<IStatement>
+            {
+                new TryCatchFinally(
+                    new FunctionCall("foo", new List<IExpression>()),
+                    new List<Catch> { new Catch(new Block(new List<IStatement>()))}),
+                new FunctionCall("print", new List<IExpression> { new Variable("a") })
+            }));
+            var program = new Program(new List<FunctionDefinition> { foo, main });
+
+            sut.Interpret(program);
+            string output = outputCollector.GetOutput();
+
+            errorsCollector.errorsCount.ShouldBe(1);
+            output.ShouldBe(string.Empty);
+
+        }
         #endregion
     }
 }

@@ -38,10 +38,10 @@ namespace TKOM.Scanner
         public Position Position => reader.Position;
 
 
-        public Scanner(TextReader reader, IErrorHandler errorHandler)
+        public Scanner(TextReader program, IErrorHandler errorHandler)
         {
             this.ErrorHandler = errorHandler;
-            this.reader = new PositionTrackingTextReader(reader);
+            this.reader = new PositionTrackingTextReader(program);
             Current = Token.Error;
             buffer = new LimitedStringBuilder(MAX_TOKEN_LENGTH);
         }

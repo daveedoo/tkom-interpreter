@@ -20,12 +20,13 @@ namespace TKOM.Interpreter
         private Stack<FunctionCallContext> CallStack { get; }
         private FunctionsCollection Functions { get; }
 
-        private bool error = false;
-        private bool returned = false;          // set by ReturnStatement only
-        private bool thrown = false;            // set by ThrownStatement only
-        private bool looping = false;           // set by WhileStatement only
-        private bool loopBroken = false;        // set by BreakStatement only
-        private IValueReference lastExpressionValue = null; // set by all Expressions, only
+        private bool error;
+        private bool returned;          // set by ReturnStatement only
+        private bool thrown;            // set by ThrownStatement only
+        private bool looping;           // set by WhileStatement only
+        private bool loopBroken;        // set by BreakStatement only
+        private IValueReference lastExpressionValue; // set by all Expressions, only
+        private int functionsThrownBy;
         private static readonly string exceptionVariableName = "$exception";
         private static readonly string printVariableName = "$print";
         private static readonly string readVariableName = "$read";
@@ -73,6 +74,23 @@ namespace TKOM.Interpreter
             }
         }
 
+        private void ResetState()
+        {
+            error = false;
+            returned = false;
+            thrown = false;
+            looping = false;
+            loopBroken = false;
+            lastExpressionValue = null;
+            functionsThrownBy = 0;
+        }
+        public void Interpret(Program ast)
+        {
+            ResetState();
+            ast.Accept(this);
+        }
+
+        #region visitors
         public void Visit(Program program)
         {
             foreach (FunctionDefinition funDef in program.functions)
@@ -142,6 +160,28 @@ namespace TKOM.Interpreter
                 ifStatement.ElseStatement.Accept(this);
             }
         }
+        /// <returns>Information if the statement was visited successfully.</returns>
+        private bool TryVisitCatchEmbeddedStatement(Catch catchStatement)
+        {
+            if (catchStatement.Statement is Declaration)
+            {
+                Error($"Embedded statement cannot be a declaration.");
+                return false;
+            }
+            catchStatement.Statement.Accept(this);
+            if (error)
+                return false;
+            if (catchStatement.ExceptionVariableName is not null)
+                CallStack.Peek().RemoveVariable(catchStatement.ExceptionVariableName);
+
+            // take off the stack all the functions thrown by due to the exception throw
+            while (functionsThrownBy > 0)
+            {
+                CallStack.Pop();
+                functionsThrownBy--;
+            }
+            return true;
+        }
         /// <summary>
         /// Tries to visit catch block.
         /// </summary>
@@ -154,19 +194,10 @@ namespace TKOM.Interpreter
             {
                 CallStack.Peek().TryFindVariable(exceptionVariableName, out Variable exceptionVariable);
                 CallStack.Peek().AddVariable(new Variable(catchBlock.ExceptionVariableName, exceptionVariable.ValueReference));
-                CallStack.Peek().RemoveVariable(exceptionVariableName);
             }
 
             if (catchBlock.WhenExpression is null)
-            {
-                if (catchBlock.Statement is Declaration)
-                {
-                    Error($"Embedded statement cannot be a declaration.");
-                    return false;
-                }
-                catchBlock.Statement.Accept(this);
-                return true;
-            }
+                return TryVisitCatchEmbeddedStatement(catchBlock);
 
             catchBlock.WhenExpression.Accept(this);
             if (thrown || error)
@@ -184,15 +215,7 @@ namespace TKOM.Interpreter
 
             int conditionValue = (value as IntValueReference).Value;
             if (conditionValue != 0)
-            {
-                if (catchBlock.Statement is Declaration)
-                {
-                    Error($"Embedded statement cannot be a declaration.");
-                    return false;
-                }
-                catchBlock.Statement.Accept(this);
-                return true;
-            }
+                return TryVisitCatchEmbeddedStatement(catchBlock);
             return false;
         }
         public void Visit(TryCatchFinally tcf)
@@ -218,7 +241,9 @@ namespace TKOM.Interpreter
                     if (caught)
                         break;
                 }
-                if (!caught)
+                if (caught)
+                    CallStack.Peek().RemoveVariable(exceptionVariableName);
+                else
                     thrown = true;
             }
             if (tcf.FinallyStatement is Declaration)
@@ -406,7 +431,12 @@ namespace TKOM.Interpreter
             CallStack.Push(new FunctionCallContext(function, arguments.ToArray()));
 
             function.Accept(this);
-            if (thrown || error)
+            if (thrown)
+            {
+                functionsThrownBy++;
+                return;
+            }
+            if (error)
                 return;
             
             if ((function.ReturnType != Type.Void) &&
@@ -636,6 +666,7 @@ namespace TKOM.Interpreter
 
             lastExpressionValue = ValuesFactory.CreateValue(val);
         }
+        #endregion
         #endregion
     }
 }
