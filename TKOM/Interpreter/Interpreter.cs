@@ -503,6 +503,11 @@ namespace TKOM.Interpreter
                 return false;
             left = values[0];
             right = values[1];
+            if (left is null || right is null)
+            {
+                Error($"None side of binary expression can be of {Type.Void.ToString().ToLower()} type.");
+                return false;
+            }
             return true;
         }
         public void Visit(LogicalOr logicalOr)
@@ -624,12 +629,6 @@ namespace TKOM.Interpreter
         {
             if (!EvaluateBinaryOperator(additiveOperator, out IValueReference leftValue, out IValueReference rightValue))
                 return;
-
-            if (leftValue is null || rightValue is null)
-            {
-                Error($"Both sides of additive expression must be of {Type.Int.ToString().ToLower()} or {Type.String.ToString().ToLower()} type.");
-                return;
-            }
 
             if (additiveOperator.OperatorType == AdditiveOperatorType.Add &&
                 TryStringConcatenation(leftValue, rightValue, out StringValueReference concatenatedValue))

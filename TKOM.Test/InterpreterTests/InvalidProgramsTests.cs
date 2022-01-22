@@ -469,22 +469,6 @@ namespace TKOMTest.InterpreterTests
 
             errorsCollector.errorsCount.ShouldBe(1);
         }
-
-        [Fact]
-        public void AdditiveOperator_Add_LhsIsNotConcatenatable()
-        {
-            var foo = new FunctionDefinition(Type.Void, "foo", new List<Parameter>(), new Block(new List<IStatement>()));
-            var main = new FunctionDefinition(Type.Void, "main", new List<Parameter>(), new Block(new List<IStatement>
-            {
-                new FunctionCall("print", new List<IExpression>{
-                    new AdditiveOperator(new StringConst("A"), AdditiveOperatorType.Add, new FunctionCall("foo", new List<IExpression>()))})
-            }));
-            var program = new Program(new List<FunctionDefinition> { foo, main });
-
-            sut.Interpret(program);
-
-            errorsCollector.errorsCount.ShouldBe(1);
-        }
         [Fact]
         public void AdditiveOperator_Subtract_NonIntType()
         {
@@ -580,6 +564,22 @@ namespace TKOMTest.InterpreterTests
             });
 
             program.Accept(sut);
+
+            errorsCollector.errorsCount.ShouldBe(1);
+        }
+
+        [Fact]
+        public void BinaryOperator_VoidType()
+        {
+            var foo = new FunctionDefinition(Type.Void, "foo", new List<Parameter>(), new Block(new List<IStatement>()));
+            var main = new FunctionDefinition(Type.Void, "main", new List<Parameter>(), new Block(new List<IStatement>
+            {
+                new FunctionCall("print", new List<IExpression>{
+                    new AdditiveOperator(new StringConst("A"), AdditiveOperatorType.Add, new FunctionCall("foo", new List<IExpression>()))})
+            }));
+            var program = new Program(new List<FunctionDefinition> { foo, main });
+
+            sut.Interpret(program);
 
             errorsCollector.errorsCount.ShouldBe(1);
         }
