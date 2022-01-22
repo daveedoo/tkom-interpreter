@@ -11,6 +11,7 @@ namespace TKOM.Parser
         private IScanner scanner { get; }
         private IErrorHandler errorHandler { get; }
         private bool parsed;
+        private bool error = false;
 
         public Parser(IScanner scanner, IErrorHandler errorHandler)
         {
@@ -37,14 +38,30 @@ namespace TKOM.Parser
                     Position errStartPos = scanner.Position;
                     while (scanner.Current != Token.Int && scanner.Current != Token.Void && scanner.Current != Token.EOF)   // functionDef's firsts (+ EOF)
                         Move();
-                    errorHandler.Error(new LexLocation(errStartPos, scanner.Position), "Expected proper function definition.");
+                    Error(new LexLocation(errStartPos, scanner.Position), "Expected proper function definition.");
                 }   // TODO: else { }
                 functions.Add(function);
             }
 
             program = new Program(functions);
             parsed = true;
-            return true;
+            return !error;
+        }
+
+        private void Error(LexLocation location, string message)
+        {
+            errorHandler.Error(location, message);
+            error = true;
+        }
+        private void Error(Position position, string message)
+        {
+            errorHandler.Error(position, message);
+            error = true;
+        }
+        private void Error(string message)
+        {
+            errorHandler.Error(message);
+            error = true;
         }
 
         #region helper methods
@@ -53,7 +70,7 @@ namespace TKOM.Parser
             if (scanner.Current != expectedToken)
             {
                 if (errorMsg)
-                    errorHandler.Error(scanner.Position, $"Syntax error, {expectedToken} expected.");
+                    Error(scanner.Position, $"Syntax error, {expectedToken} expected.");
                 return false;
             }
             Move();
@@ -64,7 +81,7 @@ namespace TKOM.Parser
             if (scanner.Current != expectedToken)
             {
                 if (errorMsg)
-                    errorHandler.Error(scanner.Position, $"Syntax error, {expectedToken} expected.");
+                    Error(scanner.Position, $"Syntax error, {expectedToken} expected.");
                 stringValue = null;
                 return false;
             }
@@ -77,7 +94,7 @@ namespace TKOM.Parser
             if (scanner.Current != expectedToken)
             {
                 if (errorMsg)
-                    errorHandler.Error(scanner.Position, $"Syntax error, {expectedToken} expected.");
+                    Error(scanner.Position, $"Syntax error, {expectedToken} expected.");
                 intValue = null;
                 return false;
             }
@@ -113,7 +130,7 @@ namespace TKOM.Parser
             if (errorMsg)
             {
                 LexLocation errors = new LexLocation(errStart, scanner.Position);
-                errorHandler.Error(errors, $"Syntax error, extra tokens.");
+                Error(errors, $"Syntax error, extra tokens.");
             }
         }
         private bool TryParseTypeToken(out Type? type, bool errorMsg = true)                // type                : "int"
@@ -149,7 +166,7 @@ namespace TKOM.Parser
             TryParseToken(Token.RoundBracketClose);
 
             if (!TryParseBlock(out Block block))
-                errorHandler.Error("Syntax error, function body expected.");
+                Error("Syntax error, function body expected.");
 
             funDef = new FunctionDefinition(type.Value, functionName, parameters, block);
             return true;
@@ -164,7 +181,7 @@ namespace TKOM.Parser
                 return true;
             }
             if (errorMsg)
-                errorHandler.Error("Syntax error, return type expected.");
+                Error("Syntax error, return type expected.");
             return false;
 
         }
@@ -267,7 +284,7 @@ namespace TKOM.Parser
             if (!TryParseToken(Token.Equals, false))
                 return false;
             if (!TryParseExpression(out IExpression expression))
-                errorHandler.Error(scanner.Position, "Syntax error, const value or identifier expected.");
+                Error(scanner.Position, "Syntax error, const value or identifier expected.");
             assignment = new Assignment(identifier, expression);
             return true;
         }
@@ -374,7 +391,7 @@ namespace TKOM.Parser
             while (TryParseToken(Token.Or, false))
             {
                 if (!TryParseLogicalAnd(out IExpression right))
-                    errorHandler.Error(scanner.Position, "Syntax error, const value or identifier expected.");
+                    Error(scanner.Position, "Syntax error, const value or identifier expected.");
                 expression = new LogicalOr(expression, right);
             }
             return true;
@@ -388,7 +405,7 @@ namespace TKOM.Parser
             while (TryParseToken(Token.And, false))
             {
                 if (!TryParseEqualityComparers(out IExpression right))
-                    errorHandler.Error(scanner.Position, "Syntax error, const value or identifier expected.");
+                    Error(scanner.Position, "Syntax error, const value or identifier expected.");
                 expression = new LogicalAnd(expression, right);
             }
             return true;
@@ -402,7 +419,7 @@ namespace TKOM.Parser
             if (TryParseEqualityComparerOperator(out EqualityOperatorType? comparerType))
             {
                 if (!TryParseRelation(out IExpression right))
-                    errorHandler.Error(scanner.Position, "Syntax error, const value or identifier expected.");
+                    Error(scanner.Position, "Syntax error, const value or identifier expected.");
                 expression = new EqualityOperator(expression, comparerType.Value, right);
             }
             return true;
@@ -417,7 +434,7 @@ namespace TKOM.Parser
             if (TryParseRelationOperator(out RelationOperatorType? relation))
             {
                 if(!TryParseAdditive(out IExpression right))
-                    errorHandler.Error(scanner.Position, "Syntax error, const value or identifier expected.");
+                    Error(scanner.Position, "Syntax error, const value or identifier expected.");
                 expression = new RelationOperator(left, relation.Value, right);
             }
             return true;
@@ -429,7 +446,7 @@ namespace TKOM.Parser
             while (TryParseAdditiveOperator(out AdditiveOperatorType? additiveOperator))
             {
                 if (!TryParseMultiplicative(out IExpression right))
-                    errorHandler.Error(scanner.Position, "Syntax error, const value or identifier expected.");
+                    Error(scanner.Position, "Syntax error, const value or identifier expected.");
                 expression = new AdditiveOperator(expression, additiveOperator.Value, right);
             }
             return true;
@@ -441,7 +458,7 @@ namespace TKOM.Parser
             while (TryParseMultiplicativeOperator(out MultiplicativeOperatorType? multiplicativeOperator))
             {
                 if (!TryParseUnary(out IExpression unary))
-                    errorHandler.Error(scanner.Position, "Syntax error, const value or identifier expected.");
+                    Error(scanner.Position, "Syntax error, const value or identifier expected.");
                 expression = new MultiplicativeOperator(expression, multiplicativeOperator.Value, unary);
             }
             return true;
@@ -455,7 +472,7 @@ namespace TKOM.Parser
                 
                 if (!TryParseExpression(out unary))
                 {
-                    errorHandler.Error(scanner.Position, "Syntax error, const value or identifier expected.");
+                    Error(scanner.Position, "Syntax error, const value or identifier expected.");
                 }
                 TryParseToken(Token.RoundBracketClose);
                 return true;
@@ -465,7 +482,7 @@ namespace TKOM.Parser
                 if (!TryParseAtomic(out unary))
                 {
                     if (unaryOperator.HasValue)
-                        errorHandler.Error(scanner.Position, "Syntax error, const value or identifier expected.");
+                        Error(scanner.Position, "Syntax error, const value or identifier expected.");
                     else
                         return false;
                 }

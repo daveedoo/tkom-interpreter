@@ -15,8 +15,6 @@ var interpreter = new Interpreter(errHandler, Console.Out, Console.In);
 bool programIsCorrect = parser.TryParse(out TKOM.Node.Program program);
 if (programIsCorrect)
 {
-    Console.WriteLine("Parsing succesfull");
-    Console.WriteLine("==================");
     program.Accept(interpreter);
 }
 else
