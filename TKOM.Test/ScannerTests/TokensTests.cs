@@ -70,7 +70,7 @@ namespace TKOMTest.ScannerTests
         // Keywords
         [InlineData("void", Token.Void)]    [InlineData("int", Token.Int)] 
         [InlineData("return", Token.Return)]
-        [InlineData("if", Token.If)]        [InlineData("else", Token.Else)]    [InlineData("while", Token.While)]
+        [InlineData("if", Token.If)]        [InlineData("else", Token.Else)]    [InlineData("while", Token.While)]      [InlineData("break", Token.Break)]
         [InlineData("try", Token.Try)]      [InlineData("catch", Token.Catch)]  [InlineData("finally", Token.Finally)]
         [InlineData("throw", Token.Throw)]  [InlineData("when", Token.When)]    [InlineData("Exception", Token.Exception)]
         // Operators
