@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace TKOM.Scanner
 {
     internal class LimitedStringBuilder
     {
         private StringBuilder builder;
-        public int Length { get => builder.Length; }
+        public int Length => builder.Length;
         public int Capacity { get; }
 
         /// <summary>
@@ -39,14 +36,8 @@ namespace TKOM.Scanner
             return true;
         }
 
-        public void Clear()
-        {
-            builder.Clear();
-        }
+        public void Clear() => builder.Clear();
 
-        public override string ToString()
-        {
-            return builder.ToString();
-        }
+        public override string ToString() => builder.ToString();
     }
 }
