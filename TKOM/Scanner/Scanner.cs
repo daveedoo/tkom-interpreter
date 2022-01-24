@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.IO;
 using TKOM.ErrorHandler;
 
@@ -10,6 +11,7 @@ namespace TKOM.Scanner
 
         public IErrorHandler ErrorHandler { get; }
         public Token Current { get; private set; }
+        object IEnumerator.Current => Current;
 
         private string _stringValue;
         public string StringValue
@@ -36,10 +38,10 @@ namespace TKOM.Scanner
         public Position Position => reader.Position;
 
 
-        public Scanner(TextReader reader, IErrorHandler errorHandler)
+        public Scanner(TextReader program, IErrorHandler errorHandler)
         {
             this.ErrorHandler = errorHandler;
-            this.reader = new PositionTrackingTextReader(reader);
+            this.reader = new PositionTrackingTextReader(program);
             Current = Token.Error;
             buffer = new LimitedStringBuilder(MAX_TOKEN_LENGTH);
         }
@@ -47,6 +49,12 @@ namespace TKOM.Scanner
         private Position tokenStartPosition;
         private LimitedStringBuilder buffer;
 
+        /// <summary>
+        /// Parses the next token from the TextReader. Return <c>true</c> on successful move (not necessarily valid token!).<br></br>
+        /// Returns <c>false</c> only when there is nothing more to read,
+        /// so it doesn't move further after recognition of <c>EOF</c> (returns <c>false</c> on attempt).
+        /// If <c>Error</c> was recognized, proper error message with location is send to the <see cref="ErrorHandler"/>.
+        /// </summary>
         public bool MoveNext()
         {
             if (Current == Token.EOF)
@@ -93,6 +101,7 @@ namespace TKOM.Scanner
                 "if"        => Token.If,
                 "else"      => Token.Else,
                 "while"     => Token.While,
+                "break"     => Token.Break,
                 "try"       => Token.Try,
                 "catch"     => Token.Catch,
                 "finally"   => Token.Finally,
@@ -290,5 +299,13 @@ namespace TKOM.Scanner
             LexLocation location = new LexLocation(tokenStartPosition, Position);
             ErrorHandler.Warning(location, message);
         }
+
+
+        public void Reset()
+        {
+            throw new NotSupportedException();
+        }
+        public void Dispose()
+        { }
     }
 }

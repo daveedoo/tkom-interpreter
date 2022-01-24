@@ -2,13 +2,18 @@
 {
     public class Assignment : IStatement
     {
-        public string Variable { get; }
+        public string VariableName { get; }
         public IExpression Expression { get; }
 
         public Assignment(string variable, IExpression expression)
         {
-            Variable = variable;
+            VariableName = variable;
             Expression = expression;
+        }
+
+        public void Accept(INodeVisitor visitor)
+        {
+            visitor.Visit(this);
         }
     }
 }

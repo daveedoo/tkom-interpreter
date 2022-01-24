@@ -14,7 +14,7 @@
         // Keywords
         Void, Int,
         Return,
-        If, Else, While,
+        If, Else, While, Break,
         Try, Catch, Finally, Throw, When, Exception,
         // Operators
         RoundBracketOpen, RoundBracketClose,

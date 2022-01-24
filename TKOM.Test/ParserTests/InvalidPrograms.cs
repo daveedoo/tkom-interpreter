@@ -5,7 +5,7 @@ using Xunit;
 
 namespace TKOMTest.ParserTests
 {
-    public class InvalidPrograms : ParserTests
+    public class InvalidPrograms : ParserTestsBase
     {
         public static TheoryData<string> invalidPrograms => new TheoryData<string>
         {
@@ -25,9 +25,7 @@ namespace TKOMTest.ParserTests
             "int main() { foo(; }",             // incomplete function call
             "int main() { foo; }",              // incomplete function call
             "int main() { foo(int); }",         // function call with incorrect argument
-            "int main() { throw (); }",         // incomplete throw - no "Exception"
-            "int main() { throw Exception); }", // incomplete throw - no "("
-            "int main() { throw Exception(; }", // incomplete throw - no ")"
+            "int main() { throw (); }",         // incomplete throw - no expression
             "int main() { a = b || ; }",        // incomplete logical or
             "int main() { a = b && ; }",        // incomplete logical and
             "int main() { a = b == ; }",        // incomplete equality operator
@@ -69,8 +67,8 @@ namespace TKOMTest.ParserTests
 
             parser.TryParse(out Program _);
 
-            System.Console.WriteLine(errorHandler.errorCount);
-            errorHandler.errorCount.ShouldBeGreaterThan(0);
+            System.Console.WriteLine(errorsCollector.errorsCount);
+            errorsCollector.errorsCount.ShouldBeGreaterThan(0);
         }
     }
 }

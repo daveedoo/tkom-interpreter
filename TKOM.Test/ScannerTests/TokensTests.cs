@@ -1,16 +1,17 @@
 using System.IO;
 using TKOM.Scanner;
+using TKOMTest.Utils;
 using Xunit;
 
 namespace TKOMTest.ScannerTests
 {
     public partial class ScannerTests
     {
-        private ErrorCollecter errorCollecter;
+        private ErrorsCollector errorCollecter;
         private IScanner buildScanner(string program)
         {
             StringReader reader = new(program);
-            errorCollecter = new ErrorCollecter();
+            errorCollecter = new ErrorsCollector();
             return new Scanner(reader, errorCollecter);
         }
 
@@ -69,7 +70,7 @@ namespace TKOMTest.ScannerTests
         // Keywords
         [InlineData("void", Token.Void)]    [InlineData("int", Token.Int)] 
         [InlineData("return", Token.Return)]
-        [InlineData("if", Token.If)]        [InlineData("else", Token.Else)]    [InlineData("while", Token.While)]
+        [InlineData("if", Token.If)]        [InlineData("else", Token.Else)]    [InlineData("while", Token.While)]      [InlineData("break", Token.Break)]
         [InlineData("try", Token.Try)]      [InlineData("catch", Token.Catch)]  [InlineData("finally", Token.Finally)]
         [InlineData("throw", Token.Throw)]  [InlineData("when", Token.When)]    [InlineData("Exception", Token.Exception)]
         // Operators

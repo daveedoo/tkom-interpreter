@@ -1,28 +1,189 @@
-﻿int fun(int x)
+﻿
+void main()
 {
-    try {
-        int A = x / 0;
-    } catch Exception ex when (x > 7) {     // abcde
-        int B = 57;
-    } catch Exception ex when (5 == 5) {
-        print "\tup\xs!\\\n" + 10;
-    } finally {
-        return x + 1;
+// fibb
+    // int a;
+    // read(a);
+    // print(fibb(a));
+
+    while ()
+    {}
+
+// reads two numbers
+    // numbers();
+
+// reads choinka's level
+    // choinka();
+
+// reads 1 number
+    // foo();
+}
+
+int fibb(int n)
+{
+	    if (n <= 0)
+		    return 0;
+	    if (n == 1)
+	    	return 1;
+	
+        int w;
+        w = fibb(n - 2) + fibb(n - 1);
+        if (n == 4)
+            throw 2;
+        return w;
+}
+
+void numbers()
+{
+    int INTMAX;
+    INTMAX = 2147483647;
+    int x;
+    int y;
+    int pierwsze;
+    pierwsze = 0;
+    int maksymalne;
+    maksymalne = 0;
+    int max;
+    read(x);
+    read(y);
+    int i;
+    i = x;
+    while(i < y)
+    {
+        int z;
+        z = i;
+        while(z != 1)
+        {
+            int help;
+            help = z / 2;
+            if (help * 2 == z)
+            // if(z % 2 == 0)
+            {
+                z = z / 2;
+            }
+            else if((INTMAX - 1) / 3 > z)
+            {
+                z = 3 * z + 1;
+            }
+            else
+            {
+                print(i);
+                print("?\n");
+                // print("%d?\n", i);
+                return;
+            }
+            pierwsze = pierwsze + 1;
+        }
+        if(pierwsze > maksymalne)
+        {
+            maksymalne = pierwsze;
+            max = i;
+        }
+        pierwsze = 0;
+        i = i + 1;
+    }
+    print(max);
+    print(" ");
+    print(maksymalne);
+    print("\n");
+}
+
+int choinka()
+{
+    int n;
+    read(n);
+    int i;
+    i = 0;
+    while (i < n)
+    {
+        int k;
+        k = n - i;
+        int l;
+        l = n + i;
+        int o;
+        o = 0;
+        while (o < 2 * n)
+        {
+            if(o < k || o > l)
+            {
+                print(" ");
+            }
+            else
+            {
+                print("*");
+            }
+            o = o + 1;
+        }
+        print("\n");
+        i = i + 1;
+    }
+    i = 0;
+
+    while(i < 3)
+    {
+        int k;
+        k = n - 1;
+        int o;
+        o = 0;
+        while (o < n + 2)
+        {
+            if(o < k)
+            {
+                print(" ");
+            }
+            else
+            {
+                print("*");
+            }
+            o = o + 1;
+        }
+        print("\n");
+        i = i + 1;
+    }
+    return 0;
+}
+
+
+int fun(int x)
+{
+    try
+    {
+        x = x + 53 + 2 * 14 / 7 - 2;
+        throw x;
+    }
+    catch Exception ex when ex < 7
+    {
+        int B;
+        B = 57;
+        print("hello!\n");
+    }
+    catch Exception ex when 5 == 5
+    {
+        print("\tabcd!\\\n" + 10);
+    }
+    finally
+    {
+        return 100;
     }
 }
 
-void main()
+void foo()
 {
-    int a, b = 17;
+    int a;
+    int b;
+    int j;
+    int i;
     a = 10;
-    int i, j = -89, k;
-    j = j + b*2/a - 3;
+    b = 17;
+    j = -89;
+    j = j + b * 2 / a - 3;
+    j = -j;
+    print(j);
 
     read(i);
-    if (i < j + !~a && 1 == 1)
+    if (i < j + !a && 1 == 1)
         print(fun(3));
     else
         print(":)");
-
     return;
 }

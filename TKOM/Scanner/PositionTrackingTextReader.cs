@@ -3,6 +3,10 @@ using TKOM.ErrorHandler;
 
 namespace TKOM.Scanner
 {
+    /// <summary>
+    /// Decorator around <see cref="TextReader"/> tracking the position
+    /// (line and collumn) based on the read characters.
+    /// </summary>
     internal class PositionTrackingTextReader
     {
         private readonly TextReader reader;

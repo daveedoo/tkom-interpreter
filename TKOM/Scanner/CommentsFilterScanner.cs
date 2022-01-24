@@ -1,4 +1,5 @@
-﻿using TKOM.ErrorHandler;
+﻿using System.Collections;
+using TKOM.ErrorHandler;
 
 namespace TKOM.Scanner
 {
@@ -6,11 +7,13 @@ namespace TKOM.Scanner
     {
         private readonly IScanner scanner;
         public Token Current => scanner.Current;
+        object IEnumerator.Current => Current;
         public string StringValue => scanner.StringValue;
         public int? IntValue => scanner.IntValue;
 
         public Position Position => scanner.Position;
         public IErrorHandler ErrorHandler => scanner.ErrorHandler;
+
 
         public CommentsFilterScanner(IScanner scanner)
         {
@@ -26,5 +29,8 @@ namespace TKOM.Scanner
             }
             return b;
         }
+
+        public void Reset() => scanner.Reset();
+        public void Dispose() => scanner.Dispose();
     }
 }

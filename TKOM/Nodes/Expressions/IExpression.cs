@@ -1,4 +1,5 @@
 ﻿namespace TKOM.Node
 {
-    public interface IExpression { }
+    public interface IExpression : INode
+    { }
 }

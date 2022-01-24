@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace TKOM.Node
 {
@@ -17,6 +16,11 @@ namespace TKOM.Node
             Parameters = parameters;
             Body = body;
         }
+
+        public void Accept(INodeVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
     }
     public class Parameter
     {
@@ -25,9 +29,6 @@ namespace TKOM.Node
 
         public Parameter(Type type, string name)
         {
-            if (type == Type.Void)
-                throw new ArgumentException("Parameter cannot be of void type.");
-
             Type = type;
             Name = name;
         }

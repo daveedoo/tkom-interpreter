@@ -15,5 +15,10 @@
             OperatorType = operatorType;
             Expression = expression;
         }
+
+        public void Accept(INodeVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
     }
 }

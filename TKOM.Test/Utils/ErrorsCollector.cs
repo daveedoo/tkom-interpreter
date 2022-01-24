@@ -1,19 +1,19 @@
 ﻿using System.Collections.Generic;
 using TKOM.ErrorHandler;
 
-namespace TKOMTest
+namespace TKOMTest.Utils
 {
-    public class ErrorCollecter : IErrorHandler
+    public class ErrorsCollector : IErrorHandler
     {
         private List<(LexLocation, string)> errorsList = new List<(LexLocation, string)>();
         private List<string> noLocationErrorsList = new List<string>();
-        public int errorCount => errorsList.Count + noLocationErrorsList.Count;
+        public int errorsCount => errorsList.Count + noLocationErrorsList.Count;
 
         private List<(LexLocation, string)> warningsList = new List<(LexLocation, string)>();
         private List<string> noLocationWarningsList = new List<string>();
         public int warningsCount => warningsList.Count + noLocationWarningsList.Count;
 
-        public ErrorCollecter() { }
+        public ErrorsCollector() { }
 
         public void Error(LexLocation location, string message)
         {
@@ -25,19 +25,19 @@ namespace TKOMTest
             warningsList.Add((location, message));
         }
 
-        public (LexLocation location, string message)? GetLastError()
-        {
-            if (errorCount == 0)
-                return null;
-            return errorsList[errorCount - 1];
-        }
+        //public (LexLocation location, string message)? GetLastError()
+        //{
+        //    if (errorsCount == 0)
+        //        return null;
+        //    return errorsList[errorsCount - 1];
+        //}
 
-        public (LexLocation location, string message)? GetLastWarning()
-        {
-            if (warningsCount == 0)
-                return null;
-            return warningsList[warningsCount - 1];
-        }
+        //public (LexLocation location, string message)? GetLastWarning()
+        //{
+        //    if (warningsCount == 0)
+        //        return null;
+        //    return warningsList[warningsCount - 1];
+        //}
 
         public void Error(string message)
         {

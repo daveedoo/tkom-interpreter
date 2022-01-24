@@ -10,5 +10,7 @@
             Left = left;
             Right = right;
         }
+
+        public abstract void Accept(INodeVisitor visitor);
     }
 }

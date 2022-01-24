@@ -18,6 +18,7 @@ statement           : simple_statement ";"
                     ;
 simple_statement    : declaration
                     | return
+                    | "break"
                     | throw
                     | assignment
                     | function_call
@@ -48,14 +49,14 @@ while               : "while" "(" expression ")" statement
                     ;
 
 // ================= EXCEPTIONS =================
-throw               : "throw" "Exception" "(" expression ")"
+throw               : "throw" expression
                     ;
 
 try_catch_finally   : "try" statement 
                         catch { catch }
                         [ "finally" statement ]
                     ;
-catch               : "catch" "Exception" IDENTIFIER [ "when" expression ] statement
+catch               : "catch" [ "Exception" IDENTIFIER ] [ "when" expression ] statement
                     ;
 
 // ================= OPERATORS =================

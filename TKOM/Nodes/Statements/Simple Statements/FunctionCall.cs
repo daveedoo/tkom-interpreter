@@ -12,5 +12,10 @@ namespace TKOM.Node
             Identifier = identifier;
             Arguments = arguments;
         }
+
+        public void Accept(INodeVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
     }
 }

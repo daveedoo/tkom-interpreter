@@ -38,7 +38,7 @@ namespace TKOMTest.ScannerTests
 
             scanner.MoveNext();
 
-            Assert.Equal(1, errorCollecter.errorCount);
+            Assert.Equal(1, errorCollecter.errorsCount);
         }
         [Theory]
         [MemberData(nameof(ErrorTokenPrograms))]
@@ -67,7 +67,7 @@ namespace TKOMTest.ScannerTests
 
             Assert.Equal(Token.Identifier, scanner.Current);
             Assert.Equal(many_a, scanner.StringValue);
-            Assert.Equal(0, errorCollecter.errorCount);
+            Assert.Equal(0, errorCollecter.errorsCount);
         }
         [Fact]
         public void WhenVeryLongIdentifier_SkipsLettersAndDigits()

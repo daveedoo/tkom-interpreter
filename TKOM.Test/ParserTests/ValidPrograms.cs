@@ -6,7 +6,7 @@ using Xunit;
 
 namespace TKOMTest.ParserTests
 {
-    public class ValidPrograms : ParserTests
+    public class ValidPrograms : ParserTestsBase
     {
         [Fact]
         public void EmptyFunction()
@@ -14,7 +14,7 @@ namespace TKOMTest.ParserTests
             string program = "int main() {}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>()))
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>()))
                 });
             IParser parser = buildParser(program);
 
@@ -22,7 +22,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void ConsecutiveTryParseCall_ReturnsFalse()
@@ -49,7 +49,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void MultipleFunctions()
@@ -58,8 +58,8 @@ namespace TKOMTest.ParserTests
                              "int main() {}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "foo", new List<Parameter>(), new Block(new List<IStatement>())),
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>()))
+                    new FunctionDefinition(Type.Int, "foo", new List<Parameter>(), new Block(new List<IStatement>())),
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>()))
                 });
             IParser parser = buildParser(program);
 
@@ -67,7 +67,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void FunctionWithSingleParam()
@@ -75,9 +75,9 @@ namespace TKOMTest.ParserTests
             string program = "int main(int a) {}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>
                     {
-                        new Parameter(Type.IntType, "a")
+                        new Parameter(Type.Int, "a")
                     }, new Block(new List<IStatement>()))
                 });
             IParser parser = buildParser(program);
@@ -86,7 +86,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void FunctionWithMultipleParameters()
@@ -94,10 +94,10 @@ namespace TKOMTest.ParserTests
             string program = "int main(int a, int b) {}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>
                     {
-                        new Parameter(Type.IntType, "a"),
-                        new Parameter(Type.IntType, "b")
+                        new Parameter(Type.Int, "a"),
+                        new Parameter(Type.Int, "b")
                     }, new Block(new List<IStatement>()))
                 });
             IParser parser = buildParser(program);
@@ -106,7 +106,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void Declaration()
@@ -117,9 +117,9 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
-                        new Declaration(Type.IntType, "a")
+                        new Declaration(Type.Int, "a")
                     }))
                 });
             IParser parser = buildParser(program);
@@ -128,7 +128,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void MultipleInstructionsInBlock()
@@ -140,10 +140,10 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
-                        new Declaration(Type.IntType, "a"),
-                        new Declaration(Type.IntType, "b")
+                        new Declaration(Type.Int, "a"),
+                        new Declaration(Type.Int, "b")
                     }))
                 });
             IParser parser = buildParser(program);
@@ -152,7 +152,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void Assignment()
@@ -163,7 +163,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a", new IntConst(7))
                     }))
@@ -174,7 +174,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void ReturnStatement()
@@ -185,9 +185,9 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
-                        new Return(new IntConst(10))
+                        new ReturnStatement(new IntConst(10))
                     }))
                 });
             IParser parser = buildParser(program);
@@ -196,7 +196,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void ReturnVoid()
@@ -207,9 +207,9 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
-                        new Return()
+                        new ReturnStatement()
                     }))
                 });
             IParser parser = buildParser(program);
@@ -218,7 +218,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void BasicFunctionCall()
@@ -229,7 +229,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new FunctionCall("foo", new List<IExpression>())
                     }))
@@ -240,7 +240,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void FunctionCallWithParameter()
@@ -251,7 +251,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new FunctionCall("foo", new List<IExpression>{ new Variable("a") })
                     }))
@@ -262,7 +262,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void FunctionCallWithMultipleParameters()
@@ -273,7 +273,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new FunctionCall("foo", new List<IExpression>{ new Variable("a"), new Variable("b") })
                     }))
@@ -284,20 +284,20 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void ThrowStatement()
         {
             string program = "int main()" +
                 "{" +
-                "   throw Exception(10);" +
+                "   throw 10;" +
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
-                        new Throw(new IntConst(10))
+                        new ThrowStatement(new IntConst(10))
                     }))
                 });
             IParser parser = buildParser(program);
@@ -306,7 +306,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void IfStatementBasic()
@@ -318,9 +318,9 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
-                        new If(new IntConst(1), new Assignment("a", new IntConst(0)))
+                        new IfStatement(new IntConst(1), new Assignment("a", new IntConst(0)))
                     }))
                 });
             IParser parser = buildParser(program);
@@ -329,7 +329,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void IfStatementWithBlockStatement()
@@ -343,9 +343,9 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
-                        new If(new IntConst(1), new Block(new List<IStatement>{
+                        new IfStatement(new IntConst(1), new Block(new List<IStatement>{
                             new Assignment("a", new IntConst(0))
                         }))
                     }))
@@ -356,7 +356,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void IfStatementWithElse()
@@ -370,9 +370,9 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
-                        new If(new IntConst(1),
+                        new IfStatement(new IntConst(1),
                             new Assignment("a", new IntConst(1)),
                             new Assignment("a", new IntConst(0))
                         )
@@ -384,7 +384,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void WhileStatement()
@@ -396,9 +396,9 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
-                        new While(new IntConst(1), new Return())
+                        new WhileStatement(new IntConst(1), new ReturnStatement())
                     }))
                 });
             IParser parser = buildParser(program);
@@ -407,7 +407,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void TryCatchStatement()
@@ -416,18 +416,22 @@ namespace TKOMTest.ParserTests
                 "{" +
                 "   try {" +
                 "       a = 10;" +
-                "   } catch Exception e" +
+                "   } catch Exception e {" +
                 "       int x;" +
+                "   }" +
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new TryCatchFinally(new Block(new List<IStatement>{
                             new Assignment("a", new IntConst(10)) }), 
                         new List<Catch>
                             {
-                                new Catch("e", new Declaration(Type.IntType, "x"))
+                                new Catch("e", new Block(new List<IStatement>
+                                {
+                                    new Declaration(Type.Int, "x")
+                                }))
                             })
                     }))
                 });
@@ -437,7 +441,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void TryCatchFinallyMoreComplex()
@@ -457,18 +461,18 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new TryCatchFinally(new Block(new List<IStatement>{
                             new Assignment("a", new IntConst(10)) }),
                         new List<Catch>
                         {
-                            new Catch("e", new Declaration(Type.IntType, "x"), new IntConst(1)),
+                            new Catch("e", new Declaration(Type.Int, "x"), new IntConst(1)),
                             new Catch("f", new Block(new List<IStatement>()))
                         },
                         new Block(new List<IStatement>
                         {
-                            new Declaration(Type.IntType, "k"),
+                            new Declaration(Type.Int, "k"),
                             new FunctionCall("foo", new List<IExpression>{ new Variable("k") })
                         }))
                     }))
@@ -479,7 +483,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
 
         // OPERATORS
@@ -492,7 +496,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a", new LogicalOr(new IntConst(1), new IntConst(2)))
                     }))
@@ -503,7 +507,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void LogicalOrWithIdentifiers()
@@ -514,7 +518,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a", new LogicalOr(new Variable("b"), new Variable("c")))
                     }))
@@ -525,7 +529,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void MultipleLogicalOr()
@@ -536,7 +540,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                             new LogicalOr(
@@ -551,7 +555,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void MultipleLogicalOrWithIdentifiers()
@@ -562,7 +566,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                             new LogicalOr(
@@ -577,7 +581,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void LogicalAnd()
@@ -588,7 +592,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a", new LogicalAnd(new IntConst(1), new IntConst(2)))
                     }))
@@ -599,7 +603,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void MultipleLogicalAnd()
@@ -610,7 +614,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                             new LogicalAnd(
@@ -624,7 +628,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void EqualityOperator()
@@ -635,7 +639,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a", new EqualityOperator(new IntConst(1), EqualityOperatorType.Equality, new IntConst(2)))
                     }))
@@ -646,7 +650,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void InequalityOperator()
@@ -657,7 +661,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                             new EqualityOperator(new IntConst(2), EqualityOperatorType.Inequality, new IntConst(3)))
@@ -669,7 +673,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void RelationLessEqual()
@@ -680,7 +684,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                             new RelationOperator(
@@ -693,7 +697,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void RelationGreaterEqual()
@@ -704,7 +708,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                             new RelationOperator(
@@ -717,7 +721,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void RelationLessThan()
@@ -728,7 +732,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                             new RelationOperator(
@@ -741,7 +745,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void RelationGreaterThan()
@@ -752,7 +756,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                             new RelationOperator(
@@ -765,7 +769,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void Add()
@@ -776,7 +780,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                             new AdditiveOperator(
@@ -789,7 +793,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void Subtract()
@@ -800,7 +804,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                             new AdditiveOperator(
@@ -813,7 +817,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void Multiply()
@@ -824,7 +828,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                             new MultiplicativeOperator(
@@ -837,7 +841,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void Divide()
@@ -848,7 +852,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                             new MultiplicativeOperator(
@@ -861,7 +865,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void Unary_Minus()
@@ -872,7 +876,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                             new UnaryOperator(
@@ -885,7 +889,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void Unary_Negation()
@@ -896,7 +900,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                             new UnaryOperator(
@@ -909,7 +913,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void Brackets()
@@ -920,7 +924,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                                 new Variable("b"))
@@ -932,7 +936,7 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
         [Fact]
         public void Atomic_FunctionCall()
@@ -943,7 +947,7 @@ namespace TKOMTest.ParserTests
                 "}";
             Program ast = new Program(new List<FunctionDefinition>
                 {
-                    new FunctionDefinition(Type.IntType, "main", new List<Parameter>(), new Block(new List<IStatement>
+                    new FunctionDefinition(Type.Int, "main", new List<Parameter>(), new Block(new List<IStatement>
                     {
                         new Assignment("a",
                                 new FunctionCall("foo", new List<IExpression>()))
@@ -955,7 +959,29 @@ namespace TKOMTest.ParserTests
 
             parsed.ShouldBeTrue();
             actualTree.ShouldBeEquivalentTo(ast);
-            errorHandler.errorCount.ShouldBe(0);
+            errorsCollector.errorsCount.ShouldBe(0);
+        }
+        [Fact]
+        public void StringConstRecognition()
+        {
+            string program = "void main()" +
+                "{" +
+                "   print(\"abcd\");" +
+                "}";
+            var ast = new Program(new List<FunctionDefinition>
+            {
+                new FunctionDefinition(Type.Void, "main", new List<Parameter>(), new Block(new List<IStatement>
+                {
+                    new FunctionCall("print", new List<IExpression> { new StringConst("abcd") })
+                }))
+            });
+            var parser = buildParser(program);
+
+            bool parsed = parser.TryParse(out Program actualTree);
+
+            parsed.ShouldBeTrue();
+            actualTree.ShouldBeEquivalentTo(ast);
+            errorsCollector.errorsCount.ShouldBe(0);
         }
     }
 }

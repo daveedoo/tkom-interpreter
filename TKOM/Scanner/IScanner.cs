@@ -1,22 +1,28 @@
-﻿using TKOM.ErrorHandler;
+﻿using System.Collections.Generic;
+using TKOM.ErrorHandler;
 
 namespace TKOM.Scanner
 {
-    public interface IScanner
+    public interface IScanner : IEnumerator<Token>
     {
-        public Token Current { get; }
+        /// <summary>
+        /// <c>string</c> representation of the current Token - if the Token has one.
+        /// Null otherwise.
+        /// </summary>
         public string StringValue { get; }
+        /// <summary>
+        /// <c>string</c> representation of the current Token - if the Token has one.
+        /// Null otherwise.
+        /// </summary>
         public int? IntValue { get; }
 
-        public Position Position { get; }
-        public IErrorHandler ErrorHandler { get; }
-
         /// <summary>
-        /// Parses the next token from the TextReader. Return <c>true</c> on successful move (not necessarily valid token!).<br></br>
-        /// Returns <c>false</c> only when there is nothing more to read,
-        /// so it doesn't move further after recognition of <c>EOF</c> (returns <c>false</c> on attempt).
-        /// If <c>Error</c> was recognized, proper error message with location is send to the <see cref="ErrorHandler"/>.
+        /// Current position in the input stream.
         /// </summary>
-        public bool MoveNext();
+        public Position Position { get; }
+        /// <summary>
+        /// Object used for handling errors occurred in the process of scanning the input.
+        /// </summary>
+        public IErrorHandler ErrorHandler { get; }
     }
 }
