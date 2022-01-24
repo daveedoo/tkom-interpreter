@@ -239,7 +239,10 @@ namespace TKOM.Interpreter
                     if (error)
                         return;
                     if (caught)
+                    {
+                        //thrown = false;
                         break;
+                    }
                 }
                 if (caught)
                     CallStack.Peek().RemoveVariable(exceptionVariableName);

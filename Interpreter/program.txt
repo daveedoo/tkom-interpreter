@@ -6,11 +6,14 @@ void main()
     // read(a);
     // print(fibb(a));
 
+    while ()
+    {}
+
 // reads two numbers
     // numbers();
 
 // reads choinka's level
-    choinka();
+    // choinka();
 
 // reads 1 number
     // foo();
@@ -18,12 +21,16 @@ void main()
 
 int fibb(int n)
 {
-	if (n <= 0)
-		return 0;
-	if (n == 1)
-		return 1;
+	    if (n <= 0)
+		    return 0;
+	    if (n == 1)
+	    	return 1;
 	
-	return fibb(n - 2) + fibb(n - 1);
+        int w;
+        w = fibb(n - 2) + fibb(n - 1);
+        if (n == 4)
+            throw 2;
+        return w;
 }
 
 void numbers()

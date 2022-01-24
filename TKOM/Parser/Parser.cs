@@ -317,7 +317,8 @@ namespace TKOM.Parser
             if (!TryParseToken(Token.While, false))
                 return false;
             TryParseToken(Token.RoundBracketOpen);
-            TryParseExpression(out IExpression expression);
+            if (!TryParseExpression(out IExpression expression))
+                Error(scanner.Position, "Error");
             TryParseToken(Token.RoundBracketClose);
             TryParseStatement(out IStatement statement);
 
